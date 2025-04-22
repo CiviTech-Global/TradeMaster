@@ -1,5 +1,7 @@
 # TradeMaster
 
+<img src="./trademaster banner.png" alt="banner" />
+
 TradeMaster is a peer‑to‑peer marketplace platform that empowers individuals to create their own shops, list both physical products and digital services, and transact directly with buyers—eliminating middlemen and fostering authentic community connections. By combining versatile listings, real‑time messaging, reputation systems, and sustainability principles, TradeMaster unlocks new income streams for artisans, resellers, consultants, and creators. Thoughtfully designed personas illustrate how diverse users—from handcrafted‑goods makers to digital consultants—can leverage the platform, while built‑in trust mechanisms and future AI‑powered features ensure long‑term growth and user confidence.
 
 ## Concept and Vision
