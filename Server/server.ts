@@ -20,7 +20,7 @@ app.get("/", (req, res) => {
 });
 
 // Health check endpoint
-app.get("/health", (req, res) => {
+app.get("/", (req, res) => {
   res.json({
     status: "OK",
     uptime: process.uptime(),
@@ -31,7 +31,7 @@ app.get("/health", (req, res) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 TradeMaster Server running on port ${PORT}`);
-  console.log(`📊 Health check available at http://localhost:${PORT}/health`);
+  console.log(`📊 Health check available at http://localhost:${PORT}/`);
 });
 
 export default app;
