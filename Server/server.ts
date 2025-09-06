@@ -1,11 +1,13 @@
+import "reflect-metadata";
 import express from "express";
 import dotenv from "dotenv";
+import { initializeDatabase, closeDatabase } from "./infrastructure.layer/database";
 
 // Load environment variables
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.BACKEND_PORT || process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json());
@@ -20,7 +22,7 @@ app.get("/", (req, res) => {
 });
 
 // Health check endpoint
-app.get("/", (req, res) => {
+app.get("/health", (req, res) => {
   res.json({
     status: "OK",
     uptime: process.uptime(),
@@ -28,10 +30,34 @@ app.get("/", (req, res) => {
   });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 TradeMaster Server running on port ${PORT}`);
-  console.log(`📊 Health check available at http://localhost:${PORT}/`);
+// Initialize database and start server
+const startServer = async () => {
+  try {
+    await initializeDatabase();
+    
+    app.listen(PORT, () => {
+      console.log(`🚀 TradeMaster Server running on port ${PORT}`);
+      console.log(`📊 Health check available at http://localhost:${PORT}/health`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  console.log('SIGTERM received. Shutting down gracefully...');
+  await closeDatabase();
+  process.exit(0);
 });
+
+process.on('SIGINT', async () => {
+  console.log('SIGINT received. Shutting down gracefully...');
+  await closeDatabase();
+  process.exit(0);
+});
+
+startServer();
 
 export default app;
