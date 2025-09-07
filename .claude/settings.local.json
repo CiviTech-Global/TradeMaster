@@ -6,7 +6,8 @@
       "Bash(npm install:*)",
       "Bash(npm run typecheck:*)",
       "Bash(npm run:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npx eslint:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,23 +1,20 @@
 import express from "express";
-import { getAllUsers } from "../../application.layer/controllers/user.ctrl";
+import {
+  getAllUsers,
+  getUserById,
+  createUser,
+  updateUser,
+  changePassword,
+  deleteUser
+} from "../../application.layer/controllers/user.ctrl";
+
 const router = express.Router();
 
 router.get("/", getAllUsers);
-
-router.post("/", (req, res) => {
-  res.send("Hello World");
-});
-
-router.put("/:id", (req, res) => {
-  res.send("Hello World");
-});
-
-router.delete("/:id", (req, res) => {
-  res.send("Hello World");
-});
-
-router.get("/:id", (req, res) => {
-  res.send("Hello World");
-});
+router.get("/:id", getUserById);
+router.post("/", createUser);
+router.patch("/:id", updateUser);
+router.patch("/change-password/:id", changePassword);
+router.delete("/:id", deleteUser);
 
 export default router;

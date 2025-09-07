@@ -1,1 +1,50 @@
+### Get All Users
 GET http://localhost:3000/users
+
+###
+
+### Get User By ID
+GET http://localhost:3000/users/1
+
+###
+
+### Create New User
+POST http://localhost:3000/users
+Content-Type: application/json
+
+{
+  "firstname": "John",
+  "lastname": "Doe",
+  "email": "john.doe@example.com",
+  "password": "password123"
+}
+
+###
+
+### Update User
+PATCH http://localhost:3000/users/1
+Content-Type: application/json
+
+{
+  "firstname": "Jane",
+  "lastname": "Smith",
+  "email": "jane.smith@example.com"
+}
+
+###
+
+### Change Password
+PATCH http://localhost:3000/users/change-password/1
+Content-Type: application/json
+
+{
+  "currentPassword": "password123",
+  "newPassword": "newpassword456"
+}
+
+###
+
+### Delete User
+DELETE http://localhost:3000/users/1
+
+###
