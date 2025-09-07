@@ -1,7 +1,11 @@
 import "reflect-metadata";
 import express from "express";
 import dotenv from "dotenv";
-import { initializeDatabase, closeDatabase } from "./infrastructure.layer/database";
+import {
+  initializeDatabase,
+  closeDatabase,
+} from "./infrastructure.layer/database";
+import userRoutes from "./presentation.layer/routes/user.route";
 
 // Load environment variables
 dotenv.config();
@@ -34,26 +38,28 @@ app.get("/health", (req, res) => {
 const startServer = async () => {
   try {
     await initializeDatabase();
-    
+    app.use("/users", userRoutes);
     app.listen(PORT, () => {
       console.log(`🚀 TradeMaster Server running on port ${PORT}`);
-      console.log(`📊 Health check available at http://localhost:${PORT}/health`);
+      console.log(
+        `📊 Health check available at http://localhost:${PORT}/health`
+      );
     });
   } catch (error) {
-    console.error('Failed to start server:', error);
+    console.error("Failed to start server:", error);
     process.exit(1);
   }
 };
 
 // Graceful shutdown
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM received. Shutting down gracefully...');
+process.on("SIGTERM", async () => {
+  console.log("SIGTERM received. Shutting down gracefully...");
   await closeDatabase();
   process.exit(0);
 });
 
-process.on('SIGINT', async () => {
-  console.log('SIGINT received. Shutting down gracefully...');
+process.on("SIGINT", async () => {
+  console.log("SIGINT received. Shutting down gracefully...");
   await closeDatabase();
   process.exit(0);
 });
