@@ -8,7 +8,10 @@
     "start": "node dist/server.js",
     "test": "vitest",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "db:migrate": "tsx scripts/db-migrate.ts up",
+    "db:rollback": "tsx scripts/db-migrate.ts down",
+    "db:status": "tsx scripts/db-migrate.ts status"
   },
   "keywords": [],
   "author": "",
@@ -16,13 +19,17 @@
   "type": "commonjs",
   "description": "",
   "dependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/pg-pool": "^2.0.6",
     "@types/pg-types": "^1.11.5",
+    "bcrypt": "^6.0.0",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "pg": "^8.16.3",
     "pg-pool": "^3.10.1",
     "pg-types": "^4.1.0",
+    "reflect-metadata": "^0.2.2",
+    "sequelize": "^6.37.7",
     "sequelize-typescript": "^2.1.6"
   },
   "devDependencies": {
@@ -34,6 +41,7 @@
     "tsx": "^4.20.4",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.39.1",
+    "umzug": "^3.8.2",
     "vitest": "^3.2.4"
   }
 }
