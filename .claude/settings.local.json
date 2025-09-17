@@ -9,7 +9,9 @@
       "Bash(curl:*)",
       "Bash(npx eslint:*)",
       "mcp__ide__getDiagnostics",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(find:*)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []
