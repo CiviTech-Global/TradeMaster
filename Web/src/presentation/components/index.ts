@@ -4,3 +4,5 @@ export { default as AuthLayout } from './AuthLayout';
 export { default as Button } from './Button';
 export { default as FormContainer } from './FormContainer';
 export { default as Input } from './Input';
+export { default as Sidebar } from './Sidebar';
+export { default as DashboardLayout } from './DashboardLayout';
