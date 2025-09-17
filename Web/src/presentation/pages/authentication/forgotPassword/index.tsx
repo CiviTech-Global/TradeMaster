@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuthContext } from '../../../context/AuthContext';
+import { useAppSelector, useAppDispatch } from '../../../../application/redux/hooks';
+import { forgotPassword, clearError, selectAuthLoading, selectAuthError } from '../../../../application/redux';
 import AuthLayout from '../../../components/AuthLayout';
 import FormContainer from '../../../components/FormContainer';
 import Input from '../../../components/Input';
@@ -8,7 +9,9 @@ import Button from '../../../components/Button';
 import AuthIllustration from '../../../components/AuthIllustration';
 
 const TMForgotPassword: React.FC = () => {
-  const { forgotPassword, isLoading, error, clearError } = useAuthContext();
+  const dispatch = useAppDispatch();
+  const isLoading = useAppSelector(selectAuthLoading);
+  const error = useAppSelector(selectAuthError);
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [validationError, setValidationError] = useState<string>('');
@@ -23,7 +26,7 @@ const TMForgotPassword: React.FC = () => {
 
     // Clear auth errors
     if (error) {
-      clearError();
+      dispatch(clearError());
     }
   };
 
@@ -46,10 +49,10 @@ const TMForgotPassword: React.FC = () => {
     }
 
     try {
-      await forgotPassword({ email: email.trim() });
+      await dispatch(forgotPassword({ email: email.trim() })).unwrap();
       setIsSubmitted(true);
     } catch (error) {
-      // Error is already handled by the useAuth hook
+      // Error is already handled by the Redux slice
       console.error('Forgot password failed:', error);
     }
   };

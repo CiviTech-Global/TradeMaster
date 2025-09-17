@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
-import { useAuthContext } from '../../../context/AuthContext';
+import { useAppSelector, useAppDispatch } from '../../../../application/redux/hooks';
+import { changePassword, clearError, selectUser, selectAuthLoading, selectAuthError } from '../../../../application/redux';
 import { Input, Button } from '../../../components';
 
 const TMSettings: React.FC = () => {
-  const { user, changePassword, isLoading, error, clearError } = useAuthContext();
+  const dispatch = useAppDispatch();
+  const user = useAppSelector(selectUser);
+  const isLoading = useAppSelector(selectAuthLoading);
+  const error = useAppSelector(selectAuthError);
   const [formData, setFormData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -36,7 +40,7 @@ const TMSettings: React.FC = () => {
     }
 
     // Clear messages
-    if (error) clearError();
+    if (error) dispatch(clearError());
     if (successMessage) setSuccessMessage('');
   };
 
@@ -71,10 +75,10 @@ const TMSettings: React.FC = () => {
     }
 
     try {
-      await changePassword({
+      await dispatch(changePassword({
         currentPassword: formData.currentPassword,
         newPassword: formData.newPassword
-      });
+      })).unwrap();
 
       setSuccessMessage('Password updated successfully');
       setFormData({
@@ -186,7 +190,7 @@ const TMSettings: React.FC = () => {
                     setShowPasswordForm(false);
                     setFormData({ currentPassword: '', newPassword: '', confirmPassword: '' });
                     setValidationErrors({});
-                    clearError();
+                    dispatch(clearError());
                     setSuccessMessage('');
                   }}
                 >

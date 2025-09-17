@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuthContext } from '../../../context/AuthContext';
+import { useAppSelector, useAppDispatch } from '../../../../application/redux/hooks';
+import { resetPassword, clearError, selectAuthLoading, selectAuthError } from '../../../../application/redux';
 import AuthLayout from '../../../components/AuthLayout';
 import FormContainer from '../../../components/FormContainer';
 import Input from '../../../components/Input';
@@ -10,7 +11,9 @@ import AuthIllustration from '../../../components/AuthIllustration';
 const TMSetNewPassword: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { resetPassword, isLoading, error, clearError } = useAuthContext();
+  const dispatch = useAppDispatch();
+  const isLoading = useAppSelector(selectAuthLoading);
+  const error = useAppSelector(selectAuthError);
 
   const [formData, setFormData] = useState({
     password: '',
@@ -52,7 +55,7 @@ const TMSetNewPassword: React.FC = () => {
 
     // Clear auth errors
     if (error) {
-      clearError();
+      dispatch(clearError());
     }
   };
 
@@ -83,15 +86,15 @@ const TMSetNewPassword: React.FC = () => {
     }
 
     try {
-      await resetPassword({
+      await dispatch(resetPassword({
         token,
         newPassword: formData.password
-      });
+      })).unwrap();
 
       // Navigate to signin page on successful password reset
       navigate('/signin?message=Password reset successful. Please sign in with your new password.');
     } catch (error) {
-      // Error is already handled by the useAuth hook
+      // Error is already handled by the Redux slice
       console.error('Reset password failed:', error);
     }
   };
