@@ -1,6 +1,7 @@
 import { Sequelize } from 'sequelize-typescript';
 import { config } from './config';
 import { User } from '../../domain.layer/models/user';
+import { Business } from '../../domain.layer/models/business';
 
 const sequelize = new Sequelize({
   dialect: 'postgres',
@@ -9,7 +10,7 @@ const sequelize = new Sequelize({
   database: config.database,
   username: config.user,
   password: config.password,
-  models: [User],
+  models: [User, Business],
   logging: process.env.NODE_ENV === 'development' ? console.log : false,
   pool: {
     max: 10,

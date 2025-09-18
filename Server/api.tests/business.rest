@@ -1,0 +1,55 @@
+### Get All Businesses
+GET http://localhost:3000/businesses
+
+###
+
+### Get Active Businesses
+GET http://localhost:3000/businesses/active
+
+###
+
+### Get Business By ID
+GET http://localhost:3000/businesses/1
+
+###
+
+### Get Businesses By Owner
+GET http://localhost:3000/businesses/owner/1
+
+###
+
+### Create New Business
+POST http://localhost:3000/businesses
+Content-Type: application/json
+
+{
+  "owner": 1,
+  "title": "Tech Solutions Inc",
+  "longitude": -122.4194,
+  "latitude": 37.7749,
+  "address": "123 Tech Street, San Francisco, CA 94105",
+  "emails": ["contact@techsolutions.com", "support@techsolutions.com"],
+  "phones": ["+1-555-123-4567", "+1-555-987-6543"],
+  "is_active": true,
+  "logo": "https://example.com/logo.png"
+}
+
+###
+
+### Update Business
+PATCH http://localhost:3000/businesses/1
+Content-Type: application/json
+
+{
+  "title": "Tech Solutions LLC",
+  "address": "456 Innovation Drive, San Francisco, CA 94107",
+  "emails": ["info@techsolutions.com"],
+  "is_active": true
+}
+
+###
+
+### Delete Business
+DELETE http://localhost:3000/businesses/1
+
+###

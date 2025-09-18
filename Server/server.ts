@@ -8,6 +8,7 @@ import {
 } from "./infrastructure.layer/database";
 import userRoutes from "./presentation.layer/routes/user.route";
 import authRoutes from "./presentation.layer/routes/auth.route";
+import businessRoutes from "./presentation.layer/routes/business.route";
 
 // Load environment variables
 dotenv.config();
@@ -46,6 +47,7 @@ const startServer = async () => {
     await initializeDatabase();
     app.use("/users", userRoutes);
     app.use("/auth", authRoutes);
+    app.use("/businesses", businessRoutes);
     app.listen(PORT, () => {
       console.log(`🚀 TradeMaster Server running on port ${PORT}`);
       console.log(
