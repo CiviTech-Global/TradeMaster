@@ -21,6 +21,13 @@ const sidebarItems: SidebarItem[] = [
     type: 'navigation'
   },
   {
+    id: 'my-businesses',
+    label: 'My Businesses',
+    path: '/dashboard/my-businesses',
+    icon: '🏢',
+    type: 'navigation'
+  },
+  {
     id: 'settings',
     label: 'Settings',
     path: '/dashboard/settings',

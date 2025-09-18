@@ -5,6 +5,7 @@ import { DashboardLayout } from "./presentation/components";
 import TMDashboard from "./presentation/pages/dashboard";
 import TMHome from "./presentation/pages/dashboard/home";
 import TMSettings from "./presentation/pages/dashboard/settings";
+import TMMyBusinesses from "./presentation/pages/dashboard/my-businesses";
 import TMSignin from "./presentation/pages/authentication/signin";
 import TMForgotPassword from "./presentation/pages/authentication/forgotPassword";
 import TMSetNewPassword from "./presentation/pages/authentication/setNewPassword";
@@ -27,6 +28,7 @@ function App() {
             <Route path="/" element={<TMDashboard />} />
             <Route path="/dashboard" element={<DashboardLayout />}>
               <Route path="home" element={<TMHome />} />
+              <Route path="my-businesses" element={<TMMyBusinesses />} />
               <Route path="settings" element={<TMSettings />} />
             </Route>
           </Routes>
