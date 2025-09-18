@@ -8,3 +8,4 @@ export { default as Sidebar } from './Sidebar';
 export { default as DashboardLayout } from './DashboardLayout';
 export { default as AppInitializer } from './AppInitializer';
 export { default as NotificationContainer } from './NotificationContainer';
+export { default as TradeMasterMap } from './Map';
