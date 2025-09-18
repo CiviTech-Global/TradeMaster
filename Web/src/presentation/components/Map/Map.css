@@ -42,7 +42,8 @@
 .map-search {
   position: absolute;
   top: 20px;
-  left: 20px;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 1000;
   width: 300px;
 }
@@ -249,6 +250,8 @@
   .map-search {
     width: calc(100% - 40px);
     max-width: 280px;
+    left: 50%;
+    transform: translateX(-50%);
   }
 
   .map-controls {
@@ -281,7 +284,8 @@
 @media (max-width: 480px) {
   .map-search {
     width: calc(100% - 20px);
-    left: 10px;
+    left: 50%;
+    transform: translateX(-50%);
     top: 10px;
   }
 
