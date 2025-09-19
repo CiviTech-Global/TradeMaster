@@ -506,6 +506,25 @@ export class NetworkService {
  */
 export const networkService = new NetworkService();
 
+// Set up authentication interceptors for the network service
+import { AuthInterceptor } from './authInterceptor';
+
+// Initialize auth interceptors on the default network service
+const authInterceptor = AuthInterceptor.getInstance();
+const axiosInstance = networkService.getHttpClient().getAxiosInstance();
+
+// Add request interceptor for automatic token inclusion
+axiosInstance.interceptors.request.use(
+  authInterceptor.requestInterceptor,
+  authInterceptor.requestErrorInterceptor
+);
+
+// Add response interceptor for token refresh handling
+axiosInstance.interceptors.response.use(
+  authInterceptor.responseInterceptor,
+  authInterceptor.responseErrorInterceptor
+);
+
 /**
  * Utility function to create a configured NetworkService instance
  * @param config - TMAxios configuration

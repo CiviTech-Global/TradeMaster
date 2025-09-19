@@ -76,8 +76,8 @@ class UserRepository {
     return await networkService.delete<APIResponse<void>>(`${this.baseUrl}/${id}`, options);
   }
 
-  async signin(credentials: ISigninRequest, options?: NetworkRequestOptions): Promise<NetworkResponse<APIResponse<{ user: IUser; token: string }>>> {
-    const response = await networkService.post<APIResponse<{ user: IUser; token: string }>>(`/auth/signin`, credentials, options);
+  async signin(credentials: ISigninRequest, options?: NetworkRequestOptions): Promise<NetworkResponse<APIResponse<{ user: IUser; accessToken: string; refreshToken: string }>>> {
+    const response = await networkService.post<APIResponse<{ user: IUser; accessToken: string; refreshToken: string }>>(`/auth/signin`, credentials, options);
     return response;
   }
 
@@ -87,6 +87,10 @@ class UserRepository {
 
   async resetPassword(data: IResetPasswordRequest, options?: NetworkRequestOptions): Promise<NetworkResponse<APIResponse<void>>> {
     return await networkService.post<APIResponse<void>>(`/auth/reset-password`, data, options);
+  }
+
+  async refreshToken(refreshToken: string, options?: NetworkRequestOptions): Promise<NetworkResponse<APIResponse<{ accessToken: string; refreshToken: string }>>> {
+    return await networkService.post<APIResponse<{ accessToken: string; refreshToken: string }>>(`/auth/refresh-token`, { refreshToken }, options);
   }
 }
 

@@ -5,6 +5,14 @@ import {
   verifyPasswordResetTokenQuery,
   resetUserPasswordQuery
 } from "../../infrastructure.layer/utils/auth.util";
+import { createUser } from "./user.ctrl";
+import {
+  generateTokens,
+  verifyAccessToken,
+  verifyRefreshToken,
+  extractTokenFromHeader,
+  AuthenticatedRequest
+} from "../../infrastructure.layer/utils/jwt.util";
 import bcrypt from "bcrypt";
 
 export async function signin(req: Request, res: Response) {
@@ -37,19 +45,37 @@ export async function signin(req: Request, res: Response) {
     // Remove password from response
     const { password: _, ...userWithoutPassword } = user.toJSON();
 
-    // In a real application, generate JWT token here
-    const token = `temp_token_${user.id}_${Date.now()}`;
+    // Generate JWT tokens
+    const tokens = generateTokens(user.id, user.email);
 
     res.json({
       data: {
         user: userWithoutPassword,
-        token: token
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        expiresIn: tokens.expiresIn
       },
       message: "Signin successful"
     });
   } catch (error) {
     console.error("Error during signin:", error);
     res.status(500).json({ error: "Signin failed" });
+  }
+}
+
+export async function signup(req: Request, res: Response) {
+  try {
+    // Use the existing createUser function but return JWT tokens
+    await createUser(req, res);
+
+    // If user creation was successful, the response will have been sent
+    // Check if response was successful and get the user data to generate tokens
+    if (res.headersSent) {
+      return;
+    }
+  } catch (error) {
+    console.error("Error during signup:", error);
+    res.status(500).json({ error: "Signup failed" });
   }
 }
 
@@ -126,32 +152,37 @@ export async function resetPassword(req: Request, res: Response) {
 export async function verifyToken(req: Request, res: Response) {
   try {
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: "No token provided" });
+    if (!authHeader) {
+      return res.status(401).json({
+        error: "No token provided",
+        code: "TOKEN_MISSING"
+      });
     }
 
-    const token = authHeader.substring(7);
-
-    // In a real application, verify JWT token here
-    // For now, just check if token follows our temporary format
-    if (!token.startsWith('temp_token_')) {
-      return res.status(401).json({ error: "Invalid token" });
+    const token = extractTokenFromHeader(authHeader);
+    if (!token) {
+      return res.status(401).json({
+        error: "Invalid authorization header format",
+        code: "INVALID_AUTH_HEADER"
+      });
     }
 
-    const tokenParts = token.split('_');
-    if (tokenParts.length !== 4) {
-      return res.status(401).json({ error: "Invalid token format" });
+    // Verify JWT token
+    const decoded = verifyAccessToken(token);
+    if (!decoded) {
+      return res.status(401).json({
+        error: "Invalid or expired token",
+        code: "TOKEN_INVALID"
+      });
     }
 
-    const userId = parseInt(tokenParts[2], 10);
-    if (isNaN(userId)) {
-      return res.status(401).json({ error: "Invalid user ID in token" });
-    }
-
-    // Get user by ID to verify token is still valid
-    const user = await getUserByEmailQuery('', false, userId);
+    // Get user by ID to verify user still exists
+    const user = await getUserByEmailQuery('', false, decoded.userId);
     if (!user) {
-      return res.status(401).json({ error: "User not found" });
+      return res.status(401).json({
+        error: "User not found",
+        code: "USER_NOT_FOUND"
+      });
     }
 
     const { password: _, ...userWithoutPassword } = user.toJSON();
@@ -159,12 +190,61 @@ export async function verifyToken(req: Request, res: Response) {
     res.json({
       data: {
         user: userWithoutPassword,
-        valid: true
+        valid: true,
+        expiresAt: new Date(decoded.exp! * 1000).toISOString()
       },
       message: "Token is valid"
     });
   } catch (error) {
     console.error("Error during token verification:", error);
     res.status(500).json({ error: "Token verification failed" });
+  }
+}
+
+export async function refreshToken(req: Request, res: Response) {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(400).json({
+        error: "Refresh token is required",
+        code: "REFRESH_TOKEN_MISSING"
+      });
+    }
+
+    // Verify refresh token
+    const decoded = verifyRefreshToken(refreshToken);
+    if (!decoded) {
+      return res.status(401).json({
+        error: "Invalid or expired refresh token",
+        code: "REFRESH_TOKEN_INVALID"
+      });
+    }
+
+    // Get user to verify they still exist
+    const user = await getUserByEmailQuery('', false, decoded.userId);
+    if (!user) {
+      return res.status(401).json({
+        error: "User not found",
+        code: "USER_NOT_FOUND"
+      });
+    }
+
+    // Generate new tokens
+    const tokens = generateTokens(user.id, user.email);
+    const { password: _, ...userWithoutPassword } = user.toJSON();
+
+    res.json({
+      data: {
+        user: userWithoutPassword,
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        expiresIn: tokens.expiresIn
+      },
+      message: "Token refreshed successfully"
+    });
+  } catch (error) {
+    console.error("Error during token refresh:", error);
+    res.status(500).json({ error: "Token refresh failed" });
   }
 }

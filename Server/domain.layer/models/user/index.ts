@@ -1,6 +1,7 @@
-import { Model, Table, Column, DataType, PrimaryKey, AutoIncrement, AllowNull, Unique } from "sequelize-typescript";
+import { Model, Table, Column, DataType, PrimaryKey, AutoIncrement, AllowNull, Unique, HasMany } from "sequelize-typescript";
 import IUser from "../../interfaces/user";
 import { Optional } from "sequelize";
+import { Business } from "../business";
 
 type UserCreationAttributes = Optional<IUser, "id" | "createdAt" | "updatedAt" | "deletedAt">;
 
@@ -40,6 +41,9 @@ export class User extends Model<IUser, UserCreationAttributes> {
 
   @Column(DataType.DATE)
   declare deletedAt: Date;
+
+  @HasMany(() => Business, 'owner')
+  declare businesses: Business[];
 
   static async createUser(user: UserCreationAttributes): Promise<User> {
     return this.create(user);

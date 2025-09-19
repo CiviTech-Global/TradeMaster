@@ -1,10 +1,11 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuthContext } from '../../context/AuthContext';
+import { useAppSelector } from '../../../application/redux/hooks';
+import { selectIsAuthenticated } from '../../../application/redux';
 import { DashboardLayout } from '../../components';
 
 const TMDashboard: React.FC = () => {
-  const { isAuthenticated } = useAuthContext();
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
 
   if (!isAuthenticated) {
     return <Navigate to="/signin" replace />;

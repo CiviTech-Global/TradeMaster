@@ -1,6 +1,7 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useAuthContext } from '../../context/AuthContext';
+import { useAppSelector, useAppDispatch } from '../../../application/redux/hooks';
+import { signout, selectUser } from '../../../application/redux';
 import './Sidebar.css';
 
 interface SidebarItem {
@@ -17,6 +18,13 @@ const sidebarItems: SidebarItem[] = [
     label: 'Home',
     path: '/dashboard/home',
     icon: '🏠',
+    type: 'navigation'
+  },
+  {
+    id: 'my-businesses',
+    label: 'My Businesses',
+    path: '/dashboard/my-businesses',
+    icon: '🏢',
     type: 'navigation'
   },
   {
@@ -38,11 +46,12 @@ const sidebarItems: SidebarItem[] = [
 const Sidebar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { signout, user } = useAuthContext();
+  const dispatch = useAppDispatch();
+  const user = useAppSelector(selectUser);
 
   const handleItemClick = (item: SidebarItem) => {
     if (item.type === 'action' && item.id === 'logout') {
-      signout();
+      dispatch(signout());
       navigate('/signin');
     } else {
       navigate(item.path);

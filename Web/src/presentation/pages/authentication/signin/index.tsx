@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuthContext } from '../../../context/AuthContext';
+import { useAppSelector, useAppDispatch } from '../../../../application/redux/hooks';
+import { signin, clearError, selectAuthLoading, selectAuthError } from '../../../../application/redux';
 import AuthLayout from '../../../components/AuthLayout';
 import FormContainer from '../../../components/FormContainer';
 import Input from '../../../components/Input';
@@ -9,7 +10,9 @@ import AuthIllustration from '../../../components/AuthIllustration';
 
 const TMSignin: React.FC = () => {
   const navigate = useNavigate();
-  const { signin, isLoading, error, clearError } = useAuthContext();
+  const dispatch = useAppDispatch();
+  const isLoading = useAppSelector(selectAuthLoading);
+  const error = useAppSelector(selectAuthError);
 
   const [formData, setFormData] = useState({
     email: '',
@@ -39,7 +42,7 @@ const TMSignin: React.FC = () => {
 
     // Clear auth errors
     if (error) {
-      clearError();
+      dispatch(clearError());
     }
   };
 
@@ -70,15 +73,15 @@ const TMSignin: React.FC = () => {
     }
 
     try {
-      await signin({
+      await dispatch(signin({
         email: formData.email.trim(),
         password: formData.password
-      });
+      })).unwrap();
 
       // Navigate to dashboard on successful signin
       navigate('/dashboard');
     } catch (error) {
-      // Error is already handled by the useAuth hook
+      // Error is already handled by the Redux slice
       console.error('Signin failed:', error);
     }
   };
