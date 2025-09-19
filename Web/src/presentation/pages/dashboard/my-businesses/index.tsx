@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { TradeMasterMap, Button } from '../../../components';
+import { TradeMasterMap, Button, BusinessLocationMap } from '../../../components';
 import { businessService } from '../../../../infrastructure/api/businessService';
 import { useAppSelector } from '../../../../application/redux';
 import { selectUser } from '../../../../application/redux';
@@ -90,8 +90,8 @@ const MyBusinesses: React.FC = () => {
   const handleEditBusiness = (business: Business) => {
     setEditingBusiness(business);
     setSelectedLocation({
-      lat: business.latitude,
-      lng: business.longitude
+      lat: typeof business.latitude === 'number' ? business.latitude : parseFloat(business.latitude as string),
+      lng: typeof business.longitude === 'number' ? business.longitude : parseFloat(business.longitude as string)
     });
     setShowCreateForm(true);
   };
@@ -111,11 +111,14 @@ const MyBusinesses: React.FC = () => {
   // Prepare map data for displaying businesses
   const businessMarkers = businesses.map(business => ({
     id: business.id.toString(),
-    position: { lat: business.latitude, lng: business.longitude },
+    position: {
+      lat: typeof business.latitude === 'number' ? business.latitude : parseFloat(business.latitude as string),
+      lng: typeof business.longitude === 'number' ? business.longitude : parseFloat(business.longitude as string)
+    },
     name: business.title,
     type: (business.is_active ? 'office' : 'favorite') as 'home' | 'office' | 'favorite',
     description: business.address
-  }));
+  })).filter(marker => !isNaN(marker.position.lat) && !isNaN(marker.position.lng));
 
   if (isLoading) {
     return (
@@ -160,23 +163,17 @@ const MyBusinesses: React.FC = () => {
             <div className="business-creation__content">
               <div className="business-creation__map">
                 <h3>Select Business Location</h3>
-                <TradeMasterMap
+                <BusinessLocationMap
                   center={selectedLocation || { lat: 40.7128, lng: -74.0060 }}
                   zoom={selectedLocation ? 15 : 10}
                   height="400px"
-                  userLocations={selectedLocation ? [{
-                    id: 'selected',
-                    position: selectedLocation,
-                    name: 'Selected Location',
-                    type: 'office'
-                  }] : []}
-                  onLocationFound={handleLocationFound}
+                  selectedLocation={selectedLocation}
+                  onLocationSelect={handleLocationFound}
+                  existingBusinesses={businesses.map(b => ({
+                    lat: typeof b.latitude === 'number' ? b.latitude : parseFloat(b.latitude as string),
+                    lng: typeof b.longitude === 'number' ? b.longitude : parseFloat(b.longitude as string)
+                  })).filter(pos => !isNaN(pos.lat) && !isNaN(pos.lng))}
                 />
-                {selectedLocation && (
-                  <div className="selected-location-info">
-                    <strong>Selected Location:</strong> {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
-                  </div>
-                )}
               </div>
 
               <div className="business-creation__form">
@@ -211,7 +208,10 @@ const MyBusinesses: React.FC = () => {
                 <h3>Businesses Overview</h3>
                 <TradeMasterMap
                   center={businesses.length > 0
-                    ? { lat: businesses[0].latitude, lng: businesses[0].longitude }
+                    ? {
+                        lat: typeof businesses[0].latitude === 'number' ? businesses[0].latitude : parseFloat(businesses[0].latitude as string),
+                        lng: typeof businesses[0].longitude === 'number' ? businesses[0].longitude : parseFloat(businesses[0].longitude as string)
+                      }
                     : { lat: 40.7128, lng: -74.0060 }
                   }
                   zoom={businesses.length > 0 ? 12 : 10}

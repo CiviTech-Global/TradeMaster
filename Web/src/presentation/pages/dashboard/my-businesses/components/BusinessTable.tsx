@@ -49,8 +49,15 @@ const BusinessTable: React.FC<BusinessTableProps> = ({
     return new Date(dateString).toLocaleDateString();
   };
 
-  const formatLocation = (lat: number, lng: number) => {
-    return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+  const formatLocation = (lat: number | string, lng: number | string) => {
+    const latNum = typeof lat === 'string' ? parseFloat(lat) : lat;
+    const lngNum = typeof lng === 'string' ? parseFloat(lng) : lng;
+
+    if (isNaN(latNum) || isNaN(lngNum)) {
+      return 'Invalid coordinates';
+    }
+
+    return `${latNum.toFixed(4)}, ${lngNum.toFixed(4)}`;
   };
 
   const getSortIcon = (field: keyof Business) => {
