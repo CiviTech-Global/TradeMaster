@@ -140,16 +140,18 @@ export async function updateBusiness(req: Request, res: Response) {
 
     if (title) updateData.title = title;
     if (longitude !== undefined) {
-      if (typeof longitude !== 'number' || longitude < -180 || longitude > 180) {
-        return res.status(400).json({ error: "Longitude must be a number between -180 and 180" });
+      const lonValue = typeof longitude === 'number' ? longitude : parseFloat(longitude);
+      if (isNaN(lonValue) || lonValue < -180 || lonValue > 180) {
+        return res.status(400).json({ error: "Longitude must be a valid number between -180 and 180" });
       }
-      updateData.longitude = longitude;
+      updateData.longitude = lonValue;
     }
     if (latitude !== undefined) {
-      if (typeof latitude !== 'number' || latitude < -90 || latitude > 90) {
-        return res.status(400).json({ error: "Latitude must be a number between -90 and 90" });
+      const latValue = typeof latitude === 'number' ? latitude : parseFloat(latitude);
+      if (isNaN(latValue) || latValue < -90 || latValue > 90) {
+        return res.status(400).json({ error: "Latitude must be a valid number between -90 and 90" });
       }
-      updateData.latitude = latitude;
+      updateData.latitude = latValue;
     }
     if (address) updateData.address = address;
     if (emails) {

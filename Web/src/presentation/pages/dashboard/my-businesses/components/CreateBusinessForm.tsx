@@ -47,14 +47,14 @@ const CreateBusinessForm: React.FC<CreateBusinessFormProps> = ({
 
   // Update form data when location changes
   useEffect(() => {
-    if (selectedLocation && !isEditing) {
+    if (selectedLocation) {
       setFormData(prev => ({
         ...prev,
         latitude: selectedLocation.lat,
         longitude: selectedLocation.lng
       }));
     }
-  }, [selectedLocation, isEditing]);
+  }, [selectedLocation]);
 
   const handleInputChange = (field: keyof BusinessFormData, value: string | boolean | number) => {
     setFormData(prev => ({
@@ -116,8 +116,14 @@ const CreateBusinessForm: React.FC<CreateBusinessFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!selectedLocation && !isEditing) {
+    if (!isEditing && !selectedLocation) {
       setErrors(['Please select a location on the map']);
+      return;
+    }
+
+    // For editing, ensure we have valid coordinates
+    if (isEditing && (!formData.latitude || !formData.longitude)) {
+      setErrors(['Valid coordinates are required']);
       return;
     }
 
@@ -135,14 +141,38 @@ const CreateBusinessForm: React.FC<CreateBusinessFormProps> = ({
 
     setIsSubmitting(true);
     try {
-      await onSubmit({
+      const submitData = {
         ...formData,
+        // Ensure coordinates are numbers
+        latitude: typeof formData.latitude === 'number' ? formData.latitude : parseFloat(formData.latitude.toString()),
+        longitude: typeof formData.longitude === 'number' ? formData.longitude : parseFloat(formData.longitude.toString()),
         emails: formData.emails.filter(email => email.trim()),
         phones: formData.phones.filter(phone => phone.trim())
-      });
+      };
+
+      console.log('Submitting business data:', submitData);
+      await onSubmit(submitData);
+
+      // If we reach here, the submission was successful
+      // The parent component will handle success feedback and form closure
     } catch (error) {
       console.error('Form submission error:', error);
-      setErrors(['Failed to save business. Please try again.']);
+
+      // Extract error message from API response or use default
+      let errorMessage = 'Failed to save business. Please try again.';
+
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (error && typeof error === 'object' && 'response' in error) {
+        const apiError = error as any;
+        if (apiError.response?.data?.error) {
+          errorMessage = apiError.response.data.error;
+        } else if (apiError.response?.data?.message) {
+          errorMessage = apiError.response.data.message;
+        }
+      }
+
+      setErrors([errorMessage]);
     } finally {
       setIsSubmitting(false);
     }
@@ -311,7 +341,7 @@ const CreateBusinessForm: React.FC<CreateBusinessFormProps> = ({
         <Button
           type="submit"
           variant="primary"
-          disabled={isSubmitting || (!selectedLocation && !isEditing)}
+          disabled={isSubmitting || (!isEditing && !selectedLocation) || (isEditing && (!formData.latitude || !formData.longitude))}
         >
           {isSubmitting ? 'Saving...' : (isEditing ? 'Update Business' : 'Create Business')}
         </Button>

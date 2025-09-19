@@ -55,9 +55,18 @@ export class BusinessService {
    * Create a new business
    */
   async createBusiness(businessData: CreateBusinessRequest): Promise<Business> {
+    // Ensure lat/lng are numbers
+    const processedData = {
+      ...businessData,
+      latitude: typeof businessData.latitude === 'number' ? businessData.latitude : parseFloat(businessData.latitude.toString()),
+      longitude: typeof businessData.longitude === 'number' ? businessData.longitude : parseFloat(businessData.longitude.toString())
+    };
+
+    console.log('Creating business with data:', processedData);
+
     const response: NetworkResponse<BusinessResponse> = await networkService.post(
       this.baseUrl,
-      businessData,
+      processedData,
       {
         validateResponse: (data) => data.data && typeof data.data === 'object',
         customErrorMessage: 'Failed to create business. Please check your data and try again.'
@@ -70,9 +79,24 @@ export class BusinessService {
    * Update an existing business
    */
   async updateBusiness(id: number, businessData: UpdateBusinessRequest): Promise<Business> {
+    // Ensure lat/lng are numbers if provided
+    const processedData = { ...businessData };
+    if (processedData.latitude !== undefined) {
+      processedData.latitude = typeof processedData.latitude === 'number'
+        ? processedData.latitude
+        : parseFloat(processedData.latitude.toString());
+    }
+    if (processedData.longitude !== undefined) {
+      processedData.longitude = typeof processedData.longitude === 'number'
+        ? processedData.longitude
+        : parseFloat(processedData.longitude.toString());
+    }
+
+    console.log('Updating business with data:', processedData);
+
     const response: NetworkResponse<BusinessResponse> = await networkService.patch(
       `${this.baseUrl}/${id}`,
-      businessData,
+      processedData,
       {
         validateResponse: (data) => data.data && typeof data.data === 'object',
         customErrorMessage: 'Failed to update business. Please try again.'

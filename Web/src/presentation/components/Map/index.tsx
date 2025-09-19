@@ -60,8 +60,9 @@ const LocationMarker: React.FC<{ onLocationFound?: (position: MapPosition) => vo
   });
 
   useEffect(() => {
+    // Only locate once when component mounts
     map.locate();
-  }, [map]);
+  }, []); // Empty dependency array to prevent continuous location requests
 
   return userPosition ? (
     <Marker position={[userPosition.lat, userPosition.lng]} icon={createCustomIcon('#ef4444', '📍')}>
@@ -98,12 +99,17 @@ const MapSearch: React.FC<{ onLocationSelect: (position: MapPosition) => void }>
   }, []);
 
   useEffect(() => {
+    if (!query.trim()) {
+      setResults([]);
+      return;
+    }
+
     const timeoutId = setTimeout(() => {
       searchLocations(query);
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [query, searchLocations]);
+  }, [query]); // Remove searchLocations from dependencies to prevent infinite loop
 
   const handleResultSelect = (result: SearchResult) => {
     const position = { lat: parseFloat(result.lat), lng: parseFloat(result.lon) };

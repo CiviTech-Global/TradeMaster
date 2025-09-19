@@ -48,8 +48,12 @@ const MyBusinesses: React.FC = () => {
       setBusinesses(prev => [...prev, newBusiness]);
       setShowCreateForm(false);
       setSelectedLocation(null);
+
+      // Show success message
+      alert('Business created successfully!');
     } catch (error) {
       console.error('Failed to create business:', error);
+      alert('Failed to create business. Please try again.');
       throw error;
     }
   };
@@ -63,9 +67,17 @@ const MyBusinesses: React.FC = () => {
           business.id === id ? updatedBusiness : business
         )
       );
+
+      // Close the form and reset state
       setEditingBusiness(null);
+      setShowCreateForm(false);
+      setSelectedLocation(null);
+
+      // Show success message
+      alert('Business updated successfully!');
     } catch (error) {
       console.error('Failed to update business:', error);
+      alert('Failed to update business. Please try again.');
       throw error;
     }
   };
@@ -80,9 +92,13 @@ const MyBusinesses: React.FC = () => {
       const success = await businessService.deleteBusiness(id);
       if (success) {
         setBusinesses(prev => prev.filter(business => business.id !== id));
+        alert('Business deleted successfully!');
+      } else {
+        alert('Failed to delete business. Please try again.');
       }
     } catch (error) {
       console.error('Failed to delete business:', error);
+      alert('Failed to delete business. Please try again.');
     }
   };
 
@@ -109,16 +125,33 @@ const MyBusinesses: React.FC = () => {
   };
 
   // Prepare map data for displaying businesses
-  const businessMarkers = businesses.map(business => ({
-    id: business.id.toString(),
-    position: {
-      lat: typeof business.latitude === 'number' ? business.latitude : parseFloat(business.latitude as string),
-      lng: typeof business.longitude === 'number' ? business.longitude : parseFloat(business.longitude as string)
-    },
-    name: business.title,
-    type: (business.is_active ? 'office' : 'favorite') as 'home' | 'office' | 'favorite',
-    description: business.address
-  })).filter(marker => !isNaN(marker.position.lat) && !isNaN(marker.position.lng));
+  const businessMarkers = businesses
+    .filter(business => business.latitude && business.longitude) // Filter out businesses without coordinates
+    .map(business => {
+      const lat = typeof business.latitude === 'number' ? business.latitude : parseFloat(business.latitude as string);
+      const lng = typeof business.longitude === 'number' ? business.longitude : parseFloat(business.longitude as string);
+
+      // Only include businesses with valid coordinates
+      if (isNaN(lat) || isNaN(lng)) {
+        console.warn(`Invalid coordinates for business ${business.id}: lat=${business.latitude}, lng=${business.longitude}`);
+        return null;
+      }
+
+      return {
+        id: business.id.toString(),
+        position: { lat, lng },
+        name: business.title,
+        type: (business.is_active ? 'office' : 'favorite') as 'home' | 'office' | 'favorite',
+        description: business.address
+      };
+    })
+    .filter(marker => marker !== null) as Array<{
+      id: string;
+      position: { lat: number; lng: number };
+      name: string;
+      type: 'home' | 'office' | 'favorite';
+      description: string;
+    }>;
 
   if (isLoading) {
     return (
@@ -143,7 +176,11 @@ const MyBusinesses: React.FC = () => {
         <div className="dashboard-page__actions">
           <Button
             variant="primary"
-            onClick={() => setShowCreateForm(true)}
+            onClick={() => {
+              setEditingBusiness(null); // Clear any editing state
+              setSelectedLocation(null); // Clear any selected location
+              setShowCreateForm(true);
+            }}
           >
             Create a new business
           </Button>
@@ -207,11 +244,8 @@ const MyBusinesses: React.FC = () => {
               <div className="businesses-overview__map">
                 <h3>Businesses Overview</h3>
                 <TradeMasterMap
-                  center={businesses.length > 0
-                    ? {
-                        lat: typeof businesses[0].latitude === 'number' ? businesses[0].latitude : parseFloat(businesses[0].latitude as string),
-                        lng: typeof businesses[0].longitude === 'number' ? businesses[0].longitude : parseFloat(businesses[0].longitude as string)
-                      }
+                  center={businessMarkers.length > 0
+                    ? businessMarkers[0].position
                     : { lat: 40.7128, lng: -74.0060 }
                   }
                   zoom={businesses.length > 0 ? 12 : 10}
