@@ -10,3 +10,5 @@ export { default as AppInitializer } from './AppInitializer';
 export { default as NotificationContainer } from './NotificationContainer';
 export { default as TradeMasterMap } from './Map';
 export { default as BusinessLocationMap } from './Map/LocationSelector';
+export { default as ProtectedRoute } from './ProtectedRoute';
+export { default as PublicRoute } from './PublicRoute';

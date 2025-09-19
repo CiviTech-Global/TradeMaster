@@ -16,7 +16,9 @@ export interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  token: string | null;
+  accessToken: string | null;
+  refreshToken: string | null;
+  tokenExpiresAt: string | null;
 }
 
 const initialState: AuthState = {
@@ -24,7 +26,9 @@ const initialState: AuthState = {
   isAuthenticated: false,
   isLoading: false,
   error: null,
-  token: null,
+  accessToken: null,
+  refreshToken: null,
+  tokenExpiresAt: null,
 };
 
 export const signin = createAsyncThunk(
@@ -34,14 +38,15 @@ export const signin = createAsyncThunk(
       const response = await userRepository.signin(credentials);
 
       if (response.success && response.data?.data) {
-        const { user, token } = response.data.data;
+        const { user, accessToken, refreshToken } = response.data.data;
 
-        if (token) {
-          networkService.setAuthToken(token);
-          localStorage.setItem('authToken', token);
+        if (accessToken) {
+          networkService.setAuthToken(accessToken);
+          localStorage.setItem('authToken', accessToken);
+          localStorage.setItem('refreshToken', refreshToken);
         }
 
-        return { user, token };
+        return { user, accessToken, refreshToken };
       } else {
         throw new Error(response.data?.error || response.data?.message || 'Signin failed');
       }
@@ -63,7 +68,7 @@ export const signup = createAsyncThunk(
 
       if (response.success && response.data?.data) {
         const user = response.data.data;
-        return { user, token: null };
+        return { user, accessToken: null, refreshToken: null };
       } else {
         throw new Error(response.data?.error || response.data?.message || 'Signup failed');
       }
@@ -152,10 +157,12 @@ export const initializeAuth = createAsyncThunk(
     const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
     networkService.setBaseURL(baseURL);
 
-    const storedToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-    if (storedToken) {
-      networkService.setAuthToken(storedToken);
-      return { token: storedToken };
+    const storedAccessToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+    const storedRefreshToken = localStorage.getItem('refreshToken') || sessionStorage.getItem('refreshToken');
+
+    if (storedAccessToken) {
+      networkService.setAuthToken(storedAccessToken);
+      return { accessToken: storedAccessToken, refreshToken: storedRefreshToken };
     }
 
     return null;
@@ -169,12 +176,16 @@ export const authSlice = createSlice({
     signout: (state) => {
       state.user = null;
       state.isAuthenticated = false;
-      state.token = null;
+      state.accessToken = null;
+      state.refreshToken = null;
+      state.tokenExpiresAt = null;
       state.error = null;
 
       networkService.clearAuthToken();
       localStorage.removeItem('authToken');
+      localStorage.removeItem('refreshToken');
       sessionStorage.removeItem('authToken');
+      sessionStorage.removeItem('refreshToken');
     },
     clearError: (state) => {
       state.error = null;
@@ -183,6 +194,10 @@ export const authSlice = createSlice({
       state.user = action.payload;
       state.isAuthenticated = !!action.payload;
       state.error = null;
+    },
+    updateTokens: (state, action: PayloadAction<{ accessToken: string; refreshToken: string }>) => {
+      state.accessToken = action.payload.accessToken;
+      state.refreshToken = action.payload.refreshToken;
     },
   },
   extraReducers: (builder) => {
@@ -194,7 +209,8 @@ export const authSlice = createSlice({
       .addCase(signin.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload.user;
-        state.token = action.payload.token;
+        state.accessToken = action.payload.accessToken;
+        state.refreshToken = action.payload.refreshToken;
         state.isAuthenticated = true;
         state.error = null;
       })
@@ -203,7 +219,9 @@ export const authSlice = createSlice({
         state.error = action.payload as string;
         state.user = null;
         state.isAuthenticated = false;
-        state.token = null;
+        state.accessToken = null;
+        state.refreshToken = null;
+        state.tokenExpiresAt = null;
       })
 
       .addCase(signup.pending, (state) => {
@@ -213,8 +231,9 @@ export const authSlice = createSlice({
       .addCase(signup.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload.user;
-        state.token = action.payload.token;
-        state.isAuthenticated = true;
+        state.accessToken = action.payload.accessToken;
+        state.refreshToken = action.payload.refreshToken;
+        state.isAuthenticated = !!action.payload.accessToken;
         state.error = null;
       })
       .addCase(signup.rejected, (state, action) => {
@@ -262,11 +281,21 @@ export const authSlice = createSlice({
       })
 
       .addCase(initializeAuth.fulfilled, (state, action) => {
-        if (action.payload?.token) {
-          state.token = action.payload.token;
+        if (action.payload?.accessToken) {
+          state.accessToken = action.payload.accessToken;
+          state.refreshToken = action.payload.refreshToken;
+          state.isAuthenticated = true;
         }
       });
   },
 });
 
-export const { signout, clearError, setUser } = authSlice.actions;
+export const { signout, clearError, setUser, updateTokens } = authSlice.actions;
+
+// Selectors
+export const selectUser = (state: { auth: AuthState }) => state.auth.user;
+export const selectIsAuthenticated = (state: { auth: AuthState }) => state.auth.isAuthenticated;
+export const selectIsLoading = (state: { auth: AuthState }) => state.auth.isLoading;
+export const selectError = (state: { auth: AuthState }) => state.auth.error;
+export const selectAccessToken = (state: { auth: AuthState }) => state.auth.accessToken;
+export const selectRefreshToken = (state: { auth: AuthState }) => state.auth.refreshToken;

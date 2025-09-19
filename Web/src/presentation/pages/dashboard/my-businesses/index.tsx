@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { TradeMasterMap, Button, BusinessLocationMap } from '../../../components';
+import { Button, BusinessLocationMap } from '../../../components';
 import { businessService } from '../../../../infrastructure/api/businessService';
 import { useAppSelector } from '../../../../application/redux';
 import { selectUser } from '../../../../application/redux';
@@ -124,34 +124,6 @@ const MyBusinesses: React.FC = () => {
     setSelectedLocation(null);
   };
 
-  // Prepare map data for displaying businesses
-  const businessMarkers = businesses
-    .filter(business => business.latitude && business.longitude) // Filter out businesses without coordinates
-    .map(business => {
-      const lat = typeof business.latitude === 'number' ? business.latitude : parseFloat(business.latitude as string);
-      const lng = typeof business.longitude === 'number' ? business.longitude : parseFloat(business.longitude as string);
-
-      // Only include businesses with valid coordinates
-      if (isNaN(lat) || isNaN(lng)) {
-        console.warn(`Invalid coordinates for business ${business.id}: lat=${business.latitude}, lng=${business.longitude}`);
-        return null;
-      }
-
-      return {
-        id: business.id.toString(),
-        position: { lat, lng },
-        name: business.title,
-        type: (business.is_active ? 'office' : 'favorite') as 'home' | 'office' | 'favorite',
-        description: business.address
-      };
-    })
-    .filter(marker => marker !== null) as Array<{
-      id: string;
-      position: { lat: number; lng: number };
-      name: string;
-      type: 'home' | 'office' | 'favorite';
-      description: string;
-    }>;
 
   if (isLoading) {
     return (
@@ -240,23 +212,13 @@ const MyBusinesses: React.FC = () => {
 
         {!showCreateForm && (
           <div className="businesses-section">
-            <div className="businesses-overview">
-              <div className="businesses-overview__map">
-                <h3>Businesses Overview</h3>
-                <TradeMasterMap
-                  center={businessMarkers.length > 0
-                    ? businessMarkers[0].position
-                    : { lat: 40.7128, lng: -74.0060 }
-                  }
-                  zoom={businesses.length > 0 ? 12 : 10}
-                  height="300px"
-                  userLocations={businessMarkers}
-                />
-              </div>
-            </div>
-
             <div className="businesses-table-section">
-              <h3>Businesses I Own ({businesses.length})</h3>
+              <div className="businesses-header">
+                <h3>Businesses I Own ({businesses.length})</h3>
+                <p className="businesses-subtitle">
+                  Manage your business listings, locations, and information
+                </p>
+              </div>
               <BusinessTable
                 businesses={businesses}
                 onEdit={handleEditBusiness}

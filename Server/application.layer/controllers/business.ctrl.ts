@@ -8,6 +8,7 @@ import {
   deleteBusinessQuery,
   getActiveBusinessesQuery
 } from "../../infrastructure.layer/utils/business.util";
+import { AuthenticatedRequest } from "../../infrastructure.layer/utils/jwt.util";
 import IBusiness from "../../domain.layer/interfaces/business";
 
 export async function getAllBusinesses(req: Request, res: Response) {
@@ -20,7 +21,7 @@ export async function getAllBusinesses(req: Request, res: Response) {
   }
 }
 
-export async function getBusinessById(req: Request, res: Response) {
+export async function getBusinessById(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
     const businessId = parseInt(id, 10);
@@ -41,7 +42,7 @@ export async function getBusinessById(req: Request, res: Response) {
   }
 }
 
-export async function getBusinessesByOwner(req: Request, res: Response) {
+export async function getBusinessesByOwner(req: AuthenticatedRequest, res: Response) {
   try {
     const { ownerId } = req.params;
     const ownerIdNum = parseInt(ownerId, 10);
@@ -58,7 +59,7 @@ export async function getBusinessesByOwner(req: Request, res: Response) {
   }
 }
 
-export async function createBusiness(req: Request, res: Response) {
+export async function createBusiness(req: AuthenticatedRequest, res: Response) {
   try {
     const { owner, title, longitude, latitude, address, emails, phones, is_active, logo } = req.body;
 
@@ -118,7 +119,7 @@ export async function createBusiness(req: Request, res: Response) {
   }
 }
 
-export async function updateBusiness(req: Request, res: Response) {
+export async function updateBusiness(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
     const businessId = parseInt(id, 10);
@@ -193,7 +194,7 @@ export async function updateBusiness(req: Request, res: Response) {
   }
 }
 
-export async function deleteBusiness(req: Request, res: Response) {
+export async function deleteBusiness(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
     const businessId = parseInt(id, 10);
