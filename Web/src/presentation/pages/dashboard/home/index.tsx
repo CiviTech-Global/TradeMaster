@@ -1,8 +1,54 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { TradeMasterMap } from '../../../components';
+import { businessService } from '../../../../infrastructure/api/businessService';
+import type { Business } from '../../../../domain/types/business';
 import type { TradingDataPoint, UserLocation, StaticLocation, MapOverlay, MapPosition } from '../../../components/Map/types';
 
 const TMHome: React.FC = () => {
+  // State for businesses and loading
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [isLoadingBusinesses, setIsLoadingBusinesses] = useState(true);
+
+  // Load all businesses from the platform
+  useEffect(() => {
+    const loadAllBusinesses = async () => {
+      try {
+        setIsLoadingBusinesses(true);
+        const allBusinesses = await businessService.getAllBusinesses();
+        setBusinesses(allBusinesses);
+      } catch (error) {
+        console.error('Failed to load businesses:', error);
+      } finally {
+        setIsLoadingBusinesses(false);
+      }
+    };
+
+    loadAllBusinesses();
+  }, []);
+
+  // Transform businesses to UserLocation format for the map
+  const businessLocations: UserLocation[] = businesses
+    .filter(business => business.latitude && business.longitude) // Filter out businesses without coordinates
+    .map(business => {
+      const lat = typeof business.latitude === 'number' ? business.latitude : parseFloat(business.latitude as string);
+      const lng = typeof business.longitude === 'number' ? business.longitude : parseFloat(business.longitude as string);
+
+      // Only include businesses with valid coordinates
+      if (isNaN(lat) || isNaN(lng)) {
+        console.warn(`Invalid coordinates for business ${business.id}: lat=${business.latitude}, lng=${business.longitude}`);
+        return null;
+      }
+
+      return {
+        id: `business-${business.id}`,
+        position: { lat, lng },
+        name: business.title,
+        type: (business.is_active ? 'office' : 'favorite') as 'home' | 'office' | 'favorite',
+        description: `${business.address}\nOwner: ${business.user?.firstname} ${business.user?.lastname}`
+      };
+    })
+    .filter(location => location !== null) as UserLocation[];
+
   // Sample Trading Data - Real-time trading locations
   const [tradingData] = useState<TradingDataPoint[]>([
     {
@@ -57,30 +103,7 @@ const TMHome: React.FC = () => {
     }
   ]);
 
-  // Sample User Locations
-  const [userLocations] = useState<UserLocation[]>([
-    {
-      id: 'user-1',
-      position: { lat: 40.7831, lng: -73.9712 }, // Central Park
-      name: 'My Home Office',
-      type: 'home',
-      description: 'Primary trading location with full setup'
-    },
-    {
-      id: 'user-2',
-      position: { lat: 40.7282, lng: -74.0776 }, // Wall Street
-      name: 'Financial District Office',
-      type: 'office',
-      description: 'Secondary office near major exchanges'
-    },
-    {
-      id: 'user-3',
-      position: { lat: 40.7488, lng: -73.9857 }, // Herald Square
-      name: 'Favorite Coffee Shop',
-      type: 'favorite',
-      description: 'Great place for market analysis'
-    }
-  ]);
+  // Real Business Locations (replaced hardcoded sample data)
 
   // Sample Static Locations - Financial Institutions
   const [staticLocations] = useState<StaticLocation[]>([
@@ -161,26 +184,58 @@ const TMHome: React.FC = () => {
 
   const handleMarkerClick = useCallback((data: TradingDataPoint | UserLocation | StaticLocation) => {
     console.log('Marker clicked:', data);
-  }, []);
+
+    // Show business details if it's a business marker
+    if (data.id.startsWith('business-')) {
+      const businessId = data.id.replace('business-', '');
+      const business = businesses.find(b => b.id.toString() === businessId);
+
+      if (business) {
+        alert(`Business: ${business.title}\nOwner: ${business.user?.firstname} ${business.user?.lastname}\nAddress: ${business.address}\nStatus: ${business.is_active ? 'Active' : 'Inactive'}\nEmails: ${business.emails.join(', ')}\nPhones: ${business.phones.join(', ')}`);
+      }
+    }
+  }, [businesses]);
 
   return (
     <div className="dashboard-page">
       <div className="dashboard-page__header">
-        <h1 className="dashboard-page__title">Trading Map</h1>
-        <p className="dashboard-page__subtitle">Real-time trading data and market locations</p>
+        <h1 className="dashboard-page__title">TradeMaster Platform Map</h1>
+        <p className="dashboard-page__subtitle">
+          Discover all businesses and trading locations on the platform
+          {!isLoadingBusinesses && ` (${businessLocations.length} businesses found)`}
+        </p>
       </div>
       <div className="dashboard-page__content">
-        <TradeMasterMap
-          center={{ lat: 40.7489, lng: -73.9680 }}
-          zoom={12}
+        {isLoadingBusinesses ? (
+          <div className="loading-container" style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: 'calc(100vh - 200px)',
+            fontSize: '18px',
+            color: '#666'
+          }}>
+            <div>
+              <div style={{ marginBottom: '10px' }}>📍</div>
+              Loading businesses from the platform...
+            </div>
+          </div>
+        ) : (
+          <TradeMasterMap
+          center={businessLocations.length > 0
+            ? businessLocations[0].position
+            : { lat: 40.7489, lng: -73.9680 }
+          }
+          zoom={businessLocations.length > 0 ? 10 : 12}
           height="calc(100vh - 200px)"
           tradingData={tradingData}
-          userLocations={userLocations}
+          userLocations={businessLocations}
           staticLocations={staticLocations}
           overlays={overlays}
           onLocationFound={handleLocationFound}
           onMarkerClick={handleMarkerClick}
         />
+        )}
       </div>
     </div>
   );
