@@ -5,12 +5,18 @@ import { DashboardLayout, ProtectedRoute, PublicRoute } from "./presentation/com
 import TMDashboard from "./presentation/pages/dashboard";
 import TMHome from "./presentation/pages/dashboard/home";
 import TMSettings from "./presentation/pages/dashboard/settings";
+import TMProfile from "./presentation/pages/dashboard/profile";
 import TMMyBusinesses from "./presentation/pages/dashboard/my-businesses";
+import TMProducts from "./presentation/pages/dashboard/products";
+import TMOrders from "./presentation/pages/dashboard/orders";
+import TMMessages from "./presentation/pages/dashboard/messages";
+import TMReviews from "./presentation/pages/dashboard/reviews";
 import TMDBoard from "./presentation/pages/dashboard/dboard";
 import TMSignin from "./presentation/pages/authentication/signin";
 import TMForgotPassword from "./presentation/pages/authentication/forgotPassword";
 import TMSetNewPassword from "./presentation/pages/authentication/setNewPassword";
 import TMSignup from "./presentation/pages/authentication/signup";
+import TMLanding from "./presentation/pages/landing";
 import AppInitializer from "./presentation/components/AppInitializer";
 
 function App() {
@@ -19,6 +25,9 @@ function App() {
       <AppInitializer>
         <BrowserRouter>
           <Routes>
+            {/* Public Landing Page */}
+            <Route path="/landing" element={<TMLanding />} />
+
             {/* Authentication Routes */}
             <Route path="/signin" element={
               <PublicRoute>
@@ -59,6 +68,11 @@ function App() {
             }>
               <Route path="home" element={<TMHome />} />
               <Route path="my-businesses" element={<TMMyBusinesses />} />
+              <Route path="products/:businessId" element={<TMProducts />} />
+              <Route path="orders" element={<TMOrders />} />
+              <Route path="messages" element={<TMMessages />} />
+              <Route path="reviews" element={<TMReviews />} />
+              <Route path="profile" element={<TMProfile />} />
               <Route path="settings" element={<TMSettings />} />
             </Route>
           </Routes>

@@ -15,7 +15,9 @@
       "WebFetch(domain:github.com)",
       "Bash(npx tsc:*)",
       "Bash(grep:*)",
-      "Bash(npx:*)"
+      "Bash(npx:*)",
+      "Bash(ls:*)",
+      "Bash(wc:*)"
     ],
     "deny": [],
     "ask": []

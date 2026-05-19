@@ -1,42 +1,40 @@
 import { Business } from "../../domain.layer/models/business";
 import { User } from "../../domain.layer/models/user";
+import { Category } from "../../domain.layer/models/category";
 import { Optional } from "sequelize";
 import IBusiness from "../../domain.layer/interfaces/business";
 
-type BusinessCreationAttributes = Optional<IBusiness, "id" | "createdAt" | "updatedAt" | "deletedAt">;
+type BusinessCreationAttributes = Optional<IBusiness, "id" | "createdAt" | "updatedAt" | "deletedAt" | "description" | "category_id" | "cover_image">;
 type BusinessUpdateAttributes = Partial<Omit<IBusiness, "id" | "createdAt" | "updatedAt" | "deletedAt">>;
+
+const defaultIncludes = [
+  {
+    model: User,
+    attributes: ['id', 'firstname', 'lastname', 'email']
+  },
+  {
+    model: Category,
+    attributes: ['id', 'name', 'slug', 'icon'],
+    required: false,
+  }
+];
 
 export async function getAllBusinessesQuery() {
   return await Business.findAll({
-    include: [
-      {
-        model: User,
-        attributes: ['id', 'firstname', 'lastname', 'email']
-      }
-    ]
+    include: defaultIncludes,
   });
 }
 
 export async function getBusinessByIdQuery(id: number) {
   return await Business.findByPk(id, {
-    include: [
-      {
-        model: User,
-        attributes: ['id', 'firstname', 'lastname', 'email']
-      }
-    ]
+    include: defaultIncludes,
   });
 }
 
 export async function getBusinessesByOwnerQuery(ownerId: number) {
   return await Business.findAll({
     where: { owner: ownerId },
-    include: [
-      {
-        model: User,
-        attributes: ['id', 'firstname', 'lastname', 'email']
-      }
-    ]
+    include: defaultIncludes,
   });
 }
 
@@ -52,12 +50,7 @@ export async function updateBusinessQuery(id: number, businessData: BusinessUpda
 
   await business.update(businessData);
   return await Business.findByPk(id, {
-    include: [
-      {
-        model: User,
-        attributes: ['id', 'firstname', 'lastname', 'email']
-      }
-    ]
+    include: defaultIncludes,
   });
 }
 
@@ -74,11 +67,6 @@ export async function deleteBusinessQuery(id: number) {
 export async function getActiveBusinessesQuery() {
   return await Business.findAll({
     where: { is_active: true },
-    include: [
-      {
-        model: User,
-        attributes: ['id', 'firstname', 'lastname', 'email']
-      }
-    ]
+    include: defaultIncludes,
   });
 }

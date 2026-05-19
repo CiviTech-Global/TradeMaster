@@ -28,6 +28,41 @@ const sidebarItems: SidebarItem[] = [
     type: 'navigation'
   },
   {
+    id: 'products',
+    label: 'Products',
+    path: '/dashboard/my-businesses',
+    icon: '📦',
+    type: 'navigation'
+  },
+  {
+    id: 'orders',
+    label: 'Orders',
+    path: '/dashboard/orders',
+    icon: '📋',
+    type: 'navigation'
+  },
+  {
+    id: 'messages',
+    label: 'Messages',
+    path: '/dashboard/messages',
+    icon: '💬',
+    type: 'navigation'
+  },
+  {
+    id: 'reviews',
+    label: 'Reviews',
+    path: '/dashboard/reviews',
+    icon: '\u2B50',
+    type: 'navigation'
+  },
+  {
+    id: 'profile',
+    label: 'Profile',
+    path: '/dashboard/profile',
+    icon: '👤',
+    type: 'navigation'
+  },
+  {
     id: 'settings',
     label: 'Settings',
     path: '/dashboard/settings',
@@ -58,7 +93,10 @@ const Sidebar: React.FC = () => {
     }
   };
 
-  const isActive = (path: string): boolean => {
+  const isActive = (path: string, id?: string): boolean => {
+    if (id === 'products') {
+      return location.pathname.startsWith('/dashboard/products/');
+    }
     return location.pathname === path ||
            (path === '/dashboard/home' && location.pathname === '/dashboard');
   };
@@ -90,7 +128,7 @@ const Sidebar: React.FC = () => {
             <li key={item.id} className="sidebar__nav-item">
               <button
                 className={`sidebar__nav-link ${
-                  isActive(item.path) ? 'sidebar__nav-link--active' : ''
+                  isActive(item.path, item.id) ? 'sidebar__nav-link--active' : ''
                 } ${item.type === 'action' ? 'sidebar__nav-link--action' : ''}`}
                 onClick={() => handleItemClick(item)}
               >

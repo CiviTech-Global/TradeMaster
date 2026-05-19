@@ -196,7 +196,10 @@ const MyBusinesses: React.FC = () => {
                     emails: editingBusiness.emails,
                     phones: editingBusiness.phones,
                     is_active: editingBusiness.is_active,
-                    logo: editingBusiness.logo
+                    logo: editingBusiness.logo,
+                    description: editingBusiness.description || '',
+                    category_id: editingBusiness.category_id,
+                    cover_image: editingBusiness.cover_image || '',
                   } : undefined}
                   onSubmit={editingBusiness
                     ? (data) => handleUpdateBusiness(editingBusiness.id, data)

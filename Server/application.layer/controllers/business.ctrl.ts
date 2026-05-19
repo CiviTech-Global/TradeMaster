@@ -61,7 +61,7 @@ export async function getBusinessesByOwner(req: AuthenticatedRequest, res: Respo
 
 export async function createBusiness(req: AuthenticatedRequest, res: Response) {
   try {
-    const { owner, title, longitude, latitude, address, emails, phones, is_active, logo } = req.body;
+    const { owner, title, longitude, latitude, address, emails, phones, is_active, logo, description, category_id, cover_image } = req.body;
 
     if (!owner || !title || longitude === undefined || latitude === undefined || !address) {
       return res.status(400).json({
@@ -106,7 +106,10 @@ export async function createBusiness(req: AuthenticatedRequest, res: Response) {
       emails,
       phones,
       is_active: is_active !== undefined ? is_active : true,
-      logo: logo || ''
+      logo: logo || '',
+      description: description || null,
+      category_id: category_id || null,
+      cover_image: cover_image || null,
     });
 
     res.status(201).json({
@@ -128,10 +131,10 @@ export async function updateBusiness(req: AuthenticatedRequest, res: Response) {
       return res.status(400).json({ error: "Invalid business ID" });
     }
 
-    const { title, longitude, latitude, address, emails, phones, is_active, logo } = req.body;
+    const { title, longitude, latitude, address, emails, phones, is_active, logo, description, category_id, cover_image } = req.body;
 
     if (!title && longitude === undefined && latitude === undefined && !address &&
-        !emails && !phones && is_active === undefined && !logo) {
+        !emails && !phones && is_active === undefined && !logo && description === undefined && category_id === undefined && cover_image === undefined) {
       return res.status(400).json({
         error: "At least one field must be provided for update"
       });
@@ -181,6 +184,9 @@ export async function updateBusiness(req: AuthenticatedRequest, res: Response) {
     }
     if (is_active !== undefined) updateData.is_active = is_active;
     if (logo !== undefined) updateData.logo = logo;
+    if (description !== undefined) updateData.description = description;
+    if (category_id !== undefined) updateData.category_id = category_id;
+    if (cover_image !== undefined) updateData.cover_image = cover_image;
 
     const updatedBusiness = await updateBusinessQuery(businessId, updateData);
     if (!updatedBusiness) {

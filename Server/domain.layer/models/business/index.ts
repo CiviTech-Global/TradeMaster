@@ -1,9 +1,10 @@
-import { Model, Table, Column, DataType, PrimaryKey, AutoIncrement, AllowNull, ForeignKey, BelongsTo } from "sequelize-typescript";
+import { Model, Table, Column, DataType, PrimaryKey, AutoIncrement, AllowNull, ForeignKey, BelongsTo, HasMany } from "sequelize-typescript";
 import IBusiness from "../../interfaces/business";
 import { Optional } from "sequelize";
 import { User } from "../user";
+import { Category } from "../category";
 
-type BusinessCreationAttributes = Optional<IBusiness, "id" | "createdAt" | "updatedAt" | "deletedAt">;
+type BusinessCreationAttributes = Optional<IBusiness, "id" | "createdAt" | "updatedAt" | "deletedAt" | "description" | "category_id" | "cover_image">;
 
 @Table({
   tableName: "businesses",
@@ -56,6 +57,19 @@ export class Business extends Model<IBusiness, BusinessCreationAttributes> {
   @Column(DataType.STRING(500))
   declare logo: string;
 
+  @AllowNull(true)
+  @Column(DataType.TEXT)
+  declare description: string | null;
+
+  @ForeignKey(() => Category)
+  @AllowNull(true)
+  @Column(DataType.INTEGER)
+  declare category_id: number | null;
+
+  @AllowNull(true)
+  @Column(DataType.STRING(500))
+  declare cover_image: string | null;
+
   @Column(DataType.DATE)
   declare createdAt: Date;
 
@@ -67,6 +81,9 @@ export class Business extends Model<IBusiness, BusinessCreationAttributes> {
 
   @BelongsTo(() => User)
   declare user: User;
+
+  @BelongsTo(() => Category)
+  declare category: Category;
 
   static async createBusiness(business: BusinessCreationAttributes): Promise<Business> {
     return this.create(business);

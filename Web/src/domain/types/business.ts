@@ -9,6 +9,15 @@ export interface Business {
   phones: string[];
   is_active: boolean;
   logo: string;
+  description: string | null;
+  category_id: number | null;
+  cover_image: string | null;
+  category?: {
+    id: number;
+    name: string;
+    slug: string;
+    icon: string | null;
+  };
   createdAt: string;
   updatedAt: string;
   deletedAt?: string;
@@ -24,6 +33,9 @@ export interface CreateBusinessRequest {
   phones: string[];
   is_active?: boolean;
   logo?: string;
+  description?: string;
+  category_id?: number;
+  cover_image?: string;
 }
 
 export interface UpdateBusinessRequest {
@@ -35,6 +47,9 @@ export interface UpdateBusinessRequest {
   phones?: string[];
   is_active?: boolean;
   logo?: string;
+  description?: string;
+  category_id?: number;
+  cover_image?: string;
 }
 
 export interface BusinessResponse {
@@ -51,4 +66,7 @@ export interface BusinessFormData {
   phones: string[];
   is_active: boolean;
   logo: string;
+  description: string;
+  category_id: number | null;
+  cover_image: string;
 }

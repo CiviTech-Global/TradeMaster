@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Input } from '../../../../components';
 import { businessService } from '../../../../../infrastructure/api/businessService';
+import { categoryService } from '../../../../../infrastructure/api/categoryService';
 import type { BusinessFormData } from '../../../../../domain/types/business';
+import type { Category } from '../../../../../domain/types/category';
 import type { MapPosition } from '../../../../components/Map/types';
 
 interface CreateBusinessFormProps {
@@ -27,10 +29,18 @@ const CreateBusinessForm: React.FC<CreateBusinessFormProps> = ({
     emails: [''],
     phones: [''],
     is_active: true,
-    logo: ''
+    logo: '',
+    description: '',
+    category_id: null,
+    cover_image: '',
   });
   const [errors, setErrors] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    categoryService.getAllCategories().then(setCategories).catch(console.error);
+  }, []);
 
   // Initialize form data
   useEffect(() => {
@@ -206,12 +216,47 @@ const CreateBusinessForm: React.FC<CreateBusinessFormProps> = ({
         </div>
 
         <div className="form-row">
+          <label className="input-label">Description (Optional)</label>
+          <textarea
+            className="form-textarea"
+            placeholder="Describe your business"
+            value={formData.description}
+            onChange={(e) => handleInputChange('description', e.target.value)}
+            rows={3}
+          />
+        </div>
+
+        <div className="form-row">
+          <label className="input-label">Category</label>
+          <select
+            className="input-field"
+            value={formData.category_id || ''}
+            onChange={(e) => handleInputChange('category_id', e.target.value ? parseInt(e.target.value) : '')}
+          >
+            <option value="">Select a category</option>
+            {categories.map(cat => (
+              <option key={cat.id} value={cat.id}>{cat.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="form-row">
           <Input
             label="Logo URL (Optional)"
             type="url"
             placeholder="https://example.com/logo.png"
             value={formData.logo}
             onChange={(e) => handleInputChange('logo', e.target.value)}
+          />
+        </div>
+
+        <div className="form-row">
+          <Input
+            label="Cover Image URL (Optional)"
+            type="url"
+            placeholder="https://example.com/cover.png"
+            value={formData.cover_image}
+            onChange={(e) => handleInputChange('cover_image', e.target.value)}
           />
         </div>
 

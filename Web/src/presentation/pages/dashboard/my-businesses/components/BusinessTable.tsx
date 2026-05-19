@@ -95,6 +95,7 @@ const BusinessTable: React.FC<BusinessTableProps> = ({
                 Address {getSortIcon('address')}
               </th>
               <th>Location</th>
+              <th>Category</th>
               <th>Contact</th>
               <th
                 className="sortable"
@@ -138,6 +139,11 @@ const BusinessTable: React.FC<BusinessTableProps> = ({
                   <div className="business-location">
                     <small>{formatLocation(business.latitude, business.longitude)}</small>
                   </div>
+                </td>
+                <td>
+                  <span className="category-badge">
+                    {business.category ? business.category.name : '-'}
+                  </span>
                 </td>
                 <td>
                   <div className="business-contact">

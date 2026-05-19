@@ -3,7 +3,7 @@ import IUser from "../../interfaces/user";
 import { Optional } from "sequelize";
 import { Business } from "../business";
 
-type UserCreationAttributes = Optional<IUser, "id" | "createdAt" | "updatedAt" | "deletedAt">;
+type UserCreationAttributes = Optional<IUser, "id" | "createdAt" | "updatedAt" | "deletedAt" | "avatar" | "phone" | "bio" | "default_latitude" | "default_longitude">;
 
 @Table({
   tableName: "users",
@@ -32,6 +32,26 @@ export class User extends Model<IUser, UserCreationAttributes> {
   @AllowNull(false)
   @Column(DataType.STRING(255))
   declare password: string;
+
+  @AllowNull(true)
+  @Column(DataType.STRING(500))
+  declare avatar: string | null;
+
+  @AllowNull(true)
+  @Column(DataType.STRING(20))
+  declare phone: string | null;
+
+  @AllowNull(true)
+  @Column(DataType.TEXT)
+  declare bio: string | null;
+
+  @AllowNull(true)
+  @Column(DataType.DECIMAL(11, 8))
+  declare default_latitude: number | null;
+
+  @AllowNull(true)
+  @Column(DataType.DECIMAL(10, 8))
+  declare default_longitude: number | null;
 
   @Column(DataType.DATE)
   declare createdAt: Date;

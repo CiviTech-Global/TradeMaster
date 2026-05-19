@@ -3,7 +3,7 @@ import { Optional } from "sequelize";
 import IUser from "../../domain.layer/interfaces/user";
 import bcrypt from "bcrypt";
 
-type UserCreationAttributes = Optional<IUser, "id" | "createdAt" | "updatedAt" | "deletedAt">;
+type UserCreationAttributes = Optional<IUser, "id" | "createdAt" | "updatedAt" | "deletedAt" | "avatar" | "phone" | "bio" | "default_latitude" | "default_longitude">;
 type UserUpdateAttributes = Partial<Omit<IUser, "id" | "createdAt" | "updatedAt" | "deletedAt">>;
 
 export async function getAllUsersQuery() {

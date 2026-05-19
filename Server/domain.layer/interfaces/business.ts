@@ -9,6 +9,9 @@ interface IBusiness {
   phones: string[];
   is_active: boolean;
   logo: string;
+  description: string | null;
+  category_id: number | null;
+  cover_image: string | null;
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date;
