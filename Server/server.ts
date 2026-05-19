@@ -19,6 +19,7 @@ import searchRoutes from "./presentation.layer/routes/search.route";
 import orderRoutes from "./presentation.layer/routes/order.route";
 import messageRoutes from "./presentation.layer/routes/message.route";
 import reviewRoutes from "./presentation.layer/routes/review.route";
+import devRoutes from "./presentation.layer/routes/dev.route";
 
 // Load environment variables
 dotenv.config();
@@ -91,6 +92,10 @@ const startServer = async () => {
     app.use("/orders", orderRoutes);
     app.use("/messages", messageRoutes);
     app.use("/reviews", reviewRoutes);
+    if (process.env.NODE_ENV !== "production") {
+      app.use("/dev", devRoutes);
+      console.log("🛠️  Dev routes enabled (non-production environment)");
+    }
     app.listen(PORT, () => {
       console.log(`🚀 TradeMaster Server running on port ${PORT}`);
       console.log(

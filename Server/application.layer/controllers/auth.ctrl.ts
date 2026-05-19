@@ -5,7 +5,8 @@ import {
   verifyPasswordResetTokenQuery,
   resetUserPasswordQuery
 } from "../../infrastructure.layer/utils/auth.util";
-import { createUser } from "./user.ctrl";
+import { createUserQuery } from "../../infrastructure.layer/utils/user.util";
+
 import {
   generateTokens,
   verifyAccessToken,
@@ -65,14 +66,39 @@ export async function signin(req: Request, res: Response) {
 
 export async function signup(req: Request, res: Response) {
   try {
-    // Use the existing createUser function but return JWT tokens
-    await createUser(req, res);
+    const { firstname, lastname, email, password } = req.body;
 
-    // If user creation was successful, the response will have been sent
-    // Check if response was successful and get the user data to generate tokens
-    if (res.headersSent) {
-      return;
+    if (!firstname || !lastname || !email || !password) {
+      return res.status(400).json({
+        error: "Missing required fields: firstname, lastname, email, password"
+      });
     }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: "Invalid email format" });
+    }
+
+    const existingUser = await getUserByEmailQuery(email);
+    if (existingUser) {
+      return res.status(409).json({ error: "User with this email already exists" });
+    }
+
+    const newUser = await createUserQuery({ firstname, lastname, email, password });
+    const { password: _, ...userWithoutPassword } = newUser.toJSON();
+
+    // Generate JWT tokens for immediate sign-in after signup
+    const tokens = generateTokens(newUser.id, newUser.email);
+
+    res.status(201).json({
+      data: {
+        user: userWithoutPassword,
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        expiresIn: tokens.expiresIn
+      },
+      message: "Signup successful"
+    });
   } catch (error) {
     console.error("Error during signup:", error);
     res.status(500).json({ error: "Signup failed" });

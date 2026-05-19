@@ -174,9 +174,18 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-              child: Text(
-                'Products Near You',
-                style: theme.textTheme.titleLarge,
+              child: Row(
+                children: [
+                  Icon(Icons.local_fire_department_rounded,
+                      color: theme.colorScheme.secondary, size: 24),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Products Near You',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

@@ -46,6 +46,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
+    final theme = Theme.of(context);
 
     ref.listen<AuthState>(authProvider, (previous, next) {
       if (next.error != null) {
@@ -77,25 +78,47 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // Gradient logo area
+                    Center(
+                      child: Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [
+                              theme.colorScheme.primary,
+                              theme.colorScheme.secondary,
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.person_add_rounded,
+                          size: 40,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
                     Text(
                       'Create Account',
-                      style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      style: theme.textTheme.headlineLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Sign up to get started',
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface
+                      'Join the marketplace today',
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                            color: theme.colorScheme.onSurface
                                 .withValues(alpha: 0.6),
                           ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 48),
+                    const SizedBox(height: 32),
                     TextFormField(
                       controller: _firstnameController,
                       decoration: const InputDecoration(

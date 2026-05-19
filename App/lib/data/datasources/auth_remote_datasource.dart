@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:trademaster/core/network/dio_client.dart';
 import 'package:trademaster/data/models/user_model.dart';
 
@@ -11,10 +13,12 @@ class AuthRemoteDatasource {
     required String email,
     required String password,
   }) async {
+    developer.log('AuthRemoteDatasource.signIn: attempting sign in for $email');
     final response = await _dioClient.post(
       '/auth/signin',
       data: {'email': email, 'password': password},
     );
+    developer.log('AuthRemoteDatasource.signIn: response status ${response.statusCode}');
     return response.data as Map<String, dynamic>;
   }
 
@@ -24,8 +28,9 @@ class AuthRemoteDatasource {
     required String email,
     required String password,
   }) async {
+    developer.log('AuthRemoteDatasource.signUp: attempting sign up for $email');
     final response = await _dioClient.post(
-      '/users',
+      '/auth/signup',
       data: {
         'firstname': firstname,
         'lastname': lastname,
@@ -33,19 +38,26 @@ class AuthRemoteDatasource {
         'password': password,
       },
     );
+    developer.log('AuthRemoteDatasource.signUp: response status ${response.statusCode}');
     return response.data as Map<String, dynamic>;
   }
 
   Future<Map<String, dynamic>> refreshToken(String refreshToken) async {
+    developer.log('AuthRemoteDatasource.refreshToken: refreshing token');
     final response = await _dioClient.post(
       '/auth/refresh-token',
       data: {'refreshToken': refreshToken},
     );
+    developer.log('AuthRemoteDatasource.refreshToken: response status ${response.statusCode}');
     return response.data as Map<String, dynamic>;
   }
 
   Future<UserModel> getCurrentUser() async {
-    final response = await _dioClient.get('/auth/me');
-    return UserModel.fromJson(response.data as Map<String, dynamic>);
+    developer.log('AuthRemoteDatasource.getCurrentUser: verifying token');
+    final response = await _dioClient.get('/auth/verify-token');
+    developer.log('AuthRemoteDatasource.getCurrentUser: response status ${response.statusCode}');
+    final responseData = response.data as Map<String, dynamic>;
+    final innerData = responseData['data'] as Map<String, dynamic>;
+    return UserModel.fromJson(innerData['user'] as Map<String, dynamic>);
   }
 }

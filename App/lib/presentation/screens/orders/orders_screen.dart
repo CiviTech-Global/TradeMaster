@@ -210,19 +210,19 @@ class _StatusChip extends StatelessWidget {
   (Color, String) _statusInfo(String status) {
     switch (status.toLowerCase()) {
       case 'pending':
-        return (Colors.orange, 'Pending');
+        return (const Color(0xFFFFA726), 'Pending'); // Warm Amber
       case 'confirmed':
-        return (Colors.blue, 'Confirmed');
+        return (const Color(0xFF42A5F5), 'Confirmed');
       case 'processing':
-        return (Colors.indigo, 'Processing');
+        return (const Color(0xFFAB47BC), 'Processing');
       case 'shipped':
-        return (Colors.purple, 'Shipped');
+        return (const Color(0xFF7E57C2), 'Shipped');
       case 'delivered':
-        return (Colors.green, 'Delivered');
+        return (const Color(0xFF66BB6A), 'Delivered'); // Mint Green
       case 'cancelled':
-        return (Colors.red, 'Cancelled');
+        return (const Color(0xFFEF5350), 'Cancelled'); // Soft Red
       default:
-        return (Colors.grey, status);
+        return (const Color(0xFF8D8D8D), status);
     }
   }
 }

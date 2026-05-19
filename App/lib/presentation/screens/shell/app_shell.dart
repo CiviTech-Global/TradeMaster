@@ -18,11 +18,11 @@ class _AppShellState extends ConsumerState<AppShell> {
   int _selectedIndex = 0;
 
   static const List<_TabInfo> _tabs = [
-    _TabInfo(icon: Icons.explore_outlined, activeIcon: Icons.explore, label: 'Explore'),
-    _TabInfo(icon: Icons.search_outlined, activeIcon: Icons.search, label: 'Search'),
-    _TabInfo(icon: Icons.receipt_long_outlined, activeIcon: Icons.receipt_long, label: 'Orders'),
-    _TabInfo(icon: Icons.message_outlined, activeIcon: Icons.message, label: 'Messages'),
-    _TabInfo(icon: Icons.person_outlined, activeIcon: Icons.person, label: 'Profile'),
+    _TabInfo(icon: Icons.explore_outlined, activeIcon: Icons.explore_rounded, label: 'Explore'),
+    _TabInfo(icon: Icons.search_outlined, activeIcon: Icons.search_rounded, label: 'Search'),
+    _TabInfo(icon: Icons.receipt_long_outlined, activeIcon: Icons.receipt_long_rounded, label: 'Orders'),
+    _TabInfo(icon: Icons.chat_bubble_outline_rounded, activeIcon: Icons.chat_bubble_rounded, label: 'Messages'),
+    _TabInfo(icon: Icons.person_outline_rounded, activeIcon: Icons.person_rounded, label: 'Profile'),
   ];
 
   static const List<Widget> _screens = [

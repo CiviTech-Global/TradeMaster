@@ -85,12 +85,21 @@ class _PlaceholderImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: theme.colorScheme.surfaceContainerHighest,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            theme.colorScheme.tertiary.withValues(alpha: 0.08),
+            theme.colorScheme.secondary.withValues(alpha: 0.06),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
       child: Center(
         child: Icon(
           Icons.image_outlined,
           size: 48,
-          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
         ),
       ),
     );
