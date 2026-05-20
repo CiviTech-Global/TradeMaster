@@ -21,53 +21,60 @@ class ProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            AspectRatio(
-              aspectRatio: 1,
-              child: imageUrl != null
-                  ? CachedNetworkImage(
-                      imageUrl: '${ApiConstants.baseUrl}$imageUrl',
-                      fit: BoxFit.cover,
-                      placeholder: (_, _) => Container(
-                        color: theme.colorScheme.surfaceContainerHighest,
-                        child: const Center(
-                          child: CircularProgressIndicator(strokeWidth: 2),
+            Expanded(
+              flex: 3,
+              child: SizedBox(
+                width: double.infinity,
+                child: imageUrl != null
+                    ? CachedNetworkImage(
+                        imageUrl: '${ApiConstants.baseUrl}$imageUrl',
+                        fit: BoxFit.cover,
+                        placeholder: (_, _) => Container(
+                          color: theme.colorScheme.surfaceContainerHighest,
+                          child: const Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
                         ),
-                      ),
-                      errorWidget: (_, _, _) => _PlaceholderImage(theme: theme),
-                    )
-                  : _PlaceholderImage(theme: theme),
+                        errorWidget: (_, _, _) =>
+                            _PlaceholderImage(theme: theme),
+                      )
+                    : _PlaceholderImage(theme: theme),
+              ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.title,
-                    style: theme.textTheme.titleSmall,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '\$${product.price.toStringAsFixed(2)}',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  if (product.business != null) ...[
-                    const SizedBox(height: 4),
+            Expanded(
+              flex: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      product.business!.title,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      maxLines: 1,
+                      product.title,
+                      style: theme.textTheme.titleSmall,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '\$${product.price.toStringAsFixed(2)}',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (product.business != null) ...[
+                      const Spacer(),
+                      Text(
+                        product.business!.title,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ],

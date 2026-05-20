@@ -193,10 +193,12 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
           // Products grid
           if (productState.isLoading && productState.products.isEmpty)
             const SliverFillRemaining(
+              hasScrollBody: false,
               child: Center(child: CircularProgressIndicator()),
             )
           else if (productState.error != null && productState.products.isEmpty)
             SliverFillRemaining(
+              hasScrollBody: false,
               child: Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -217,6 +219,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
             )
           else if (productState.products.isEmpty)
             SliverFillRemaining(
+              hasScrollBody: false,
               child: Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,

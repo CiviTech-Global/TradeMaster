@@ -15,12 +15,12 @@ export async function seedDemoData(req: AuthenticatedRequest, res: Response) {
 
     // 1. Create categories
     const categoriesData = [
-      { name: "Electronics", slug: "electronics", icon: "laptop", description: "Gadgets, phones, accessories", sort_order: 1 },
-      { name: "Fashion", slug: "fashion", icon: "shirt", description: "Clothing, shoes, accessories", sort_order: 2 },
-      { name: "Food & Drinks", slug: "food-drinks", icon: "restaurant", description: "Fresh food, beverages, snacks", sort_order: 3 },
-      { name: "Home & Garden", slug: "home-garden", icon: "home", description: "Furniture, decor, gardening", sort_order: 4 },
-      { name: "Books & Media", slug: "books-media", icon: "book", description: "Books, music, movies", sort_order: 5 },
-      { name: "Sports & Outdoors", slug: "sports-outdoors", icon: "sports", description: "Equipment, activewear", sort_order: 6 },
+      { name: "Electronics", slug: "electronics", icon: "laptop", description: "Gadgets, phones, accessories", sort_order: 1, is_active: true },
+      { name: "Fashion", slug: "fashion", icon: "shirt", description: "Clothing, shoes, accessories", sort_order: 2, is_active: true },
+      { name: "Food & Drinks", slug: "food-drinks", icon: "restaurant", description: "Fresh food, beverages, snacks", sort_order: 3, is_active: true },
+      { name: "Home & Garden", slug: "home-garden", icon: "home", description: "Furniture, decor, gardening", sort_order: 4, is_active: true },
+      { name: "Books & Media", slug: "books-media", icon: "book", description: "Books, music, movies", sort_order: 5, is_active: true },
+      { name: "Sports & Outdoors", slug: "sports-outdoors", icon: "sports", description: "Equipment, activewear", sort_order: 6, is_active: true },
     ];
 
     const categories: Category[] = [];
@@ -34,13 +34,14 @@ export async function seedDemoData(req: AuthenticatedRequest, res: Response) {
 
     // 2. Create a demo partner user for messages
     const demoPartnerEmail = `demo_partner_${userId}@trademaster.dev`;
-    let [demoPartner] = await User.findOrCreate({
+    const hashedPassword = await bcrypt.hash("demo123456", 10);
+    const [demoPartner] = await User.findOrCreate({
       where: { email: demoPartnerEmail },
       defaults: {
         firstname: "Demo",
         lastname: "Seller",
         email: demoPartnerEmail,
-        password: await bcrypt.hash("demo123456", 10),
+        password: hashedPassword,
       },
     });
 
@@ -56,6 +57,8 @@ export async function seedDemoData(req: AuthenticatedRequest, res: Response) {
         phones: ["+1-555-0101"],
         description: "Your one-stop shop for the latest gadgets and electronics.",
         category_id: categories[0].id,
+        is_active: true,
+        logo: "",
       },
       {
         owner: userId,
@@ -67,6 +70,8 @@ export async function seedDemoData(req: AuthenticatedRequest, res: Response) {
         phones: ["+1-555-0102"],
         description: "Trendy fashion for the modern urbanite.",
         category_id: categories[1].id,
+        is_active: true,
+        logo: "",
       },
       {
         owner: userId,
@@ -78,6 +83,8 @@ export async function seedDemoData(req: AuthenticatedRequest, res: Response) {
         phones: ["+1-555-0103"],
         description: "Organic and artisan food products delivered fresh.",
         category_id: categories[2].id,
+        is_active: true,
+        logo: "",
       },
     ];
 
