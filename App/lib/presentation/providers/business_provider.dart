@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trademaster/data/datasources/business_remote_datasource.dart';
 import 'package:trademaster/data/models/business_model.dart';
@@ -20,11 +22,14 @@ class ActiveBusinessesNotifier
       : super(const AsyncValue.loading());
 
   Future<void> load() async {
+    developer.log('ActiveBusinessesNotifier.load: starting', name: 'BusinessProvider');
     state = const AsyncValue.loading();
     try {
       final businesses = await _datasource.getActiveBusinesses();
+      developer.log('ActiveBusinessesNotifier.load: success, ${businesses.length} businesses', name: 'BusinessProvider');
       state = AsyncValue.data(businesses);
     } catch (e, st) {
+      developer.log('ActiveBusinessesNotifier.load: FAILED - $e', name: 'BusinessProvider', level: 1000);
       state = AsyncValue.error(e, st);
     }
   }

@@ -1,3 +1,6 @@
+import 'dart:developer' as developer;
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,6 +29,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      developer.log('ExploreScreen.initState: loading data', name: 'ExploreScreen');
       ref.read(locationProvider.notifier).getCurrentLocation();
       ref.read(activeBusinessesProvider.notifier).load();
       _loadProducts();
@@ -34,6 +38,11 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
 
   void _loadProducts() {
     final location = ref.read(locationProvider);
+    developer.log(
+      'ExploreScreen._loadProducts: lat=${location.position?.latitude} '
+      'lng=${location.position?.longitude} cat=$_selectedCategoryId',
+      name: 'ExploreScreen',
+    );
     ref.read(productListProvider.notifier).loadProducts(
           ProductFilters(
             categoryId: _selectedCategoryId,
@@ -200,20 +209,35 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
             SliverFillRemaining(
               hasScrollBody: false,
               child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.error_outline,
-                        size: 48, color: theme.colorScheme.error),
-                    const SizedBox(height: 8),
-                    Text('Failed to load products',
-                        style: theme.textTheme.bodyLarge),
-                    const SizedBox(height: 8),
-                    FilledButton(
-                      onPressed: _loadProducts,
-                      child: const Text('Retry'),
-                    ),
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.error_outline,
+                          size: 48, color: theme.colorScheme.error),
+                      const SizedBox(height: 8),
+                      Text('Failed to load products',
+                          style: theme.textTheme.bodyLarge),
+                      if (kDebugMode) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          productState.error!,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 4,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                      const SizedBox(height: 8),
+                      FilledButton(
+                        onPressed: _loadProducts,
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             )

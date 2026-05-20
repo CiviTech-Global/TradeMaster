@@ -19,6 +19,7 @@ import {
   unifiedSearchQuery,
 } from "../../infrastructure.layer/utils/product.util";
 import { AuthenticatedRequest } from "../../infrastructure.layer/utils/jwt.util";
+import { logger } from "../../infrastructure.layer/utils/logger.util";
 
 // Products CRUD
 export async function getProducts(req: Request, res: Response) {
@@ -36,10 +37,12 @@ export async function getProducts(req: Request, res: Response) {
       limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
       sort_by: req.query.sort_by as string | undefined,
     };
+    logger.debug("ProductCtrl", "getProducts called", filters as Record<string, unknown>);
     const result = await getProductsQuery(filters);
+    logger.debug("ProductCtrl", "getProducts success", { count: (result.data as unknown[]).length, total: result.pagination.total });
     res.json({ ...result, message: "Products retrieved successfully" });
   } catch (error) {
-    console.error("Error fetching products:", error);
+    logger.error("ProductCtrl", "getProducts failed", error);
     res.status(500).json({ error: "Failed to get products" });
   }
 }

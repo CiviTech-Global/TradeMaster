@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trademaster/data/datasources/product_remote_datasource.dart';
 import 'package:trademaster/data/models/product_model.dart';
@@ -112,6 +114,12 @@ class ProductListNotifier extends StateNotifier<ProductListState> {
   ProductListNotifier(this._datasource) : super(const ProductListState());
 
   Future<void> loadProducts(ProductFilters filters) async {
+    developer.log(
+      'ProductListNotifier.loadProducts: '
+      'cat=${filters.categoryId} lat=${filters.lat} lng=${filters.lng} '
+      'radius=${filters.radiusKm} page=${filters.page}',
+      name: 'ProductProvider',
+    );
     state = ProductListState(isLoading: true);
     try {
       final response = await _datasource.getProducts(
@@ -127,11 +135,21 @@ class ProductListNotifier extends StateNotifier<ProductListState> {
         limit: filters.limit,
         sortBy: filters.sortBy,
       );
+      developer.log(
+        'ProductListNotifier.loadProducts: success, '
+        '${response.products.length} products, total=${response.pagination.total}',
+        name: 'ProductProvider',
+      );
       state = ProductListState(
         products: response.products,
         pagination: response.pagination,
       );
     } catch (e) {
+      developer.log(
+        'ProductListNotifier.loadProducts: FAILED - $e',
+        name: 'ProductProvider',
+        level: 1000,
+      );
       state = ProductListState(error: e.toString());
     }
   }

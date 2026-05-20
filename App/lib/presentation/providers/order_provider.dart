@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trademaster/data/datasources/order_remote_datasource.dart';
 import 'package:trademaster/data/models/order_model.dart';
@@ -31,14 +33,28 @@ class OrderListNotifier extends StateNotifier<OrderListState> {
   OrderListNotifier(this._datasource) : super(const OrderListState());
 
   Future<void> loadOrders({String? status}) async {
+    developer.log(
+      'OrderListNotifier.loadOrders: status=$status',
+      name: 'OrderProvider',
+    );
     state = const OrderListState(isLoading: true);
     try {
       final response = await _datasource.getOrders(status: status);
+      developer.log(
+        'OrderListNotifier.loadOrders: success, '
+        '${response.orders.length} orders, total=${response.pagination.total}',
+        name: 'OrderProvider',
+      );
       state = OrderListState(
         orders: response.orders,
         pagination: response.pagination,
       );
     } catch (e) {
+      developer.log(
+        'OrderListNotifier.loadOrders: FAILED - $e',
+        name: 'OrderProvider',
+        level: 1000,
+      );
       state = OrderListState(error: e.toString());
     }
   }

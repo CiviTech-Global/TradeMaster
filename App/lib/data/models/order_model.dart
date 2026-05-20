@@ -1,3 +1,4 @@
+import 'package:trademaster/core/utils/json_parse.dart';
 import 'package:trademaster/data/models/product_model.dart';
 
 class OrderItemModel {
@@ -22,13 +23,13 @@ class OrderItemModel {
   });
 
   factory OrderItemModel.fromJson(Map<String, dynamic> json) => OrderItemModel(
-        id: json['id'],
-        orderId: json['order_id'],
-        productId: json['product_id'],
-        variantId: json['variant_id'],
-        quantity: json['quantity'],
-        unitPrice: (json['unit_price'] as num).toDouble(),
-        totalPrice: (json['total_price'] as num).toDouble(),
+        id: json['id'] as int? ?? 0,
+        orderId: json['order_id'] as int? ?? 0,
+        productId: json['product_id'] as int? ?? 0,
+        variantId: json['variant_id'] as int?,
+        quantity: json['quantity'] as int? ?? 0,
+        unitPrice: parseJsonDouble(json['unit_price']),
+        totalPrice: parseJsonDouble(json['total_price']),
         product: json['product'] != null
             ? ProductModel.fromJson(json['product'])
             : null,
@@ -50,8 +51,8 @@ class OrderBusinessModel {
 
   factory OrderBusinessModel.fromJson(Map<String, dynamic> json) =>
       OrderBusinessModel(
-        id: json['id'],
-        title: json['title'],
+        id: json['id'] as int? ?? 0,
+        title: json['title'] as String? ?? '',
         logo: json['logo'],
         address: json['address'],
       );
@@ -87,18 +88,18 @@ class OrderModel {
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) => OrderModel(
-        id: json['id'],
-        orderNumber: json['order_number'] ?? '',
-        buyerId: json['buyer_id'],
-        businessId: json['business_id'],
-        status: json['status'] ?? 'pending',
-        totalAmount: (json['total_amount'] as num).toDouble(),
-        currency: json['currency'] ?? 'USD',
+        id: json['id'] as int? ?? 0,
+        orderNumber: json['order_number'] as String? ?? '',
+        buyerId: json['buyer_id'] as int? ?? 0,
+        businessId: json['business_id'] as int? ?? 0,
+        status: json['status'] as String? ?? 'pending',
+        totalAmount: parseJsonDouble(json['total_amount']),
+        currency: json['currency'] as String? ?? 'USD',
         shippingAddress: json['shipping_address'],
         notes: json['notes'],
         items: json['items'] != null
             ? (json['items'] as List)
-                .map((i) => OrderItemModel.fromJson(i))
+                .map((i) => OrderItemModel.fromJson(i as Map<String, dynamic>))
                 .toList()
             : [],
         business: json['business'] != null
@@ -117,7 +118,7 @@ class OrderListResponse {
   factory OrderListResponse.fromJson(Map<String, dynamic> json) =>
       OrderListResponse(
         orders: (json['data'] as List)
-            .map((o) => OrderModel.fromJson(o))
+            .map((o) => OrderModel.fromJson(o as Map<String, dynamic>))
             .toList(),
         pagination: PaginationModel.fromJson(json['pagination']),
       );

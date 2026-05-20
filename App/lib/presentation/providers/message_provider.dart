@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trademaster/data/datasources/message_remote_datasource.dart';
 import 'package:trademaster/data/models/message_model.dart';
@@ -16,11 +17,14 @@ class ConversationsNotifier
       : super(const AsyncValue.loading());
 
   Future<void> loadConversations() async {
+    developer.log('ConversationsNotifier.loadConversations: starting', name: 'MessageProvider');
     state = const AsyncValue.loading();
     try {
       final conversations = await _datasource.getConversations();
+      developer.log('ConversationsNotifier.loadConversations: success, ${conversations.length} conversations', name: 'MessageProvider');
       state = AsyncValue.data(conversations);
     } catch (e, st) {
+      developer.log('ConversationsNotifier.loadConversations: FAILED - $e', name: 'MessageProvider', level: 1000);
       state = AsyncValue.error(e, st);
     }
   }

@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:dio/dio.dart';
 import 'package:trademaster/core/constants/api_constants.dart';
 import 'package:trademaster/core/network/api_interceptor.dart';
@@ -7,9 +9,11 @@ class DioClient {
   late final Dio _dio;
 
   DioClient._() {
+    final base = ApiConstants.baseUrl;
+    developer.log('DioClient: initializing with baseUrl=$base', name: 'DioClient');
     _dio = Dio(
       BaseOptions(
-        baseUrl: ApiConstants.baseUrl,
+        baseUrl: base,
         connectTimeout: ApiConstants.connectTimeout,
         receiveTimeout: ApiConstants.receiveTimeout,
         headers: {

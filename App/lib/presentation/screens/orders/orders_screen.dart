@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -39,20 +40,35 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
 
     if (orderState.error != null && orderState.orders.isEmpty) {
       return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.error_outline,
-                size: 48, color: theme.colorScheme.error),
-            const SizedBox(height: 8),
-            const Text('Failed to load orders'),
-            const SizedBox(height: 8),
-            FilledButton(
-              onPressed: () =>
-                  ref.read(orderListProvider.notifier).loadOrders(),
-              child: const Text('Retry'),
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.error_outline,
+                  size: 48, color: theme.colorScheme.error),
+              const SizedBox(height: 8),
+              const Text('Failed to load orders'),
+              if (kDebugMode) ...[
+                const SizedBox(height: 4),
+                Text(
+                  orderState.error!,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 4,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+              const SizedBox(height: 8),
+              FilledButton(
+                onPressed: () =>
+                    ref.read(orderListProvider.notifier).loadOrders(),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
         ),
       );
     }

@@ -10,12 +10,14 @@ class AuthState {
   final User? user;
   final bool isAuthenticated;
   final bool isLoading;
+  final bool isInitializing;
   final String? error;
 
   const AuthState({
     this.user,
     this.isAuthenticated = false,
     this.isLoading = false,
+    this.isInitializing = false,
     this.error,
   });
 
@@ -23,12 +25,14 @@ class AuthState {
     User? user,
     bool? isAuthenticated,
     bool? isLoading,
+    bool? isInitializing,
     String? error,
   }) {
     return AuthState(
       user: user ?? this.user,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       isLoading: isLoading ?? this.isLoading,
+      isInitializing: isInitializing ?? this.isInitializing,
       error: error,
     );
   }
@@ -73,7 +77,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   Future<void> initializeAuth() async {
     developer.log('AuthNotifier.initializeAuth: starting');
-    state = state.copyWith(isLoading: true);
+    state = state.copyWith(isInitializing: true);
     try {
       final user = await _repository.getCurrentUser();
       if (user != null) {
@@ -81,15 +85,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
         state = AuthState(
           user: user,
           isAuthenticated: true,
-          isLoading: false,
         );
       } else {
         developer.log('AuthNotifier.initializeAuth: no user session');
-        state = const AuthState(isLoading: false);
+        state = const AuthState();
       }
     } catch (e) {
       developer.log('AuthNotifier.initializeAuth: error - $e');
-      state = const AuthState(isLoading: false);
+      state = const AuthState();
     }
   }
 

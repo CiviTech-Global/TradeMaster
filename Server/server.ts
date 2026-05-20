@@ -50,13 +50,38 @@ const authLimiter = rateLimit({
 });
 
 // Middleware
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true
-}));
+app.use(cors(
+  process.env.NODE_ENV === "production"
+    ? {
+        origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+        credentials: true
+      }
+    : {
+        origin: true, // Allow all origins in development (mobile devices, emulators)
+        credentials: true
+      }
+));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(apiLimiter);
+
+// Request logging middleware
+app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+  const start = Date.now();
+  const { method, originalUrl } = req;
+
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    const status = res.statusCode;
+    const level = status >= 500 ? "ERROR" : status >= 400 ? "WARN" : "INFO";
+    console.log(
+      `[${level}] ${method} ${originalUrl} -> ${status} (${duration}ms)` +
+        (status >= 400 ? ` | IP: ${req.ip}` : "")
+    );
+  });
+
+  next();
+});
 
 // Serve static uploads
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
@@ -96,8 +121,9 @@ const startServer = async () => {
       app.use("/dev", devRoutes);
       console.log("🛠️  Dev routes enabled (non-production environment)");
     }
-    app.listen(PORT, () => {
-      console.log(`🚀 TradeMaster Server running on port ${PORT}`);
+    const HOST = process.env.HOST || "0.0.0.0";
+    app.listen(Number(PORT), HOST, () => {
+      console.log(`🚀 TradeMaster Server running on ${HOST}:${PORT}`);
       console.log(
         `📊 Health check available at http://localhost:${PORT}/health`
       );

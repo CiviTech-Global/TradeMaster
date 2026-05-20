@@ -8,10 +8,12 @@ import { Review } from "../../domain.layer/models/review";
 import { Message } from "../../domain.layer/models/message";
 import { User } from "../../domain.layer/models/user";
 import bcrypt from "bcrypt";
+import { logger } from "../../infrastructure.layer/utils/logger.util";
 
 export async function seedDemoData(req: AuthenticatedRequest, res: Response) {
   try {
     const userId = req.user!.id;
+    logger.info("DevCtrl", "seedDemoData started", { userId });
 
     // 1. Create categories
     const categoriesData = [
@@ -194,19 +196,22 @@ export async function seedDemoData(req: AuthenticatedRequest, res: Response) {
       },
     ]);
 
+    const summary = {
+      categories: categories.length,
+      businesses: businesses.length,
+      products: products.length,
+      orders: 2,
+      reviews: reviews.length,
+      messages: messages.length,
+    };
+    logger.info("DevCtrl", "seedDemoData completed", summary);
+
     res.json({
-      data: {
-        categories: categories.length,
-        businesses: businesses.length,
-        products: products.length,
-        orders: 2,
-        reviews: reviews.length,
-        messages: messages.length,
-      },
+      data: summary,
       message: "Demo data seeded successfully",
     });
   } catch (error) {
-    console.error("Error seeding demo data:", error);
+    logger.error("DevCtrl", "seedDemoData failed", error, { userId: req.user?.id });
     res.status(500).json({ error: "Failed to seed demo data" });
   }
 }

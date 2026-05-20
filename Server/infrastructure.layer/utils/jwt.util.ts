@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
+import { logger } from './logger.util';
 
 // JWT configuration
 const JWT_SECRET = process.env.JWT_SECRET || 'trademaster_jwt_secret_key_dev_only';
@@ -126,6 +127,7 @@ export function authenticateJWT(req: AuthenticatedRequest, res: Response, next: 
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
+    logger.warn("JWT", "Missing Authorization header", { url: req.originalUrl, method: req.method });
     return res.status(401).json({
       error: 'Access token required',
       code: 'TOKEN_MISSING'
@@ -134,6 +136,7 @@ export function authenticateJWT(req: AuthenticatedRequest, res: Response, next: 
 
   const token = extractTokenFromHeader(authHeader);
   if (!token) {
+    logger.warn("JWT", "Invalid Authorization header format", { url: req.originalUrl });
     return res.status(401).json({
       error: 'Invalid authorization header format',
       code: 'INVALID_AUTH_HEADER'
@@ -142,6 +145,7 @@ export function authenticateJWT(req: AuthenticatedRequest, res: Response, next: 
 
   const decoded = verifyAccessToken(token);
   if (!decoded) {
+    logger.warn("JWT", "Token verification failed", { url: req.originalUrl });
     return res.status(401).json({
       error: 'Invalid or expired token',
       code: 'TOKEN_INVALID'
@@ -154,6 +158,7 @@ export function authenticateJWT(req: AuthenticatedRequest, res: Response, next: 
     email: decoded.email
   };
 
+  logger.debug("JWT", "Authenticated", { userId: decoded.userId, url: req.originalUrl });
   next();
 }
 

@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trademaster/data/datasources/dev_remote_datasource.dart';
@@ -32,9 +34,11 @@ class SeedNotifier extends StateNotifier<SeedState> {
   SeedNotifier(this._datasource) : super(const SeedState());
 
   Future<void> seed() async {
+    developer.log('SeedNotifier.seed: starting', name: 'DevProvider');
     state = const SeedState(isLoading: true);
     try {
-      await _datasource.seedDemoData();
+      final result = await _datasource.seedDemoData();
+      developer.log('SeedNotifier.seed: success - $result', name: 'DevProvider');
       state = const SeedState(isSuccess: true);
     } catch (e) {
       String message = 'Failed to seed demo data';
@@ -44,6 +48,7 @@ class SeedNotifier extends StateNotifier<SeedState> {
           message = responseData['error'] as String? ?? message;
         }
       }
+      developer.log('SeedNotifier.seed: FAILED - $message (raw: $e)', name: 'DevProvider', level: 1000);
       state = SeedState(error: message);
     }
   }

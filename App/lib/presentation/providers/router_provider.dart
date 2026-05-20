@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:trademaster/presentation/providers/auth_provider.dart';
@@ -17,9 +18,21 @@ final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/signin',
     redirect: (context, state) {
+      // While the app is restoring a session, stay on a splash screen
+      if (authState.isInitializing) {
+        if (state.matchedLocation != '/splash') return '/splash';
+        return null;
+      }
+
       final isAuthenticated = authState.isAuthenticated;
       final isAuthRoute = state.matchedLocation == '/signin' ||
           state.matchedLocation == '/signup';
+      final isSplash = state.matchedLocation == '/splash';
+
+      // Once init is done, leave splash
+      if (isSplash) {
+        return isAuthenticated ? '/' : '/signin';
+      }
 
       if (!isAuthenticated && !isAuthRoute) {
         return '/signin';
@@ -30,6 +43,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
+      GoRoute(
+        path: '/splash',
+        builder: (context, state) => const _SplashScreen(),
+      ),
       GoRoute(
         path: '/signin',
         builder: (context, state) => const SignInScreen(),
@@ -81,3 +98,57 @@ final routerProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
+
+class _SplashScreen extends StatelessWidget {
+  const _SplashScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [
+                    theme.colorScheme.primary,
+                    theme.colorScheme.secondary,
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: const Icon(
+                Icons.storefront_rounded,
+                size: 48,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'TradeMaster',
+              style: theme.textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.5,
+                color: theme.colorScheme.primary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

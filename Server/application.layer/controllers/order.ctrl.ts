@@ -9,6 +9,7 @@ import {
 } from "../../infrastructure.layer/utils/order.util";
 import { AuthenticatedRequest } from "../../infrastructure.layer/utils/jwt.util";
 import { verifyBusinessOwnership } from "../../infrastructure.layer/utils/product.util";
+import { logger } from "../../infrastructure.layer/utils/logger.util";
 
 export async function createOrder(req: AuthenticatedRequest, res: Response) {
   try {
@@ -58,17 +59,18 @@ export async function getOrders(req: AuthenticatedRequest, res: Response) {
       limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
     };
 
+    logger.debug("OrderCtrl", "getOrders called", { userId, role, ...filters });
+
     if (role === 'seller') {
-      // Get all orders for businesses owned by the user
-      // This requires a business_id; for listing all, use getOrdersByBusiness
       return res.status(400).json({ error: "Use /orders/business/:businessId for seller orders" });
     }
 
     // Default: get orders as buyer
     const result = await getOrdersByBuyerQuery(userId, filters);
+    logger.debug("OrderCtrl", "getOrders success", { userId, count: (result.data as unknown[]).length, total: result.pagination.total });
     res.json({ ...result, message: "Orders retrieved successfully" });
   } catch (error) {
-    console.error("Error fetching orders:", error);
+    logger.error("OrderCtrl", "getOrders failed", error, { userId: req.user?.id });
     res.status(500).json({ error: "Failed to get orders" });
   }
 }

@@ -20,14 +20,25 @@ class ApiInterceptor extends Interceptor {
     if (token != null) {
       options.headers['Authorization'] = 'Bearer $token';
     }
-    developer.log('[HTTP] --> ${options.method} ${options.uri}');
+    developer.log(
+      '[HTTP] --> ${options.method} ${options.uri}'
+      '${options.queryParameters.isNotEmpty ? ' query=${options.queryParameters}' : ''}'
+      '${token != null ? ' [auth]' : ' [no-auth]'}',
+      name: 'ApiInterceptor',
+    );
     handler.next(options);
   }
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
+    final data = response.data;
+    final preview = data is Map
+        ? '{keys: ${data.keys.toList()}, message: ${data['message'] ?? 'n/a'}}'
+        : '${data.runtimeType}';
     developer.log(
-      '[HTTP] <-- ${response.statusCode} ${response.requestOptions.method} ${response.requestOptions.uri}',
+      '[HTTP] <-- ${response.statusCode} ${response.requestOptions.method} '
+      '${response.requestOptions.uri} | $preview',
+      name: 'ApiInterceptor',
     );
     handler.next(response);
   }
@@ -40,10 +51,13 @@ class ApiInterceptor extends Interceptor {
       '  type: ${err.type}\n'
       '  message: ${err.message}\n'
       '  response: ${err.response?.data}',
+      name: 'ApiInterceptor',
+      level: 1000, // severe
     );
 
     if (err.response?.statusCode == 401) {
-      developer.log('[HTTP] 401 received, attempting token refresh...');
+      developer.log('[HTTP] 401 received, attempting token refresh...',
+          name: 'ApiInterceptor');
       final refreshed = await _refreshToken();
       if (refreshed) {
         // Retry the original request with the new token
@@ -53,14 +67,18 @@ class ApiInterceptor extends Interceptor {
         try {
           final dio = Dio();
           final response = await dio.fetch(err.requestOptions);
-          developer.log('[HTTP] Retry succeeded after token refresh');
+          developer.log('[HTTP] Retry succeeded after token refresh',
+              name: 'ApiInterceptor');
           return handler.resolve(response);
         } on DioException catch (e) {
-          developer.log('[HTTP] Retry failed after token refresh: ${e.message}');
+          developer.log(
+              '[HTTP] Retry failed after token refresh: ${e.message}',
+              name: 'ApiInterceptor');
           return handler.next(e);
         }
       } else {
-        developer.log('[HTTP] Token refresh failed, propagating 401');
+        developer.log('[HTTP] Token refresh failed, propagating 401',
+            name: 'ApiInterceptor');
       }
     }
     handler.next(err);
@@ -71,7 +89,8 @@ class ApiInterceptor extends Interceptor {
       final refreshToken =
           await _storage.read(key: AppConstants.refreshTokenKey);
       if (refreshToken == null) {
-        developer.log('[HTTP] No refresh token available');
+        developer.log('[HTTP] No refresh token available',
+            name: 'ApiInterceptor');
         return false;
       }
 
@@ -96,11 +115,12 @@ class ApiInterceptor extends Interceptor {
             value: newRefreshToken,
           );
         }
-        developer.log('[HTTP] Token refresh succeeded');
+        developer.log('[HTTP] Token refresh succeeded',
+            name: 'ApiInterceptor');
         return true;
       }
     } catch (e) {
-      developer.log('[HTTP] Token refresh error: $e');
+      developer.log('[HTTP] Token refresh error: $e', name: 'ApiInterceptor');
     }
     return false;
   }

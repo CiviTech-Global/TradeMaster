@@ -1,3 +1,5 @@
+import 'package:trademaster/core/utils/json_parse.dart';
+
 class ProductImageModel {
   final int id;
   final int productId;
@@ -53,7 +55,7 @@ class ProductVariantModel {
         productId: json['product_id'],
         name: json['name'],
         value: json['value'],
-        priceModifier: (json['price_modifier'] as num?)?.toDouble() ?? 0,
+        priceModifier: parseJsonDouble(json['price_modifier']),
         stockQuantity: json['stock_quantity'] ?? 0,
         sku: json['sku'],
         isActive: json['is_active'] ?? true,
@@ -81,8 +83,8 @@ class ProductBusinessModel {
       ProductBusinessModel(
         id: json['id'],
         title: json['title'],
-        latitude: (json['latitude'] as num?)?.toDouble(),
-        longitude: (json['longitude'] as num?)?.toDouble(),
+        latitude: parseJsonDoubleOrNull(json['latitude']),
+        longitude: parseJsonDoubleOrNull(json['longitude']),
         address: json['address'],
         logo: json['logo'],
       );
@@ -155,7 +157,7 @@ class ProductModel {
         categoryId: json['category_id'],
         title: json['title'],
         description: json['description'],
-        price: (json['price'] as num).toDouble(),
+        price: parseJsonDouble(json['price']),
         currency: json['currency'] ?? 'USD',
         stockQuantity: json['stock_quantity'] ?? 0,
         isActive: json['is_active'] ?? true,

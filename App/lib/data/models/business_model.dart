@@ -1,3 +1,5 @@
+import 'package:trademaster/core/utils/json_parse.dart';
+
 class BusinessOwnerModel {
   final int id;
   final String firstname;
@@ -85,8 +87,8 @@ class BusinessModel {
         owner: json['owner'],
         description: json['description'],
         address: json['address'],
-        latitude: (json['latitude'] as num?)?.toDouble(),
-        longitude: (json['longitude'] as num?)?.toDouble(),
+        latitude: parseJsonDoubleOrNull(json['latitude']),
+        longitude: parseJsonDoubleOrNull(json['longitude']),
         emails: json['emails'] != null
             ? List<String>.from(json['emails'])
             : null,

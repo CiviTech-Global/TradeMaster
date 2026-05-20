@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer' as developer;
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -48,6 +49,16 @@ class AuthRepositoryImpl implements AuthRepository {
     } else {
       developer.log('AuthRepository: WARNING - no refreshToken in response');
     }
+
+    // Persist user profile for instant session restore on next launch
+    final userData = innerData['user'];
+    if (userData != null) {
+      await _storage.write(
+        key: AppConstants.userDataKey,
+        value: jsonEncode(userData),
+      );
+      developer.log('AuthRepository: user data cached locally');
+    }
   }
 
   @override
@@ -93,9 +104,10 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> signOut() async {
-    developer.log('AuthRepository.signOut: clearing tokens');
+    developer.log('AuthRepository.signOut: clearing tokens and cached data');
     await _storage.delete(key: AppConstants.tokenKey);
     await _storage.delete(key: AppConstants.refreshTokenKey);
+    await _storage.delete(key: AppConstants.userDataKey);
   }
 
   @override
@@ -106,14 +118,28 @@ class AuthRepositoryImpl implements AuthRepository {
       return null;
     }
 
-    try {
-      final userModel = await _datasource.getCurrentUser();
-      developer.log('AuthRepository.getCurrentUser: verified user ${userModel.id}');
-      return _mapModelToEntity(userModel);
-    } catch (e) {
-      developer.log('AuthRepository.getCurrentUser: failed - $e');
-      return null;
+    // Restore from locally cached user profile (instant, no network call).
+    // Token validity is checked lazily by the API interceptor on the first
+    // real request — if expired, it refreshes automatically.
+    final userJson = await _storage.read(key: AppConstants.userDataKey);
+    if (userJson != null) {
+      try {
+        final userModel =
+            UserModel.fromJson(jsonDecode(userJson) as Map<String, dynamic>);
+        developer.log(
+            'AuthRepository.getCurrentUser: restored user ${userModel.id} from local cache');
+        return _mapModelToEntity(userModel);
+      } catch (e) {
+        developer.log(
+            'AuthRepository.getCurrentUser: local cache parse error - $e');
+      }
     }
+
+    // No cached profile but token exists — can't restore without network.
+    // Return null so the user is sent to sign-in instead of blocking.
+    developer.log(
+        'AuthRepository.getCurrentUser: token exists but no cached user data');
+    return null;
   }
 
   @override
