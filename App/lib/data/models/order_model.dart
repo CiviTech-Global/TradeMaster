@@ -87,26 +87,30 @@ class OrderModel {
     this.createdAt,
   });
 
-  factory OrderModel.fromJson(Map<String, dynamic> json) => OrderModel(
-        id: json['id'] as int? ?? 0,
-        orderNumber: json['order_number'] as String? ?? '',
-        buyerId: json['buyer_id'] as int? ?? 0,
-        businessId: json['business_id'] as int? ?? 0,
-        status: json['status'] as String? ?? 'pending',
-        totalAmount: parseJsonDouble(json['total_amount']),
-        currency: json['currency'] as String? ?? 'USD',
-        shippingAddress: json['shipping_address'],
-        notes: json['notes'],
-        items: json['items'] != null
-            ? (json['items'] as List)
-                .map((i) => OrderItemModel.fromJson(i as Map<String, dynamic>))
-                .toList()
-            : [],
-        business: json['business'] != null
-            ? OrderBusinessModel.fromJson(json['business'])
-            : null,
-        createdAt: json['createdAt'],
-      );
+  factory OrderModel.fromJson(Map<String, dynamic> json) {
+    // Sequelize may return the business as 'Business' (capitalized) or 'business'
+    final businessJson = json['business'] ?? json['Business'];
+    return OrderModel(
+      id: json['id'] as int? ?? 0,
+      orderNumber: json['order_number'] as String? ?? '',
+      buyerId: json['buyer_id'] as int? ?? 0,
+      businessId: json['business_id'] as int? ?? 0,
+      status: json['status'] as String? ?? 'pending',
+      totalAmount: parseJsonDouble(json['total_amount']),
+      currency: json['currency'] as String? ?? 'USD',
+      shippingAddress: json['shipping_address'] as String?,
+      notes: json['notes'] as String?,
+      items: json['items'] != null
+          ? (json['items'] as List)
+              .map((i) => OrderItemModel.fromJson(i as Map<String, dynamic>))
+              .toList()
+          : [],
+      business: businessJson != null
+          ? OrderBusinessModel.fromJson(businessJson as Map<String, dynamic>)
+          : null,
+      createdAt: json['createdAt'] as String?,
+    );
+  }
 }
 
 class OrderListResponse {

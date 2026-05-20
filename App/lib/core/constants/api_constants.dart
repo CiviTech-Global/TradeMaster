@@ -17,7 +17,7 @@ class ApiConstants {
 
     // Android emulator maps 10.0.2.2 -> host machine localhost
     if (Platform.isAndroid) {
-      return 'http://192.168.1.105:3000';
+      return 'http://10.227.162.210:3000';
     }
     // iOS simulator / desktop can reach localhost directly
     return 'http://localhost:3000';

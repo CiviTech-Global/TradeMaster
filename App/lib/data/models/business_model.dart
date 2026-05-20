@@ -17,10 +17,10 @@ class BusinessOwnerModel {
 
   factory BusinessOwnerModel.fromJson(Map<String, dynamic> json) =>
       BusinessOwnerModel(
-        id: json['id'],
-        firstname: json['firstname'],
-        lastname: json['lastname'],
-        email: json['email'],
+        id: json['id'] as int? ?? 0,
+        firstname: json['firstname'] as String? ?? '',
+        lastname: json['lastname'] as String? ?? '',
+        email: json['email'] as String?,
       );
 }
 
@@ -39,10 +39,10 @@ class BusinessCategoryModel {
 
   factory BusinessCategoryModel.fromJson(Map<String, dynamic> json) =>
       BusinessCategoryModel(
-        id: json['id'],
-        name: json['name'],
-        slug: json['slug'],
-        icon: json['icon'],
+        id: json['id'] as int? ?? 0,
+        name: json['name'] as String? ?? '',
+        slug: json['slug'] as String? ?? '',
+        icon: json['icon'] as String?,
       );
 }
 
@@ -82,9 +82,9 @@ class BusinessModel {
   });
 
   factory BusinessModel.fromJson(Map<String, dynamic> json) => BusinessModel(
-        id: json['id'],
-        title: json['title'] ?? json['name'] ?? '',
-        owner: json['owner'],
+        id: json['id'] as int? ?? 0,
+        title: (json['title'] ?? json['name'] ?? '') as String,
+        owner: json['owner'] as int? ?? 0,
         description: json['description'],
         address: json['address'],
         latitude: parseJsonDoubleOrNull(json['latitude']),

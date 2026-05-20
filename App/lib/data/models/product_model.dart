@@ -19,12 +19,12 @@ class ProductImageModel {
 
   factory ProductImageModel.fromJson(Map<String, dynamic> json) =>
       ProductImageModel(
-        id: json['id'],
-        productId: json['product_id'],
-        url: json['url'],
-        altText: json['alt_text'],
-        sortOrder: json['sort_order'] ?? 0,
-        isPrimary: json['is_primary'] ?? false,
+        id: json['id'] as int? ?? 0,
+        productId: json['product_id'] as int? ?? 0,
+        url: json['url'] as String? ?? '',
+        altText: json['alt_text'] as String?,
+        sortOrder: json['sort_order'] as int? ?? 0,
+        isPrimary: json['is_primary'] as bool? ?? false,
       );
 }
 
@@ -51,14 +51,14 @@ class ProductVariantModel {
 
   factory ProductVariantModel.fromJson(Map<String, dynamic> json) =>
       ProductVariantModel(
-        id: json['id'],
-        productId: json['product_id'],
-        name: json['name'],
-        value: json['value'],
+        id: json['id'] as int? ?? 0,
+        productId: json['product_id'] as int? ?? 0,
+        name: json['name'] as String? ?? '',
+        value: json['value'] as String? ?? '',
         priceModifier: parseJsonDouble(json['price_modifier']),
-        stockQuantity: json['stock_quantity'] ?? 0,
-        sku: json['sku'],
-        isActive: json['is_active'] ?? true,
+        stockQuantity: json['stock_quantity'] as int? ?? 0,
+        sku: json['sku'] as String?,
+        isActive: json['is_active'] as bool? ?? true,
       );
 }
 
@@ -81,12 +81,12 @@ class ProductBusinessModel {
 
   factory ProductBusinessModel.fromJson(Map<String, dynamic> json) =>
       ProductBusinessModel(
-        id: json['id'],
-        title: json['title'],
+        id: json['id'] as int? ?? 0,
+        title: json['title'] as String? ?? '',
         latitude: parseJsonDoubleOrNull(json['latitude']),
         longitude: parseJsonDoubleOrNull(json['longitude']),
-        address: json['address'],
-        logo: json['logo'],
+        address: json['address'] as String?,
+        logo: json['logo'] as String?,
       );
 }
 
@@ -105,10 +105,10 @@ class ProductCategoryModel {
 
   factory ProductCategoryModel.fromJson(Map<String, dynamic> json) =>
       ProductCategoryModel(
-        id: json['id'],
-        name: json['name'],
-        slug: json['slug'],
-        icon: json['icon'],
+        id: json['id'] as int? ?? 0,
+        name: json['name'] as String? ?? '',
+        slug: json['slug'] as String? ?? '',
+        icon: json['icon'] as String?,
       );
 }
 
@@ -152,15 +152,15 @@ class ProductModel {
   }
 
   factory ProductModel.fromJson(Map<String, dynamic> json) => ProductModel(
-        id: json['id'],
-        businessId: json['business_id'],
-        categoryId: json['category_id'],
-        title: json['title'],
-        description: json['description'],
+        id: json['id'] as int? ?? 0,
+        businessId: json['business_id'] as int? ?? 0,
+        categoryId: json['category_id'] as int?,
+        title: json['title'] as String? ?? '',
+        description: json['description'] as String?,
         price: parseJsonDouble(json['price']),
-        currency: json['currency'] ?? 'USD',
-        stockQuantity: json['stock_quantity'] ?? 0,
-        isActive: json['is_active'] ?? true,
+        currency: json['currency'] as String? ?? 'USD',
+        stockQuantity: json['stock_quantity'] as int? ?? 0,
+        isActive: json['is_active'] as bool? ?? true,
         images: json['images'] != null
             ? (json['images'] as List)
                 .map((i) => ProductImageModel.fromJson(i))
@@ -198,10 +198,10 @@ class PaginationModel {
 
   factory PaginationModel.fromJson(Map<String, dynamic> json) =>
       PaginationModel(
-        page: json['page'],
-        limit: json['limit'],
-        total: json['total'],
-        totalPages: json['totalPages'],
+        page: json['page'] as int? ?? 1,
+        limit: json['limit'] as int? ?? 20,
+        total: json['total'] as int? ?? 0,
+        totalPages: json['totalPages'] as int? ?? 1,
       );
 }
 

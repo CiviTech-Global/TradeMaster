@@ -16,10 +16,10 @@ class ReviewerModel {
   String get fullName => '$firstname $lastname';
 
   factory ReviewerModel.fromJson(Map<String, dynamic> json) => ReviewerModel(
-        id: json['id'],
-        firstname: json['firstname'] ?? '',
-        lastname: json['lastname'] ?? '',
-        avatar: json['avatar'],
+        id: json['id'] as int? ?? 0,
+        firstname: json['firstname'] as String? ?? '',
+        lastname: json['lastname'] as String? ?? '',
+        avatar: json['avatar'] as String?,
       );
 }
 
@@ -49,13 +49,13 @@ class ReviewModel {
   });
 
   factory ReviewModel.fromJson(Map<String, dynamic> json) => ReviewModel(
-        id: json['id'],
-        reviewerId: json['reviewer_id'],
-        businessId: json['business_id'],
-        productId: json['product_id'],
-        orderId: json['order_id'],
-        rating: json['rating'],
-        comment: json['comment'],
+        id: json['id'] as int? ?? 0,
+        reviewerId: json['reviewer_id'] as int? ?? 0,
+        businessId: json['business_id'] as int? ?? 0,
+        productId: json['product_id'] as int?,
+        orderId: json['order_id'] as int?,
+        rating: json['rating'] as int? ?? 0,
+        comment: json['comment'] as String?,
         reviewer: json['reviewer'] != null
             ? ReviewerModel.fromJson(json['reviewer'])
             : null,

@@ -15,10 +15,10 @@ class MessageUserModel {
 
   factory MessageUserModel.fromJson(Map<String, dynamic> json) =>
       MessageUserModel(
-        id: json['id'],
-        firstname: json['firstname'] ?? '',
-        lastname: json['lastname'] ?? '',
-        avatar: json['avatar'],
+        id: json['id'] as int? ?? 0,
+        firstname: json['firstname'] as String? ?? '',
+        lastname: json['lastname'] as String? ?? '',
+        avatar: json['avatar'] as String?,
       );
 }
 
@@ -48,13 +48,13 @@ class MessageModel {
   });
 
   factory MessageModel.fromJson(Map<String, dynamic> json) => MessageModel(
-        id: json['id'],
-        senderId: json['sender_id'],
-        receiverId: json['receiver_id'],
-        orderId: json['order_id'],
-        productId: json['product_id'],
-        content: json['content'] ?? '',
-        isRead: json['is_read'] ?? false,
+        id: json['id'] as int? ?? 0,
+        senderId: json['sender_id'] as int? ?? 0,
+        receiverId: json['receiver_id'] as int? ?? 0,
+        orderId: json['order_id'] as int?,
+        productId: json['product_id'] as int?,
+        content: json['content'] as String? ?? '',
+        isRead: json['is_read'] as bool? ?? false,
         sender: json['sender'] != null
             ? MessageUserModel.fromJson(json['sender'])
             : null,
