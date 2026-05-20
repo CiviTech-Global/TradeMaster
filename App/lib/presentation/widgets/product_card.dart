@@ -27,7 +27,7 @@ class ProductCard extends StatelessWidget {
                 width: double.infinity,
                 child: imageUrl != null
                     ? CachedNetworkImage(
-                        imageUrl: '${ApiConstants.baseUrl}$imageUrl',
+                        imageUrl: ApiConstants.imageUrl(imageUrl),
                         fit: BoxFit.cover,
                         placeholder: (_, _) => Container(
                           color: theme.colorScheme.surfaceContainerHighest,

@@ -97,7 +97,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                 children: [
                   TileLayer(
                     urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        'https://memaps.ir/hot/{z}/{x}/{y}.png',
                     userAgentPackageName: 'com.trademaster.app',
                   ),
                   // Business markers

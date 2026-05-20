@@ -2,7 +2,7 @@ import { Response } from "express";
 import { AuthenticatedRequest } from "../../infrastructure.layer/utils/jwt.util";
 import { Category } from "../../domain.layer/models/category";
 import { Business } from "../../domain.layer/models/business";
-import { Product } from "../../domain.layer/models/product";
+import { Product, ProductImage } from "../../domain.layer/models/product";
 import { Order, OrderItem } from "../../domain.layer/models/order";
 import { Review } from "../../domain.layer/models/review";
 import { Message } from "../../domain.layer/models/message";
@@ -118,6 +118,30 @@ export async function seedDemoData(req: AuthenticatedRequest, res: Response) {
       products.push(product);
     }
 
+    // 4b. Create product images using locally hosted seed images
+    const productImages: { product_id: number; url: string; alt_text: string; is_primary: boolean }[] = [
+      // Wireless Headphones → watch image (wearable tech)
+      { product_id: products[0].id, url: "/uploads/seed/watch.jpg", alt_text: "Wireless Headphones", is_primary: true },
+      // Smart Watch
+      { product_id: products[1].id, url: "/uploads/seed/watch.jpg", alt_text: "Smart Watch", is_primary: true },
+      // Phone Case → purse image (accessories)
+      { product_id: products[2].id, url: "/uploads/seed/purse.jpg", alt_text: "Phone Case", is_primary: true },
+      // Denim Jacket → t-shirt image (clothing)
+      { product_id: products[3].id, url: "/uploads/seed/tshirt.jpg", alt_text: "Denim Jacket", is_primary: true },
+      // Running Shoes
+      { product_id: products[4].id, url: "/uploads/seed/shoes.jpg", alt_text: "Running Shoes", is_primary: true },
+      // Canvas Backpack → purse image (bag)
+      { product_id: products[5].id, url: "/uploads/seed/purse.jpg", alt_text: "Canvas Backpack", is_primary: true },
+      // Organic Coffee Beans → belt image
+      { product_id: products[6].id, url: "/uploads/seed/belt.jpg", alt_text: "Organic Coffee Beans", is_primary: true },
+      // Artisan Chocolate Box → belt image
+      { product_id: products[7].id, url: "/uploads/seed/belt.jpg", alt_text: "Artisan Chocolate Box", is_primary: true },
+      // Trail Mix Pack → belt image
+      { product_id: products[8].id, url: "/uploads/seed/belt.jpg", alt_text: "Trail Mix Pack", is_primary: true },
+    ];
+
+    await ProductImage.bulkCreate(productImages);
+
     // 5. Create orders
     // Delivered order (headphones + phone case from Sunny Electronics)
     const deliveredOrder = await Order.create({
@@ -200,6 +224,7 @@ export async function seedDemoData(req: AuthenticatedRequest, res: Response) {
       categories: categories.length,
       businesses: businesses.length,
       products: products.length,
+      productImages: productImages.length,
       orders: 2,
       reviews: reviews.length,
       messages: messages.length,

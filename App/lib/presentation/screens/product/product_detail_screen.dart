@@ -101,8 +101,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                         itemBuilder: (context, index) {
                           final image = product.images[index];
                           return CachedNetworkImage(
-                            imageUrl:
-                                '${ApiConstants.baseUrl}${image.url}',
+                            imageUrl: ApiConstants.imageUrl(image.url),
                             fit: BoxFit.cover,
                             placeholder: (_, _) => Container(
                               color:

@@ -28,9 +28,7 @@ class BusinessCard extends StatelessWidget {
                   height: 64,
                   child: business.logo != null
                       ? CachedNetworkImage(
-                          imageUrl: business.logo!.startsWith('http')
-                              ? business.logo!
-                              : '${ApiConstants.baseUrl}${business.logo}',
+                          imageUrl: ApiConstants.imageUrl(business.logo!),
                           fit: BoxFit.cover,
                           errorWidget: (_, _, _) => _BusinessIcon(theme: theme),
                         )

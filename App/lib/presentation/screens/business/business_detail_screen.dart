@@ -94,9 +94,7 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                   ),
                   background: business.coverImage != null
                       ? CachedNetworkImage(
-                          imageUrl: business.coverImage!.startsWith('http')
-                              ? business.coverImage!
-                              : '${ApiConstants.baseUrl}${business.coverImage}',
+                          imageUrl: ApiConstants.imageUrl(business.coverImage!),
                           fit: BoxFit.cover,
                         )
                       : Container(
@@ -165,7 +163,7 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                               children: [
                                 TileLayer(
                                   urlTemplate:
-                                      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                      'https://memaps.ir/hot/{z}/{x}/{y}.png',
                                   userAgentPackageName: 'com.trademaster.app',
                                 ),
                                 MarkerLayer(

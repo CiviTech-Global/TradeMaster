@@ -49,7 +49,7 @@ class ProfileScreen extends ConsumerWidget {
                   backgroundColor: Colors.white.withValues(alpha: 0.2),
                   backgroundImage: user?.avatar != null
                       ? CachedNetworkImageProvider(
-                          '${ApiConstants.baseUrl}${user!.avatar}')
+                          ApiConstants.imageUrl(user!.avatar!))
                       : null,
                   child: user?.avatar == null
                       ? const Icon(Icons.person, size: 48, color: Colors.white)

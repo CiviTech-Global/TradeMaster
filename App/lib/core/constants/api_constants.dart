@@ -25,4 +25,13 @@ class ApiConstants {
 
   static const Duration connectTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 30);
+
+  /// Resolves an image URL: returns as-is if already absolute (http/https),
+  /// otherwise prepends [baseUrl] for server-relative paths.
+  static String imageUrl(String path) {
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return path;
+    }
+    return '$baseUrl$path';
+  }
 }

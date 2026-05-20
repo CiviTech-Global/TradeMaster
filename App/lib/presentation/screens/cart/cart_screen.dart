@@ -116,7 +116,7 @@ class _CartItemCard extends ConsumerWidget {
                 height: 80,
                 child: imageUrl != null
                     ? CachedNetworkImage(
-                        imageUrl: '${ApiConstants.baseUrl}$imageUrl',
+                        imageUrl: ApiConstants.imageUrl(imageUrl),
                         fit: BoxFit.cover,
                         placeholder: (_, _) => Container(
                           color: theme.colorScheme.surfaceContainerHighest,
