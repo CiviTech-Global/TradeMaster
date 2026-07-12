@@ -7,6 +7,8 @@ import {
   getUnreadCount,
 } from "../../application.layer/controllers/message.ctrl";
 import { authenticateJWT } from "../../infrastructure.layer/utils/jwt.util";
+import { validate } from "../../infrastructure.layer/validation/middleware";
+import { sendMessageSchema } from "../../infrastructure.layer/validation/schemas";
 
 const router = express.Router();
 
@@ -14,7 +16,7 @@ const router = express.Router();
 router.get("/conversations", authenticateJWT, getConversations);
 router.get("/unread-count", authenticateJWT, getUnreadCount);
 router.get("/conversation/:userId", authenticateJWT, getConversationMessages);
-router.post("/", authenticateJWT, sendMessage);
+router.post("/", authenticateJWT, validate(sendMessageSchema), sendMessage);
 router.patch("/:id/read", authenticateJWT, markAsRead);
 
 export default router;

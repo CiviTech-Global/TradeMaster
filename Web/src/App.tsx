@@ -18,9 +18,11 @@ import TMSetNewPassword from "./presentation/pages/authentication/setNewPassword
 import TMSignup from "./presentation/pages/authentication/signup";
 import TMLanding from "./presentation/pages/landing";
 import AppInitializer from "./presentation/components/AppInitializer";
+import ErrorBoundary from "./presentation/components/ErrorBoundary";
 
 function App() {
   return (
+    <ErrorBoundary>
     <Provider store={store}>
       <AppInitializer>
         <BrowserRouter>
@@ -79,6 +81,7 @@ function App() {
         </BrowserRouter>
       </AppInitializer>
     </Provider>
+    </ErrorBoundary>
   );
 }
 

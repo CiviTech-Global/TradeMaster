@@ -8,6 +8,7 @@ import {
   getUnreadCountQuery,
 } from "../../infrastructure.layer/utils/message.util";
 import { AuthenticatedRequest } from "../../infrastructure.layer/utils/jwt.util";
+import { notifyConversation, notifyUser } from "../../infrastructure.layer/websocket";
 
 export async function getConversations(req: AuthenticatedRequest, res: Response) {
   try {
@@ -68,6 +69,31 @@ export async function sendMessage(req: AuthenticatedRequest, res: Response) {
       order_id: order_id || undefined,
       product_id: product_id || undefined,
     });
+
+    // Notify via WebSocket
+    if (message) {
+      try {
+        notifyConversation([senderId, receiver_id], "new_message", {
+          id: message.id,
+          senderId,
+          receiverId: receiver_id,
+          content: content.trim(),
+          orderId: order_id,
+          productId: product_id,
+          createdAt: message.createdAt,
+        });
+
+        // Notify receiver's other devices/tabs
+        notifyUser(receiver_id, "message_notification", {
+          senderId,
+          messageId: message.id,
+          content: content.trim().substring(0, 100),
+        });
+      } catch (wsError) {
+        // WebSocket notification failure shouldn't break the API response
+        console.error("WebSocket notification failed:", wsError);
+      }
+    }
 
     res.status(201).json({ data: message, message: "Message sent successfully" });
   } catch (error) {

@@ -3,8 +3,8 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
-import dotenv from "dotenv";
 import path from "path";
+import { env } from "./infrastructure.layer/config/env";
 import {
   initializeDatabase,
   closeDatabase,
@@ -20,12 +20,15 @@ import orderRoutes from "./presentation.layer/routes/order.route";
 import messageRoutes from "./presentation.layer/routes/message.route";
 import reviewRoutes from "./presentation.layer/routes/review.route";
 import devRoutes from "./presentation.layer/routes/dev.route";
-
-// Load environment variables
-dotenv.config();
+import { setupSwagger } from "./infrastructure.layer/docs/swagger";
+import { initializeWebSocket } from "./infrastructure.layer/websocket";
 
 const app = express();
-const PORT = process.env.BACKEND_PORT || process.env.PORT || 3000;
+
+// Setup Swagger documentation (non-production only)
+if (env.NODE_ENV !== "production") {
+  setupSwagger(app);
+}
 
 // Security middleware
 app.use(helmet({
@@ -51,13 +54,13 @@ const authLimiter = rateLimit({
 
 // Middleware
 app.use(cors(
-  process.env.NODE_ENV === "production"
+  env.NODE_ENV === "production"
     ? {
-        origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+        origin: env.FRONTEND_URL,
         credentials: true
       }
     : {
-        origin: true, // Allow all origins in development (mobile devices, emulators)
+        origin: true,
         credentials: true
       }
 ));
@@ -117,17 +120,24 @@ const startServer = async () => {
     app.use("/orders", orderRoutes);
     app.use("/messages", messageRoutes);
     app.use("/reviews", reviewRoutes);
-    if (process.env.NODE_ENV !== "production") {
+    if (env.NODE_ENV !== "production") {
       app.use("/dev", devRoutes);
       console.log("🛠️  Dev routes enabled (non-production environment)");
     }
-    const HOST = process.env.HOST || "0.0.0.0";
-    app.listen(Number(PORT), HOST, () => {
-      console.log(`🚀 TradeMaster Server running on ${HOST}:${PORT}`);
+    const server = app.listen(env.PORT, env.HOST, () => {
+      console.log(`🚀 TradeMaster Server running on ${env.HOST}:${env.PORT}`);
       console.log(
-        `📊 Health check available at http://localhost:${PORT}/health`
+        `📊 Health check available at http://localhost:${env.PORT}/health`
       );
+      if (env.NODE_ENV !== "production") {
+        console.log(
+          `📚 API documentation available at http://localhost:${env.PORT}/api-docs`
+        );
+      }
     });
+
+    // Initialize WebSocket
+    initializeWebSocket(server);
   } catch (error) {
     console.error("Failed to start server:", error);
     process.exit(1);

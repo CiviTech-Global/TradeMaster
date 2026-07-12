@@ -10,6 +10,7 @@ import 'package:trademaster/presentation/screens/checkout/checkout_screen.dart';
 import 'package:trademaster/presentation/screens/messages/chat_screen.dart';
 import 'package:trademaster/presentation/screens/orders/order_detail_screen.dart';
 import 'package:trademaster/presentation/screens/product/product_detail_screen.dart';
+import 'package:trademaster/presentation/screens/product/create_product_screen.dart';
 import 'package:trademaster/presentation/screens/shell/app_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -71,6 +72,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final id = int.parse(state.pathParameters['id']!);
           return ProductDetailScreen(productId: id);
+        },
+      ),
+      GoRoute(
+        path: '/business/:businessId/create-product',
+        builder: (context, state) {
+          final businessId = int.parse(state.pathParameters['businessId']!);
+          return CreateProductScreen(businessId: businessId);
         },
       ),
       GoRoute(

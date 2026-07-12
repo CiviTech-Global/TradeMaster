@@ -1,12 +1,9 @@
-import dotenv from "dotenv";
-
-// Load environment variables
-dotenv.config();
+import { env } from '../config/env';
 
 export const config = {
-  host: process.env.DB_HOST || "localhost",
-  port: process.env.DB_PORT || 5432,
-  user: process.env.DB_USER || "postgres",
-  password: process.env.DB_PASSWORD || "1377",
-  database: process.env.DB_NAME || "trademaster",
+  host: env.DB_HOST,
+  port: env.DB_PORT,
+  user: env.DB_USER,
+  password: env.DB_PASSWORD,
+  database: env.DB_NAME,
 };

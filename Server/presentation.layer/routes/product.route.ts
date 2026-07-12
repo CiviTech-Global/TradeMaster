@@ -18,6 +18,8 @@ import {
 } from "../../application.layer/controllers/product.ctrl";
 import { authenticateJWT } from "../../infrastructure.layer/utils/jwt.util";
 import { ensureUploadsDir, generateFilename } from "../../infrastructure.layer/utils/upload.util";
+import { validate } from "../../infrastructure.layer/validation/middleware";
+import { createProductSchema, updateProductSchema } from "../../infrastructure.layer/validation/schemas";
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
@@ -47,8 +49,8 @@ router.get("/:id", getProductById);
 router.get("/:id/variants", getVariants);
 
 // Protected routes
-router.post("/", authenticateJWT, createProduct);
-router.patch("/:id", authenticateJWT, updateProduct);
+router.post("/", authenticateJWT, validate(createProductSchema), createProduct);
+router.patch("/:id", authenticateJWT, validate(updateProductSchema), updateProduct);
 router.delete("/:id", authenticateJWT, deleteProduct);
 
 // Product Images

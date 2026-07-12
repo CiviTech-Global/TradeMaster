@@ -1,12 +1,9 @@
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 import { logger } from './logger.util';
+import { env } from '../config/env';
 
-// JWT configuration
-const JWT_SECRET = process.env.JWT_SECRET || 'trademaster_jwt_secret_key_dev_only';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'trademaster_refresh_secret_key_dev_only';
-const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '30d';
+const { JWT_SECRET, JWT_EXPIRES_IN, JWT_REFRESH_SECRET, JWT_REFRESH_EXPIRES_IN } = env;
 
 export interface JWTPayload {
   userId: number;
@@ -34,10 +31,10 @@ export function generateAccessToken(userId: number, email: string): string {
   };
 
   return jwt.sign(payload, JWT_SECRET, {
-    expiresIn: JWT_EXPIRES_IN,
+    expiresIn: JWT_EXPIRES_IN as string | number,
     issuer: 'trademaster',
     audience: 'trademaster-users'
-  });
+  } as SignOptions);
 }
 
 /**
@@ -51,10 +48,10 @@ export function generateRefreshToken(userId: number, email: string): string {
   };
 
   return jwt.sign(payload, JWT_REFRESH_SECRET, {
-    expiresIn: JWT_REFRESH_EXPIRES_IN,
+    expiresIn: JWT_REFRESH_EXPIRES_IN as string | number,
     issuer: 'trademaster',
     audience: 'trademaster-users'
-  });
+  } as SignOptions);
 }
 
 /**

@@ -1,49 +1,196 @@
 # TradeMaster
 
-<img src="./trademaster banner.png" alt="banner" />
+<img src="./trademaster banner.png" alt="TradeMaster banner" />
 
-TradeMaster is a peer‑to‑peer marketplace platform that empowers individuals to create their own shops, list both physical products and digital services, and transact directly with buyers—eliminating middlemen and fostering authentic community connections. By combining versatile listings, real‑time messaging, reputation systems, and sustainability principles, TradeMaster unlocks new income streams for artisans, resellers, consultants, and creators. Thoughtfully designed personas illustrate how diverse users—from handcrafted‑goods makers to digital consultants—can leverage the platform, while built‑in trust mechanisms and future AI‑powered features ensure long‑term growth and user confidence.
+A full-stack peer-to-peer marketplace platform enabling individuals to create shops, list physical products and digital services, and transact directly with buyers.
 
-## Concept and Vision
+## Tech Stack
 
-TradeMaster leverages a decentralized online marketplace model to connect buyers and sellers directly, without traditional intermediaries. Every user can launch a personalized storefront—complete with branding, images, descriptions, and service details—and manage listings for both tangible items and intangible services. The core vision is to “keep commerce human” by prioritizing genuine interactions, transparent transactions, and community building, enabling anyone with a skill, product, or surplus item to reach a global audience.
+| Layer | Technology | Location |
+|-------|-----------|----------|
+| **Server** | Node.js + Express 5 + PostgreSQL + Sequelize + Socket.io | `Server/` |
+| **Web** | React 19 + Redux Toolkit + Vite + TypeScript | `Web/` |
+| **Mobile** | Flutter 3 + Riverpod + GoRouter + Dio | `App/` |
 
-## Market Context
+## Quick Start
 
-Consumer‑to‑consumer (C2C) e‑commerce is growing rapidly as younger generations embrace sustainable and cost‑effective alternatives to traditional retail. Platforms facilitating resale, rentals, and peer‑to‑peer services are reshaping consumption habits and unlocking micro‑entrepreneurial opportunities. TradeMaster taps into this trend by offering a single, unified space for buying, selling, renting, and exchanging—empowering users to monetize hobbies, launch side businesses, and support eco‑friendly commerce.
+### Docker (Recommended)
 
-## Unique Value Proposition
+```bash
+cd Server && cp .env.example .env && cd ..
+docker-compose up -d --build
+```
 
-- **Versatile Listings**  
-  Support for both physical goods (e.g., handmade crafts, vintage finds) and digital offerings (e.g., online tutoring, design templates) allows unlimited creativity and commerce.
+- **Web:** http://localhost
+- **API:** http://localhost:3000
+- **API Docs:** http://localhost:3000/api-docs
 
-- **Direct Engagement**  
-  Built‑in chat and negotiable offers enable real‑time communication, custom requests, and personalized deals—reducing friction and fostering stronger buyer‑seller relationships.
+### Manual Setup
 
-- **Community‑Driven Trust**  
-  A transparent review and rating system, along with optional verification badges and dispute‑resolution protocols, builds accountability and confidence for newcomers and veterans alike.
+```bash
+# Database
+createdb trademaster
 
-- **Sustainability Focus**  
-  By encouraging reuse, upcycling, and service‑based transactions, TradeMaster supports eco‑conscious consumption and the growing recommerce movement.
+# Server
+cd Server && npm install && cp .env.example .env
+npm run db:migrate && npm run dev
 
-## User Personas & Story Scenarios
+# Web (new terminal)
+cd Web && npm install && cp .env.example .env
+npm run dev
+```
 
-### Alice the Artisan  
-Alice handcrafts ceramic mugs and vases. She names her shop “Alice’s Clay Corner,” uploads photos of each piece, and writes behind‑the‑scenes notes to engage buyers. When a customer requests custom glaze colors, they finalize details in chat and complete payment securely—giving Alice peace of mind and direct feedback.
+### Seed Demo Data
 
-### Bob the Bargain Hunter  
-Bob searches for unique second‑hand items. Using TradeMaster’s filters (category, price, location), he finds a vintage guitar, negotiates price with the seller via in‑app messaging, arranges local pickup, and leaves a five‑star review—boosting the seller’s reputation for future sales.
+```bash
+# Sign up
+curl -X POST http://localhost:3000/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{"firstname":"Demo","lastname":"User","email":"demo@test.com","password":"password123"}'
 
-### Carla the Consultant  
-Carla offers career coaching services. She lists one‑hour sessions, outlines topics, and sets package rates. A recent graduate books three video calls, and both parties rate the experience—helping Carla refine her offerings and attract new clients through positive feedback.
+# Seed (use accessToken from response)
+curl -X POST http://localhost:3000/dev/seed \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
 
-### Dan the Digital Creator  
-Dan designs website templates and digital assets. He uploads preview images and uses TradeMaster’s secure delivery system to send files. After a smooth transaction, Dan’s template is featured as a “Trending Item,” driving further sales and demonstrating the platform’s support for digital commerce.
+## Features
 
-## Community and Trust
+### For Buyers
+- **Explore** — Browse products on an interactive map with location-based search
+- **Search** — Find products and businesses by keyword, category, and location
+- **Cart & Checkout** — Add products to cart, checkout with shipping details
+- **Orders** — Track order status from pending to delivered
+- **Messaging** — Chat directly with sellers in real-time
+- **Reviews** — Rate and review businesses after delivery
 
-TradeMaster cultivates a self‑policing ecosystem where users rely on ratings, verification badges, and clear dispute‑resolution processes to minimize fraud and maintain quality. Every transaction can include optional buyer protection and seller guarantees, balancing risk and ensuring fairness. Community forums, mentorship programs, and localized events foster collaboration and knowledge sharing, transforming the marketplace into a thriving ecosystem.
+### For Sellers
+- **Shop Creation** — Create a business with branding, location, and contact info
+- **Product Listings** — Add products with images, variants, pricing, and stock
+- **Order Management** — Confirm, ship, deliver, or cancel orders
+- **Customer Communication** — Real-time messaging with typing indicators
+- **Reviews** — View and respond to customer feedback
 
-## Future Outlook
+### Platform Features
+- **JWT Authentication** — Secure sign-in with access/refresh token pairs
+- **Real-Time Messaging** — WebSocket-powered chat with typing indicators and read receipts
+- **Geolocation** — Haversine-based nearby product search
+- **Image Upload** — Multi-image support with drag-and-drop
+- **Input Validation** — Zod schemas on all endpoints
+- **Rate Limiting** — Protection against abuse
+- **Interactive Maps** — Leaflet (Web) and flutter_map (Mobile)
+- **Responsive Design** — Works on desktop, tablet, and mobile
 
-With global e‑commerce continuing to expand and C2C sales outpacing traditional retail, TradeMaster is well‑positioned to lead the next wave of peer‑driven commerce. Future enhancements—such as AI‑powered recommendations, multilingual chat translation, and advanced analytics—will personalize the user experience and unlock new revenue streams. By iterating on user feedback and embracing emerging technologies, TradeMaster will evolve into a premier destination for creators, hobbyists, and entrepreneurs worldwide.
+## Architecture
+
+```
+┌──────────────┐   ┌──────────────┐   ┌──────────────┐
+│   Web (SPA)  │   │ Mobile App   │   │   Server     │
+│   React 19   │   │ Flutter 3    │   │   Express 5  │
+│   Redux TK   │   │ Riverpod     │   │   PostgreSQL │
+└──────┬───────┘   └──────┬───────┘   └──────┬───────┘
+       │                  │                   │
+       └──────────────────┼───────────────────┘
+                          │
+                 ┌────────▼────────┐
+                 │   PostgreSQL    │
+                 └─────────────────┘
+```
+
+- **Server:** Clean architecture (presentation → application → domain → infrastructure)
+- **Web:** Redux for state, Axios for HTTP, React Router for navigation
+- **Mobile:** Riverpod for state, Dio for HTTP, GoRouter for navigation
+
+## Project Structure
+
+```
+TradeMaster/
+├── Server/                    # Backend API
+│   ├── application.layer/     # Controllers (business logic)
+│   ├── domain.layer/          # Models and interfaces
+│   ├── infrastructure.layer/  # Database, utils, validation, WebSocket
+│   ├── presentation.layer/    # Express routes
+│   ├── __tests__/             # Vitest tests
+│   └── server.ts              # Entry point
+├── Web/                       # Frontend SPA
+│   └── src/
+│       ├── application/       # Redux store, slices, hooks
+│       ├── domain/            # TypeScript interfaces
+│       ├── infrastructure/    # HTTP services, repositories
+│       └── presentation/      # Pages, components, context
+├── App/                       # Flutter mobile app
+│   └── lib/
+│       ├── core/              # Network, constants, theme, utils
+│       ├── data/              # Models, datasources, repositories
+│       ├── domain/            # Entities, repository interfaces
+│       └── presentation/      # Screens, providers, widgets
+├── docs/                      # Documentation
+│   ├── ARCHITECTURE.md        # System design
+│   ├── API.md                 # Complete API reference
+│   ├── DATABASE.md            # Schema documentation
+│   ├── FEATURES.md            # Feature breakdown
+│   ├── DEPLOYMENT.md          # Production guide
+│   └── QUICKSTART.md          # 5-minute setup
+├── docker-compose.yml         # Container orchestration
+└── .github/workflows/ci.yml   # CI/CD pipeline
+```
+
+## API Overview
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/auth/signup` | Create account | No |
+| POST | `/auth/signin` | Sign in | No |
+| POST | `/auth/refresh-token` | Refresh JWT | No |
+| GET | `/businesses` | List businesses | No |
+| POST | `/businesses` | Create business | Yes |
+| GET | `/products` | List products | No |
+| GET | `/products/nearby` | Nearby products | No |
+| POST | `/products` | Create product | Yes |
+| POST | `/products/:id/images` | Upload images | Yes |
+| POST | `/orders` | Create order | Yes |
+| PATCH | `/orders/:id/status` | Update status | Yes |
+| POST | `/messages` | Send message | Yes |
+| GET | `/messages/conversations` | List conversations | Yes |
+| POST | `/reviews` | Create review | Yes |
+| GET | `/search` | Search everything | No |
+| GET | `/categories` | List categories | No |
+
+Full API reference: [docs/API.md](docs/API.md)
+
+## Database
+
+PostgreSQL with 14 migrations covering: users, businesses, categories, products, images, variants, orders, order items, messages, reviews, uploads, and password reset tokens.
+
+Schema documentation: [docs/DATABASE.md](docs/DATABASE.md)
+
+## Security
+
+- **JWT** — Access tokens (7d) + refresh tokens (30d) with separate secrets
+- **bcrypt** — Password hashing with 10 salt rounds
+- **Rate Limiting** — 200 req/15min general, 20 req/15min auth
+- **Zod Validation** — Input validation on all mutating endpoints
+- **Helmet** — HTTP security headers
+- **CORS** — Configurable per environment
+- **Ownership Checks** — Resources modifiable only by owner
+
+## Deployment
+
+- **Docker** — Multi-stage builds, non-root user, health checks
+- **docker-compose** — One-command local setup
+- **GitHub Actions** — CI pipeline: typecheck → lint → test → build
+- **Production** — See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Architecture](docs/ARCHITECTURE.md) | System design and data flow |
+| [API Reference](docs/API.md) | All endpoints with examples |
+| [Database Schema](docs/DATABASE.md) | Table structures and relationships |
+| [Features](docs/FEATURES.md) | Complete feature breakdown |
+| [Deployment](docs/DEPLOYMENT.md) | Production deployment guide |
+| [Quick Start](docs/QUICKSTART.md) | 5-minute setup guide |
+
+## License
+
+See [LICENSE](LICENSE) for details.

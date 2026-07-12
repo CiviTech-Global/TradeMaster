@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:dio/dio.dart';
 import 'package:trademaster/core/network/dio_client.dart';
 import 'package:trademaster/data/models/product_model.dart';
 
@@ -65,6 +68,56 @@ class ProductRemoteDatasource {
     });
     return (response.data['data'] as List)
         .map((p) => ProductModel.fromJson(p))
+        .toList();
+  }
+
+  Future<ProductModel> createProduct({
+    required int businessId,
+    required String title,
+    required double price,
+    String? description,
+    int? categoryId,
+    String currency = 'USD',
+    int stockQuantity = 0,
+  }) async {
+    final response = await _dioClient.post('/products', data: {
+      'business_id': businessId,
+      'title': title,
+      'price': price,
+      'description': description,
+      'category_id': categoryId,
+      'currency': currency,
+      'stock_quantity': stockQuantity,
+    });
+    return ProductModel.fromJson(response.data['data']);
+  }
+
+  Future<List<ProductImageModel>> uploadProductImages({
+    required int productId,
+    required List<File> images,
+    String? altText,
+    bool setPrimary = false,
+  }) async {
+    final formData = FormData.fromMap({
+      'images': await Future.wait(
+        images.map((file) async => MultipartFile.fromFile(
+              file.path,
+              filename: file.path.split('/').last,
+            )),
+      ),
+      if (altText != null) 'alt_text': altText,
+      'set_primary': setPrimary.toString(),
+    });
+
+    final dio = _dioClient.dio;
+    final response = await dio.post(
+      '/products/$productId/images',
+      data: formData,
+      options: Options(contentType: 'multipart/form-data'),
+    );
+
+    return (response.data['data'] as List)
+        .map((i) => ProductImageModel.fromJson(i))
         .toList();
   }
 }
