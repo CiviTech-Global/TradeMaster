@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useAppSelector, useAppDispatch } from '../../../../application/redux/hooks';
 import { selectUser, setUser } from '../../../../application/redux';
-import { Button, Input } from '../../../components';
+import { TMButton, TMInput } from '../../../components';
 import { uploadService } from '../../../../infrastructure/api/uploadService';
 import { networkService } from '../../../../infrastructure/api/NetworkService';
 import './Profile.css';
@@ -114,25 +114,27 @@ const TMProfile: React.FC = () => {
 
         <form onSubmit={handleSubmit} className="profile-form">
           <div className="form-row">
-            <Input
+            <TMInput
               label="First Name"
               type="text"
+              placeholder="Enter first name"
               value={formData.firstname}
               onChange={(e) => handleInputChange('firstname', e.target.value)}
               required
             />
           </div>
           <div className="form-row">
-            <Input
+            <TMInput
               label="Last Name"
               type="text"
+              placeholder="Enter last name"
               value={formData.lastname}
               onChange={(e) => handleInputChange('lastname', e.target.value)}
               required
             />
           </div>
           <div className="form-row">
-            <Input
+            <TMInput
               label="Phone"
               type="tel"
               placeholder="Enter phone number"
@@ -151,18 +153,19 @@ const TMProfile: React.FC = () => {
             />
           </div>
           <div className="form-row">
-            <Input
+            <TMInput
               label="Email"
               type="email"
+              placeholder="your@email.com"
               value={user.email}
               onChange={() => {}}
               disabled
             />
           </div>
           <div className="form-actions">
-            <Button type="submit" variant="primary" disabled={isSubmitting}>
+            <TMButton type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Saving...' : 'Save Changes'}
-            </Button>
+            </TMButton>
           </div>
         </form>
       </div>

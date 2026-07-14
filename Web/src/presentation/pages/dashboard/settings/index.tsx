@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppSelector, useAppDispatch } from '../../../../application/redux/hooks';
 import { changePassword, clearError, selectUser, selectAuthLoading, selectAuthError } from '../../../../application/redux';
-import { Input, Button } from '../../../components';
+import { TMButton, TMInput, ThemeToggle } from '../../../components';
+import { serverUrlConfig } from '../../../../infrastructure/api/serverUrlConfig';
+import { networkService } from '../../../../infrastructure/api/NetworkService';
+import { devService } from '../../../../infrastructure/api/devService';
 
 const TMSettings: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -22,6 +25,42 @@ const TMSettings: React.FC = () => {
 
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+
+  const [serverUrl, setServerUrl] = useState(serverUrlConfig.getUrl());
+  const [serverUrlSaved, setServerUrlSaved] = useState(false);
+  const [seeding, setSeeding] = useState(false);
+  const [seedMessage, setSeedMessage] = useState('');
+
+  useEffect(() => {
+    setServerUrl(serverUrlConfig.getUrl());
+  }, []);
+
+  const handleServerUrlSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    const sanitized = serverUrlConfig.sanitize(serverUrl);
+    serverUrlConfig.setUrl(sanitized);
+    networkService.setBaseURL(sanitized);
+    setServerUrl(sanitized);
+    setServerUrlSaved(true);
+    setTimeout(() => setServerUrlSaved(false), 3000);
+  };
+
+  const handleSeedDemoData = async () => {
+    if (!window.confirm('This will add sample categories and businesses to your account. Continue?')) {
+      return;
+    }
+    setSeeding(true);
+    setSeedMessage('');
+    try {
+      const result = await devService.seedDemoData();
+      setSeedMessage(result.message || 'Demo data populated successfully');
+    } catch (error) {
+      setSeedMessage('Failed to populate demo data. Please try again.');
+    } finally {
+      setSeeding(false);
+      setTimeout(() => setSeedMessage(''), 5000);
+    }
+  };
 
   const handleInputChange = (field: keyof typeof formData) => (
     e: React.ChangeEvent<HTMLInputElement>
@@ -93,7 +132,7 @@ const TMSettings: React.FC = () => {
   };
 
   return (
-    <div className="dashboard-page">
+    <div className="dashboard-page fade-in">
       <div className="dashboard-page__header">
         <h1 className="dashboard-page__title">Settings</h1>
         <p className="dashboard-page__subtitle">Manage your profile and account settings</p>
@@ -124,6 +163,61 @@ const TMSettings: React.FC = () => {
           </div>
         </div>
 
+        {/* Appearance Section */}
+        <div className="settings-section">
+          <h3 className="settings-section__title">Appearance</h3>
+          <p style={{ color: '#6b7280', margin: '0 0 1rem' }}>
+            Choose how TradeMaster looks in your browser.
+          </p>
+          <ThemeToggle />
+        </div>
+
+        {/* Server Connection Section */}
+        <div className="settings-section">
+          <h3 className="settings-section__title">Server Connection</h3>
+          <p style={{ color: '#6b7280', margin: '0 0 1rem' }}>
+            Change the address your browser uses to reach the TradeMaster server.
+          </p>
+          <form onSubmit={handleServerUrlSave} className="settings-form">
+            {serverUrlSaved && (
+              <div className="settings-message settings-message--success">
+                Server URL saved successfully
+              </div>
+            )}
+            <TMInput
+              label="Server URL"
+              type="url"
+              placeholder="e.g. 192.168.1.100:3000"
+              value={serverUrl}
+              onChange={(e) => setServerUrl(e.target.value)}
+              required
+            />
+            <div className="settings-form__actions" style={{ marginTop: '1rem' }}>
+              <TMButton type="submit">Save Server URL</TMButton>
+            </div>
+          </form>
+        </div>
+
+        {/* Demo Data Section */}
+        <div className="settings-section">
+          <h3 className="settings-section__title">Demo Data</h3>
+          <p style={{ color: '#6b7280', margin: '0 0 1rem' }}>
+            Populate your account with sample categories and businesses for testing.
+          </p>
+          {seedMessage && (
+            <div className={`settings-message ${seedMessage.includes('Failed') ? 'settings-message--error' : 'settings-message--success'}`}>
+              {seedMessage}
+            </div>
+          )}
+          <TMButton
+            onClick={handleSeedDemoData}
+            disabled={seeding}
+            variant="secondary"
+          >
+            {seeding ? 'Populating...' : 'Populate Demo Data'}
+          </TMButton>
+        </div>
+
         {/* Password Change Section */}
         <div className="settings-section">
           <h3 className="settings-section__title">Security</h3>
@@ -131,12 +225,12 @@ const TMSettings: React.FC = () => {
           {!showPasswordForm ? (
             <div className="settings-action">
               <p>Keep your account secure by using a strong password.</p>
-              <Button
+              <TMButton
                 variant="secondary"
                 onClick={() => setShowPasswordForm(true)}
               >
                 Change Password
-              </Button>
+              </TMButton>
             </div>
           ) : (
             <form onSubmit={handlePasswordSubmit} className="settings-form">
@@ -152,7 +246,7 @@ const TMSettings: React.FC = () => {
                 </div>
               )}
 
-              <Input
+              <TMInput
                 label="Current Password"
                 type="password"
                 placeholder="Enter your current password"
@@ -162,7 +256,7 @@ const TMSettings: React.FC = () => {
                 error={validationErrors.currentPassword}
               />
 
-              <Input
+              <TMInput
                 label="New Password"
                 type="password"
                 placeholder="Enter new password"
@@ -172,7 +266,7 @@ const TMSettings: React.FC = () => {
                 error={validationErrors.newPassword}
               />
 
-              <Input
+              <TMInput
                 label="Confirm New Password"
                 type="password"
                 placeholder="Confirm new password"
@@ -183,9 +277,9 @@ const TMSettings: React.FC = () => {
               />
 
               <div className="settings-form__actions">
-                <Button
+                <TMButton
                   type="button"
-                  variant="secondary"
+                  variant="outline"
                   onClick={() => {
                     setShowPasswordForm(false);
                     setFormData({ currentPassword: '', newPassword: '', confirmPassword: '' });
@@ -195,10 +289,10 @@ const TMSettings: React.FC = () => {
                   }}
                 >
                   Cancel
-                </Button>
-                <Button type="submit" disabled={isLoading}>
+                </TMButton>
+                <TMButton type="submit" disabled={isLoading}>
                   {isLoading ? 'Updating...' : 'Update Password'}
-                </Button>
+                </TMButton>
               </div>
             </form>
           )}
@@ -280,17 +374,19 @@ const TMSettings: React.FC = () => {
 
         .settings-form {
           max-width: 400px;
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
         }
 
         .settings-form__actions {
           display: flex;
           gap: 1rem;
-          margin-top: 1.5rem;
+          margin-top: 0.5rem;
         }
 
         .settings-message {
           padding: 12px;
-          margin-bottom: 16px;
           border-radius: 8px;
           font-size: 14px;
         }

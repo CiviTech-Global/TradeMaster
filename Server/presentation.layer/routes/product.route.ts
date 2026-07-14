@@ -1,4 +1,10 @@
 import express from "express";
+
+// [DISABLED] Products not shown in business directory mode
+// All product routes are temporarily disabled.
+// To re-enable, uncomment the imports and routes below.
+
+/*
 import multer from "multer";
 import {
   getProducts,
@@ -38,29 +44,27 @@ const upload = multer({
     cb(null, allowed.includes(file.mimetype));
   },
 });
+*/
 
 const router = express.Router();
 
-// Public routes
-router.get("/", getProducts);
-router.get("/nearby", getNearbyProducts);
-router.get("/business/:businessId", getProductsByBusiness);
-router.get("/:id", getProductById);
-router.get("/:id/variants", getVariants);
+// All product routes disabled in business directory mode
+// GET routes (read-only display)
+// router.get("/", getProducts);
+// router.get("/nearby", getNearbyProducts);
+// router.get("/business/:businessId", getProductsByBusiness);
+// router.get("/:id", getProductById);
+// router.get("/:id/variants", getVariants);
 
-// Protected routes
-router.post("/", authenticateJWT, validate(createProductSchema), createProduct);
-router.patch("/:id", authenticateJWT, validate(updateProductSchema), updateProduct);
-router.delete("/:id", authenticateJWT, deleteProduct);
-
-// Product Images
-router.post("/:id/images", authenticateJWT, upload.array('images', 5), uploadProductImages);
-router.delete("/:id/images/:imageId", authenticateJWT, deleteProductImage);
-router.patch("/:id/images/:imageId", authenticateJWT, updateProductImage);
-
-// Product Variants
-router.post("/:id/variants", authenticateJWT, createVariant);
-router.patch("/:id/variants/:variantId", authenticateJWT, updateVariant);
-router.delete("/:id/variants/:variantId", authenticateJWT, deleteVariant);
+// POST/PATCH/DELETE routes (CRUD operations)
+// router.post("/", authenticateJWT, validate(createProductSchema), createProduct);
+// router.patch("/:id", authenticateJWT, validate(updateProductSchema), updateProduct);
+// router.delete("/:id", authenticateJWT, deleteProduct);
+// router.post("/:id/images", authenticateJWT, upload.array('images', 5), uploadProductImages);
+// router.delete("/:id/images/:imageId", authenticateJWT, deleteProductImage);
+// router.patch("/:id/images/:imageId", authenticateJWT, updateProductImage);
+// router.post("/:id/variants", authenticateJWT, createVariant);
+// router.patch("/:id/variants/:variantId", authenticateJWT, updateVariant);
+// router.delete("/:id/variants/:variantId", authenticateJWT, deleteVariant);
 
 export default router;

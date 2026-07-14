@@ -14,13 +14,18 @@ import authRoutes from "./presentation.layer/routes/auth.route";
 import businessRoutes from "./presentation.layer/routes/business.route";
 import categoryRoutes from "./presentation.layer/routes/category.route";
 import uploadRoutes from "./presentation.layer/routes/upload.route";
-import productRoutes from "./presentation.layer/routes/product.route";
+// [DISABLED] Products not shown in business directory mode
+// import productRoutes from "./presentation.layer/routes/product.route";
 import searchRoutes from "./presentation.layer/routes/search.route";
-import orderRoutes from "./presentation.layer/routes/order.route";
-import messageRoutes from "./presentation.layer/routes/message.route";
+// [DISABLED] Orders not shown in business directory mode
+// import orderRoutes from "./presentation.layer/routes/order.route";
+// [DISABLED] Messaging not shown in business directory mode
+// import messageRoutes from "./presentation.layer/routes/message.route";
 import reviewRoutes from "./presentation.layer/routes/review.route";
 import devRoutes from "./presentation.layer/routes/dev.route";
 import { setupSwagger } from "./infrastructure.layer/docs/swagger";
+// [DISABLED] WebSocket only used for messaging
+// import { initializeWebSocket } from "./infrastructure.layer/websocket";
 import { initializeWebSocket } from "./infrastructure.layer/websocket";
 
 const app = express();
@@ -115,10 +120,13 @@ const startServer = async () => {
     app.use("/businesses", businessRoutes);
     app.use("/categories", categoryRoutes);
     app.use("/uploads", uploadRoutes);
-    app.use("/products", productRoutes);
+    // [DISABLED] Products not shown in business directory mode
+    // app.use("/products", productRoutes);
     app.use("/search", searchRoutes);
-    app.use("/orders", orderRoutes);
-    app.use("/messages", messageRoutes);
+    // [DISABLED] Orders not shown in business directory mode
+    // app.use("/orders", orderRoutes);
+    // [DISABLED] Messaging not shown in business directory mode
+    // app.use("/messages", messageRoutes);
     app.use("/reviews", reviewRoutes);
     if (env.NODE_ENV !== "production") {
       app.use("/dev", devRoutes);
@@ -136,8 +144,8 @@ const startServer = async () => {
       }
     });
 
-    // Initialize WebSocket
-    initializeWebSocket(server);
+    // [DISABLED] WebSocket only used for messaging
+    // initializeWebSocket(server);
   } catch (error) {
     console.error("Failed to start server:", error);
     process.exit(1);

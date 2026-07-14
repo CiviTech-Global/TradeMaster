@@ -152,7 +152,7 @@ const Reviews: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="dashboard-page">
+      <div className="dashboard-page fade-in">
         <div className="dashboard-page__header">
           <h1 className="dashboard-page__title">Reviews</h1>
         </div>
@@ -164,7 +164,7 @@ const Reviews: React.FC = () => {
   }
 
   return (
-    <div className="dashboard-page">
+    <div className="dashboard-page fade-in">
       <div className="dashboard-page__header">
         <h1 className="dashboard-page__title">Reviews</h1>
         <p className="dashboard-page__subtitle">

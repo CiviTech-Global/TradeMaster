@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Button, BusinessLocationMap } from '../../../components';
+import { BusinessLocationMap } from '../../../components';
+import { TMButton, TMEmptyState } from '../../../components';
 import { businessService } from '../../../../infrastructure/api/businessService';
 import { useAppSelector } from '../../../../application/redux';
 import { selectUser } from '../../../../application/redux';
@@ -127,35 +128,38 @@ const MyBusinesses: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="dashboard-page">
+      <div className="dashboard-page fade-in">
         <div className="dashboard-page__header">
           <h1 className="dashboard-page__title">My Businesses</h1>
         </div>
         <div className="dashboard-page__content">
-          <div className="loading-spinner">Loading your businesses...</div>
+          <div style={{ display: 'grid', gap: '0.75rem' }}>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} style={{ height: '64px', background: 'var(--color-border)', borderRadius: 'var(--radius-md)' }} />
+            ))}
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="dashboard-page">
+    <div className="dashboard-page fade-in">
       <div className="dashboard-page__header">
         <h1 className="dashboard-page__title">My Businesses</h1>
         <p className="dashboard-page__subtitle">
           Manage your business locations and information
         </p>
         <div className="dashboard-page__actions">
-          <Button
-            variant="primary"
+          <TMButton
             onClick={() => {
-              setEditingBusiness(null); // Clear any editing state
-              setSelectedLocation(null); // Clear any selected location
+              setEditingBusiness(null);
+              setSelectedLocation(null);
               setShowCreateForm(true);
             }}
           >
             Create a new business
-          </Button>
+          </TMButton>
         </div>
       </div>
 
@@ -164,9 +168,9 @@ const MyBusinesses: React.FC = () => {
           <div className="business-creation-section">
             <div className="business-creation__header">
               <h2>{editingBusiness ? 'Edit Business' : 'Create New Business'}</h2>
-              <Button variant="secondary" onClick={handleCancelForm}>
+              <TMButton variant="outline" onClick={handleCancelForm}>
                 Cancel
-              </Button>
+              </TMButton>
             </div>
 
             <div className="business-creation__content">
@@ -222,11 +226,25 @@ const MyBusinesses: React.FC = () => {
                   Manage your business listings, locations, and information
                 </p>
               </div>
-              <BusinessTable
-                businesses={businesses}
-                onEdit={handleEditBusiness}
-                onDelete={handleDeleteBusiness}
-              />
+              {businesses.length === 0 ? (
+                <TMEmptyState
+                  icon="🏪"
+                  title="No businesses yet"
+                  subtitle="Create your first business listing to get discovered on the map."
+                  actionLabel="Create Business"
+                  onAction={() => {
+                    setEditingBusiness(null);
+                    setSelectedLocation(null);
+                    setShowCreateForm(true);
+                  }}
+                />
+              ) : (
+                <BusinessTable
+                  businesses={businesses}
+                  onEdit={handleEditBusiness}
+                  onDelete={handleDeleteBusiness}
+                />
+              )}
             </div>
           </div>
         )}

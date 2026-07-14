@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { userRepository } from '../../../infrastructure/repositories/user.repo';
 import { networkService } from '../../../infrastructure/api/NetworkService';
+import { serverUrlConfig } from '../../../infrastructure/api/serverUrlConfig';
 import type {
   IUser,
   IUserCreationRequest,
@@ -154,7 +155,7 @@ export const changePassword = createAsyncThunk(
 export const initializeAuth = createAsyncThunk(
   'auth/initialize',
   async () => {
-    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+    const baseURL = serverUrlConfig.getUrl();
     networkService.setBaseURL(baseURL);
 
     const storedAccessToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');

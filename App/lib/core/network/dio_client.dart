@@ -6,10 +6,13 @@ import 'package:trademaster/core/network/api_interceptor.dart';
 
 class DioClient {
   static DioClient? _instance;
-  late final Dio _dio;
+  late Dio _dio;
 
   DioClient._() {
-    final base = ApiConstants.baseUrl;
+    _initDio(ApiConstants.baseUrl);
+  }
+
+  void _initDio(String base) {
     developer.log('DioClient: initializing with baseUrl=$base', name: 'DioClient');
     _dio = Dio(
       BaseOptions(
@@ -28,6 +31,11 @@ class DioClient {
   static DioClient get instance {
     _instance ??= DioClient._();
     return _instance!;
+  }
+
+  /// Reconfigures the singleton with a new base URL.
+  static void setBaseUrl(String baseUrl) {
+    instance._initDio(baseUrl);
   }
 
   Dio get dio => _dio;

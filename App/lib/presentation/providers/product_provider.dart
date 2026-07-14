@@ -1,3 +1,6 @@
+// Product providers are enabled. The product screens remain unreachable because
+// the GoRouter routes are still commented out in router_provider.dart.
+
 import 'dart:developer' as developer;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -228,3 +231,4 @@ final nearbyProductsProvider = StateNotifierProvider<NearbyProductsNotifier,
     AsyncValue<List<ProductModel>>>((ref) {
   return NearbyProductsNotifier(ref.watch(productDatasourceProvider));
 });
+

@@ -18,8 +18,10 @@ const router = express.Router();
 router.get("/", getAllBusinesses);
 router.get("/active", getActiveBusinesses);
 
+// Public business detail
+router.get("/:id", getBusinessById);
+
 // Protected routes (authentication required)
-router.get("/:id", authenticateJWT, getBusinessById);
 router.get("/owner/:ownerId", authenticateJWT, getBusinessesByOwner);
 router.post("/", authenticateJWT, validate(createBusinessSchema), createBusiness);
 router.patch("/:id", authenticateJWT, validate(updateBusinessSchema), updateBusiness);

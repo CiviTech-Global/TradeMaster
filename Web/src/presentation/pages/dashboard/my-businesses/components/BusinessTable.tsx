@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button } from '../../../../components';
+import { TMButton } from '../../../../components';
 import type { Business } from '../../../../../domain/types/business';
 
 interface BusinessTableProps {
@@ -179,18 +179,20 @@ const BusinessTable: React.FC<BusinessTableProps> = ({
                 </td>
                 <td>
                   <div className="table-actions">
-                    <Button
-                      variant="secondary"
+                    <TMButton
+                      variant="outline"
                       onClick={() => onEdit(business)}
+                      style={{ minHeight: '36px', padding: '8px 12px' }}
                     >
                       Edit
-                    </Button>
-                    <Button
-                      variant="secondary"
+                    </TMButton>
+                    <TMButton
+                      variant="outline"
                       onClick={() => onDelete(business.id)}
+                      style={{ minHeight: '36px', padding: '8px 12px' }}
                     >
                       Delete
-                    </Button>
+                    </TMButton>
                   </div>
                 </td>
               </tr>

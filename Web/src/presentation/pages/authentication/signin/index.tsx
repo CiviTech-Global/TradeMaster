@@ -3,10 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../../../../application/redux/hooks';
 import { signin, clearError, selectAuthLoading, selectAuthError } from '../../../../application/redux';
 import AuthLayout from '../../../components/AuthLayout';
-import FormContainer from '../../../components/FormContainer';
-import Input from '../../../components/Input';
-import Button from '../../../components/Button';
-import AuthIllustration from '../../../components/AuthIllustration';
+import { TMButton, TMInput } from '../../../components';
 
 const TMSignin: React.FC = () => {
   const navigate = useNavigate();
@@ -32,7 +29,6 @@ const TMSignin: React.FC = () => {
       [field]: e.target.value
     }));
 
-    // Clear validation errors when user starts typing
     if (validationErrors[field]) {
       setValidationErrors(prev => ({
         ...prev,
@@ -40,7 +36,6 @@ const TMSignin: React.FC = () => {
       }));
     }
 
-    // Clear auth errors
     if (error) {
       dispatch(clearError());
     }
@@ -78,49 +73,29 @@ const TMSignin: React.FC = () => {
         password: formData.password
       })).unwrap();
 
-      // Navigate to dashboard on successful signin
       navigate('/dashboard');
     } catch (error) {
-      // Error is already handled by the Redux slice
       console.error('Signin failed:', error);
     }
   };
 
-  const footer = (
-    <div>
-      <p>
-        <Link to="/forgot-password">Forgot your password?</Link>
-      </p>
-      <p>
-        Don't have an account?{' '}
-        <Link to="/signup">Sign up</Link>
-      </p>
-    </div>
-  );
-
   return (
-    <AuthLayout illustration={<AuthIllustration />}>
-      <FormContainer
-        title="Sign in"
-        subtitle="Welcome back to TradeMaster"
-        footer={footer}
-        onSubmit={handleSubmit}
-      >
+    <AuthLayout title="Welcome back" subtitle="Sign in to manage your business directory">
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         {error && (
           <div style={{
             padding: '12px',
-            marginBottom: '16px',
-            backgroundColor: '#fee2e2',
-            border: '1px solid #fecaca',
-            borderRadius: '8px',
-            color: '#dc2626',
+            backgroundColor: 'rgba(239, 83, 80, 0.1)',
+            border: '1px solid rgba(239, 83, 80, 0.2)',
+            borderRadius: 'var(--radius-md)',
+            color: 'var(--color-error)',
             fontSize: '14px'
           }}>
             {error}
           </div>
         )}
 
-        <Input
+        <TMInput
           label="Email"
           type="email"
           placeholder="Enter your email"
@@ -129,7 +104,7 @@ const TMSignin: React.FC = () => {
           required
           error={validationErrors.email}
         />
-        <Input
+        <TMInput
           label="Password"
           type="password"
           placeholder="Enter your password"
@@ -138,10 +113,35 @@ const TMSignin: React.FC = () => {
           required
           error={validationErrors.password}
         />
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Signing in...' : 'Sign in'}
-        </Button>
-      </FormContainer>
+
+        <div style={{ textAlign: 'right' }}>
+          <Link
+            to="/forgot-password"
+            style={{
+              color: 'var(--color-primary)',
+              fontSize: 'var(--font-size-sm)',
+              textDecoration: 'none',
+              fontWeight: 500
+            }}
+          >
+            Forgot password?
+          </Link>
+        </div>
+
+        <TMButton type="submit" isLoading={isLoading} isFullWidth>
+          Sign In
+        </TMButton>
+      </form>
+
+      <p style={{ textAlign: 'center', marginTop: '1.5rem', color: 'var(--color-on-surface-variant)' }}>
+        Don&apos;t have an account?{' '}
+        <Link
+          to="/signup"
+          style={{ color: 'var(--color-primary)', fontWeight: 600, textDecoration: 'none' }}
+        >
+          Sign up
+        </Link>
+      </p>
     </AuthLayout>
   );
 };

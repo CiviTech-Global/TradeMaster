@@ -3,10 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "../../../../application/redux/hooks";
 import { signup, clearError, selectAuthLoading, selectAuthError } from "../../../../application/redux";
 import AuthLayout from "../../../components/AuthLayout";
-import FormContainer from "../../../components/FormContainer";
-import Input from "../../../components/Input";
-import Button from "../../../components/Button";
-import AuthIllustration from "../../../components/AuthIllustration";
+import { TMButton, TMInput } from "../../../components";
 
 const TMSignup: React.FC = () => {
   const navigate = useNavigate();
@@ -36,7 +33,6 @@ const TMSignup: React.FC = () => {
         [field]: e.target.value,
       }));
 
-      // Clear validation errors when user starts typing
       if (validationErrors[field]) {
         setValidationErrors((prev) => ({
           ...prev,
@@ -44,7 +40,6 @@ const TMSignup: React.FC = () => {
         }));
       }
 
-      // Clear auth errors
       if (error) {
         dispatch(clearError());
       }
@@ -101,58 +96,49 @@ const TMSignup: React.FC = () => {
         password: formData.password,
       })).unwrap();
 
-      // Navigate to dashboard on successful signup
       navigate("/dashboard");
     } catch (error) {
-      // Error is already handled by the Redux slice
       console.error("Signup failed:", error);
     }
   };
 
-  const footer = (
-    <p>
-      Already have an account? <Link to="/signin">Sign in</Link>
-    </p>
-  );
-
   return (
-    <AuthLayout illustration={<AuthIllustration />}>
-      <FormContainer title="Sign up" footer={footer} onSubmit={handleSubmit}>
+    <AuthLayout title="Create account" subtitle="Join the local business directory">
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         {error && (
-          <div
-            style={{
-              padding: "12px",
-              marginBottom: "16px",
-              backgroundColor: "#fee2e2",
-              border: "1px solid #fecaca",
-              borderRadius: "8px",
-              color: "#dc2626",
-              fontSize: "14px",
-            }}
-          >
+          <div style={{
+            padding: '12px',
+            backgroundColor: 'rgba(239, 83, 80, 0.1)',
+            border: '1px solid rgba(239, 83, 80, 0.2)',
+            borderRadius: 'var(--radius-md)',
+            color: 'var(--color-error)',
+            fontSize: '14px'
+          }}>
             {error}
           </div>
         )}
 
-        <Input
-          label="First Name"
-          type="text"
-          placeholder="Enter your first name"
-          value={formData.firstname}
-          onChange={handleInputChange("firstname")}
-          required
-          error={validationErrors.firstname}
-        />
-        <Input
-          label="Last Name"
-          type="text"
-          placeholder="Enter your last name"
-          value={formData.lastname}
-          onChange={handleInputChange("lastname")}
-          required
-          error={validationErrors.lastname}
-        />
-        <Input
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <TMInput
+            label="First Name"
+            type="text"
+            placeholder="Enter your first name"
+            value={formData.firstname}
+            onChange={handleInputChange("firstname")}
+            required
+            error={validationErrors.firstname}
+          />
+          <TMInput
+            label="Last Name"
+            type="text"
+            placeholder="Enter your last name"
+            value={formData.lastname}
+            onChange={handleInputChange("lastname")}
+            required
+            error={validationErrors.lastname}
+          />
+        </div>
+        <TMInput
           label="Email"
           type="email"
           placeholder="Enter your email"
@@ -161,19 +147,30 @@ const TMSignup: React.FC = () => {
           required
           error={validationErrors.email}
         />
-        <Input
+        <TMInput
           label="Password"
           type="password"
-          placeholder="Enter your password"
+          placeholder="Create a password"
           value={formData.password}
           onChange={handleInputChange("password")}
           required
           error={validationErrors.password}
         />
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Creating account..." : "Sign up →"}
-        </Button>
-      </FormContainer>
+
+        <TMButton type="submit" isLoading={isLoading} isFullWidth>
+          {isLoading ? "Creating account..." : "Create Account"}
+        </TMButton>
+      </form>
+
+      <p style={{ textAlign: 'center', marginTop: '1.5rem', color: 'var(--color-on-surface-variant)' }}>
+        Already have an account?{' '}
+        <Link
+          to="/signin"
+          style={{ color: 'var(--color-primary)', fontWeight: 600, textDecoration: 'none' }}
+        >
+          Sign in
+        </Link>
+      </p>
     </AuthLayout>
   );
 };

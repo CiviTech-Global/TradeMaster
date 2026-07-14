@@ -105,7 +105,7 @@ class ProductRemoteDatasource {
               filename: file.path.split('/').last,
             )),
       ),
-      if (altText != null) 'alt_text': altText,
+      'alt_text': ?altText,
       'set_primary': setPrimary.toString(),
     });
 

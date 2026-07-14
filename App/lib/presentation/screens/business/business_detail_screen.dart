@@ -2,15 +2,16 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:trademaster/core/constants/api_constants.dart';
-import 'package:trademaster/data/models/product_model.dart';
 import 'package:trademaster/data/models/review_model.dart';
+import 'package:trademaster/presentation/components/tm_badge.dart';
+import 'package:trademaster/presentation/components/tm_button.dart';
+import 'package:trademaster/presentation/components/tm_card.dart';
+import 'package:trademaster/presentation/components/tm_empty_state.dart';
+import 'package:trademaster/presentation/components/tm_skeleton.dart';
 import 'package:trademaster/presentation/providers/business_provider.dart';
-import 'package:trademaster/presentation/providers/product_provider.dart';
 import 'package:trademaster/presentation/providers/review_provider.dart';
-import 'package:trademaster/presentation/widgets/product_card.dart';
 import 'package:trademaster/presentation/widgets/star_rating.dart';
 
 class BusinessDetailScreen extends ConsumerStatefulWidget {
@@ -24,9 +25,6 @@ class BusinessDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
-  List<ProductModel>? _products;
-  bool _loadingProducts = true;
-
   List<ReviewModel>? _reviews;
   ReviewStatsModel? _reviewStats;
   bool _loadingReviews = true;
@@ -34,31 +32,13 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _loadProducts();
     _loadReviews();
-  }
-
-  Future<void> _loadProducts() async {
-    try {
-      final datasource = ref.read(productDatasourceProvider);
-      final products =
-          await datasource.getProductsByBusiness(widget.businessId);
-      if (mounted) {
-        setState(() {
-          _products = products;
-          _loadingProducts = false;
-        });
-      }
-    } catch (_) {
-      if (mounted) setState(() => _loadingProducts = false);
-    }
   }
 
   Future<void> _loadReviews() async {
     try {
       final datasource = ref.read(reviewDatasourceProvider);
-      final response =
-          await datasource.getBusinessReviews(widget.businessId);
+      final response = await datasource.getBusinessReviews(widget.businessId);
       if (mounted) {
         setState(() {
           _reviews = response.reviews;
@@ -74,6 +54,7 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final businessState = ref.watch(businessDetailProvider(widget.businessId));
 
     return Scaffold(
@@ -81,30 +62,54 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
         data: (business) {
           return CustomScrollView(
             slivers: [
-              // App bar with cover image
+              // Hero app bar with cover image
               SliverAppBar(
-                expandedHeight: 200,
+                expandedHeight: 240,
                 pinned: true,
                 flexibleSpace: FlexibleSpaceBar(
+                  background: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      business.coverImage != null
+                          ? CachedNetworkImage(
+                              imageUrl: ApiConstants.imageUrl(business.coverImage!),
+                              fit: BoxFit.cover,
+                            )
+                          : Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    colorScheme.primary,
+                                    colorScheme.secondary,
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                              ),
+                            ),
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.black.withValues(alpha: 0.4),
+                              Colors.transparent,
+                              Colors.black.withValues(alpha: 0.5),
+                            ],
+                            stops: const [0.0, 0.5, 1.0],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   title: Text(
                     business.title,
                     style: const TextStyle(
+                      fontWeight: FontWeight.bold,
                       shadows: [Shadow(blurRadius: 8, color: Colors.black)],
                     ),
                   ),
-                  background: business.coverImage != null
-                      ? CachedNetworkImage(
-                          imageUrl: ApiConstants.imageUrl(business.coverImage!),
-                          fit: BoxFit.cover,
-                        )
-                      : Container(
-                          color: theme.colorScheme.primaryContainer,
-                          child: Center(
-                            child: Icon(Icons.store,
-                                size: 64,
-                                color: theme.colorScheme.onPrimaryContainer),
-                          ),
-                        ),
                 ),
               ),
 
@@ -115,69 +120,134 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Category chip
-                      if (business.category != null)
-                        Chip(
-                          label: Text(business.category!.name),
-                          avatar: const Icon(Icons.category, size: 16),
-                        ),
-                      if (business.description != null) ...[
-                        const SizedBox(height: 12),
-                        Text(business.description!,
-                            style: theme.textTheme.bodyLarge),
-                      ],
-
-                      // Contact info
+                      Row(
+                        children: [
+                          if (business.category != null)
+                            TMBadge(
+                              label: business.category!.name,
+                              variant: TMBadgeVariant.secondary,
+                              icon: Icons.category,
+                            ),
+                          const Spacer(),
+                          if (_reviewStats?.averageRating != null) ...[
+                            const Icon(Icons.star,
+                                color: Colors.amber, size: 18),
+                            const SizedBox(width: 4),
+                            Text(
+                              _reviewStats!.averageRating!.toStringAsFixed(1),
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              ' (${_reviewStats!.reviewCount} reviews)',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                       const SizedBox(height: 16),
+                      if (business.description != null)
+                        Text(
+                          business.description!,
+                          style: theme.textTheme.bodyLarge,
+                        ),
+
+                      // Quick actions
+                      const SizedBox(height: 20),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TMButton(
+                              label: 'Call',
+                              icon: Icons.phone,
+                              variant: TMButtonVariant.outline,
+                              isFullWidth: true,
+                              onTap: business.phones != null &&
+                                      business.phones!.isNotEmpty
+                                  ? () {}
+                                  : null,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: TMButton(
+                              label: 'Directions',
+                              icon: Icons.directions,
+                              variant: TMButtonVariant.outline,
+                              isFullWidth: true,
+                              onTap: business.latitude != null &&
+                                      business.longitude != null
+                                  ? () {}
+                                  : null,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      // Info cards
+                      const SizedBox(height: 20),
                       if (business.address != null)
-                        _InfoRow(
-                            icon: Icons.location_on, text: business.address!),
+                        _InfoCard(
+                          icon: Icons.location_on,
+                          title: 'Address',
+                          content: business.address!,
+                        ),
                       if (business.phones != null &&
                           business.phones!.isNotEmpty)
-                        _InfoRow(
-                            icon: Icons.phone,
-                            text: business.phones!.join(', ')),
+                        _InfoCard(
+                          icon: Icons.phone,
+                          title: 'Phone',
+                          content: business.phones!.join(', '),
+                        ),
                       if (business.emails != null &&
                           business.emails!.isNotEmpty)
-                        _InfoRow(
-                            icon: Icons.email,
-                            text: business.emails!.join(', ')),
+                        _InfoCard(
+                          icon: Icons.email,
+                          title: 'Email',
+                          content: business.emails!.join(', '),
+                        ),
 
                       // Map
                       if (business.latitude != null &&
                           business.longitude != null) ...[
                         const SizedBox(height: 16),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: SizedBox(
-                            height: 150,
-                            child: FlutterMap(
-                              options: MapOptions(
-                                initialCenter: LatLng(
-                                    business.latitude!, business.longitude!),
-                                initialZoom: 15,
-                                interactionOptions: const InteractionOptions(
-                                  flags: InteractiveFlag.none,
+                        TMCard(
+                          padding: EdgeInsets.zero,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: SizedBox(
+                              height: 180,
+                              child: FlutterMap(
+                                options: MapOptions(
+                                  initialCenter: LatLng(
+                                      business.latitude!, business.longitude!),
+                                  initialZoom: 15,
+                                  interactionOptions: const InteractionOptions(
+                                    flags: InteractiveFlag.none,
+                                  ),
                                 ),
+                                children: [
+                                  TileLayer(
+                                    urlTemplate:
+                                        'https://memaps.ir/hot/{z}/{x}/{y}.png',
+                                    userAgentPackageName: 'com.trademaster.app',
+                                  ),
+                                  MarkerLayer(
+                                    markers: [
+                                      Marker(
+                                        point: LatLng(business.latitude!,
+                                            business.longitude!),
+                                        child: Icon(Icons.location_pin,
+                                            color: colorScheme.primary,
+                                            size: 40),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
-                              children: [
-                                TileLayer(
-                                  urlTemplate:
-                                      'https://memaps.ir/hot/{z}/{x}/{y}.png',
-                                  userAgentPackageName: 'com.trademaster.app',
-                                ),
-                                MarkerLayer(
-                                  markers: [
-                                    Marker(
-                                      point: LatLng(business.latitude!,
-                                          business.longitude!),
-                                      child: Icon(Icons.location_pin,
-                                          color: theme.colorScheme.primary,
-                                          size: 40),
-                                    ),
-                                  ],
-                                ),
-                              ],
                             ),
                           ),
                         ),
@@ -187,105 +257,43 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                 ),
               ),
 
-              // Products header
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                  child: Text('Products', style: theme.textTheme.titleLarge),
-                ),
-              ),
-
-              // Products grid
-              if (_loadingProducts)
-                const SliverToBoxAdapter(
-                  child: Center(
-                      child: Padding(
-                    padding: EdgeInsets.all(32),
-                    child: CircularProgressIndicator(),
-                  )),
-                )
-              else if (_products == null || _products!.isEmpty)
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Center(
-                      child: Text('No products yet',
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          )),
-                    ),
-                  ),
-                )
-              else
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  sliver: SliverGrid(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.65,
-                      crossAxisSpacing: 8,
-                      mainAxisSpacing: 8,
-                    ),
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final product = _products![index];
-                        return ProductCard(
-                          product: product,
-                          onTap: () => context.push('/product/${product.id}'),
-                        );
-                      },
-                      childCount: _products!.length,
-                    ),
-                  ),
-                ),
-
-              // Reviews header with stats
+              // Reviews header
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-                  child: Row(
-                    children: [
-                      Text('Reviews', style: theme.textTheme.titleLarge),
-                      if (_reviewStats != null &&
-                          _reviewStats!.averageRating != null) ...[
-                        const SizedBox(width: 12),
-                        StarRating(
-                            rating: _reviewStats!.averageRating!, size: 18),
-                        const SizedBox(width: 6),
-                        Text(
-                          '${_reviewStats!.averageRating!.toStringAsFixed(1)} (${_reviewStats!.reviewCount})',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ],
+                  child: Text(
+                    'Reviews',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
 
               // Reviews list
               if (_loadingReviews)
-                const SliverToBoxAdapter(
-                  child: Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(32),
-                      child: CircularProgressIndicator(),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: List.generate(
+                        3,
+                        (_) => const Padding(
+                          padding: EdgeInsets.only(bottom: 12),
+                          child: TMSkeleton(width: double.infinity, height: 80),
+                        ),
+                      ),
                     ),
                   ),
                 )
               else if (_reviews == null || _reviews!.isEmpty)
-                SliverToBoxAdapter(
+                const SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Center(
-                      child: Text(
-                        'No reviews yet',
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
+                    padding: EdgeInsets.symmetric(vertical: 32),
+                    child: TMEmptyState(
+                      icon: Icons.rate_review_outlined,
+                      title: 'No reviews yet',
+                      subtitle: 'Be the first to share your experience.',
                     ),
                   ),
                 )
@@ -303,27 +311,20 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                   ),
                 ),
 
-              const SliverToBoxAdapter(child: SizedBox(height: 24)),
+              const SliverToBoxAdapter(child: SizedBox(height: 32)),
             ],
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.error_outline,
-                  size: 48, color: theme.colorScheme.error),
-              const SizedBox(height: 8),
-              Text('Failed to load business'),
-              const SizedBox(height: 8),
-              FilledButton(
-                onPressed: () => ref
-                    .read(businessDetailProvider(widget.businessId).notifier)
-                    .load(widget.businessId),
-                child: const Text('Retry'),
-              ),
-            ],
+          child: TMEmptyState(
+            icon: Icons.error_outline,
+            title: 'Failed to load business',
+            subtitle: e.toString(),
+            actionLabel: 'Retry',
+            onAction: () => ref
+                .read(businessDetailProvider(widget.businessId).notifier)
+                .load(widget.businessId),
           ),
         ),
       ),
@@ -331,24 +332,59 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
   }
 }
 
-class _InfoRow extends StatelessWidget {
+class _InfoCard extends StatelessWidget {
   final IconData icon;
-  final String text;
+  final String title;
+  final String content;
 
-  const _InfoRow({required this.icon, required this.text});
+  const _InfoCard({
+    required this.icon,
+    required this.title,
+    required this.content,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
-          ),
-        ],
+      padding: const EdgeInsets.only(bottom: 12),
+      child: TMCard(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: colorScheme.onPrimaryContainer, size: 20),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    content,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -362,60 +398,65 @@ class _ReviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
+    final colorScheme = theme.colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: TMCard(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 16,
-                  child: Text(
-                    review.reviewer != null
-                        ? review.reviewer!.firstname.isNotEmpty
-                            ? review.reviewer!.firstname[0].toUpperCase()
-                            : '?'
-                        : '?',
-                    style: const TextStyle(fontSize: 14),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: colorScheme.primaryContainer,
+                child: Text(
+                  review.reviewer != null
+                      ? review.reviewer!.firstname.isNotEmpty
+                          ? review.reviewer!.firstname[0].toUpperCase()
+                          : '?'
+                      : '?',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onPrimaryContainer,
                   ),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      review.reviewer?.fullName ?? 'Anonymous',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (review.createdAt != null)
                       Text(
-                        review.reviewer?.fullName ?? 'Anonymous',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
+                        _formatDate(review.createdAt!),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      if (review.createdAt != null)
-                        Text(
-                          _formatDate(review.createdAt!),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                    ],
-                  ),
+                  ],
                 ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            StarRating(rating: review.rating.toDouble(), size: 16),
-            if (review.comment != null && review.comment!.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(review.comment!, style: theme.textTheme.bodyMedium),
+              ),
             ],
+          ),
+          const SizedBox(height: 8),
+          StarRating(rating: review.rating.toDouble(), size: 16),
+          if (review.comment != null && review.comment!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(review.comment!, style: theme.textTheme.bodyMedium),
           ],
-        ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   String _formatDate(String dateStr) {
     try {

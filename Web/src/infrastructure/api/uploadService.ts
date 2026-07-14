@@ -1,5 +1,6 @@
 import { networkService } from './NetworkService';
 import type { NetworkResponse } from './NetworkService';
+import { serverUrlConfig } from './serverUrlConfig';
 
 export interface Upload {
   id: number;
@@ -71,7 +72,7 @@ export class UploadService {
   }
 
   getFullUrl(relativePath: string): string {
-    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+    const baseURL = serverUrlConfig.getUrl();
     return `${baseURL}${relativePath}`;
   }
 }

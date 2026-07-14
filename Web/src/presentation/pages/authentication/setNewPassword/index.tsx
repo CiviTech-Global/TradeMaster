@@ -3,10 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../../../../application/redux/hooks';
 import { resetPassword, clearError, selectAuthLoading, selectAuthError } from '../../../../application/redux';
 import AuthLayout from '../../../components/AuthLayout';
-import FormContainer from '../../../components/FormContainer';
-import Input from '../../../components/Input';
-import Button from '../../../components/Button';
-import AuthIllustration from '../../../components/AuthIllustration';
+import { TMButton, TMInput } from '../../../components';
 
 const TMSetNewPassword: React.FC = () => {
   const navigate = useNavigate();
@@ -40,23 +37,11 @@ const TMSetNewPassword: React.FC = () => {
   const handleInputChange = (field: keyof typeof formData) => (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: e.target.value
-    }));
-
-    // Clear validation errors when user starts typing
+    setFormData(prev => ({ ...prev, [field]: e.target.value }));
     if (validationErrors[field]) {
-      setValidationErrors(prev => ({
-        ...prev,
-        [field]: undefined
-      }));
+      setValidationErrors(prev => ({ ...prev, [field]: undefined }));
     }
-
-    // Clear auth errors
-    if (error) {
-      dispatch(clearError());
-    }
+    if (error) dispatch(clearError());
   };
 
   const validateForm = (): boolean => {
@@ -80,10 +65,7 @@ const TMSetNewPassword: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     try {
       await dispatch(resetPassword({
@@ -91,73 +73,57 @@ const TMSetNewPassword: React.FC = () => {
         newPassword: formData.password
       })).unwrap();
 
-      // Navigate to signin page on successful password reset
       navigate('/signin?message=Password reset successful. Please sign in with your new password.');
     } catch (error) {
-      // Error is already handled by the Redux slice
       console.error('Reset password failed:', error);
     }
   };
 
-  const footer = (
-    <p>
-      <Link to="/signin">Back to sign in</Link>
-    </p>
-  );
-
   if (!isValidToken) {
     return (
-      <AuthLayout illustration={<AuthIllustration />}>
-        <FormContainer
-          title="Invalid Reset Link"
-          subtitle="The password reset link is invalid or has expired"
-          footer={footer}
-        >
-          <div style={{
-            padding: '16px',
-            backgroundColor: '#fee2e2',
-            border: '1px solid #fecaca',
-            borderRadius: '8px',
-            color: '#dc2626',
-            textAlign: 'center',
-            marginBottom: '16px'
-          }}>
-            This password reset link is invalid or has expired.
-            Please request a new password reset link.
-          </div>
-          <Link to="/forgot-password">
-            <Button type="button">
-              Request New Reset Link
-            </Button>
+      <AuthLayout title="Invalid Reset Link" subtitle="The link is invalid or has expired">
+        <div style={{
+          padding: '16px',
+          backgroundColor: 'rgba(239, 83, 80, 0.1)',
+          border: '1px solid rgba(239, 83, 80, 0.2)',
+          borderRadius: 'var(--radius-md)',
+          color: 'var(--color-error)',
+          textAlign: 'center',
+          marginBottom: '16px'
+        }}>
+          This password reset link is invalid or has expired.
+        </div>
+        <Link to="/forgot-password">
+          <TMButton type="button" isFullWidth>
+            Request New Reset Link
+          </TMButton>
+        </Link>
+        <p style={{ textAlign: 'center', marginTop: '1.5rem' }}>
+          <Link to="/signin" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
+            Back to sign in
           </Link>
-        </FormContainer>
+        </p>
       </AuthLayout>
     );
   }
 
   return (
-    <AuthLayout illustration={<AuthIllustration />}>
-      <FormContainer
-        title="Set New Password"
-        subtitle="Create a strong password for your account"
-        footer={footer}
-        onSubmit={handleSubmit}
-      >
+    <AuthLayout title="Set New Password" subtitle="Create a strong password for your account">
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         {error && (
           <div style={{
             padding: '12px',
-            marginBottom: '16px',
-            backgroundColor: '#fee2e2',
-            border: '1px solid #fecaca',
-            borderRadius: '8px',
-            color: '#dc2626',
+            backgroundColor: 'rgba(239, 83, 80, 0.1)',
+            border: '1px solid rgba(239, 83, 80, 0.2)',
+            borderRadius: 'var(--radius-md)',
+            color: 'var(--color-error)',
             fontSize: '14px'
           }}>
             {error}
           </div>
         )}
 
-        <Input
+        <TMInput
           label="New Password"
           type="password"
           placeholder="Enter new password"
@@ -166,7 +132,7 @@ const TMSetNewPassword: React.FC = () => {
           required
           error={validationErrors.password}
         />
-        <Input
+        <TMInput
           label="Confirm Password"
           type="password"
           placeholder="Confirm new password"
@@ -175,10 +141,16 @@ const TMSetNewPassword: React.FC = () => {
           required
           error={validationErrors.confirmPassword}
         />
-        <Button type="submit" disabled={isLoading}>
+        <TMButton type="submit" isLoading={isLoading} isFullWidth>
           {isLoading ? 'Updating...' : 'Update Password'}
-        </Button>
-      </FormContainer>
+        </TMButton>
+      </form>
+
+      <p style={{ textAlign: 'center', marginTop: '1.5rem', color: 'var(--color-on-surface-variant)' }}>
+        <Link to="/signin" style={{ color: 'var(--color-primary)', fontWeight: 600, textDecoration: 'none' }}>
+          Back to sign in
+        </Link>
+      </p>
     </AuthLayout>
   );
 };

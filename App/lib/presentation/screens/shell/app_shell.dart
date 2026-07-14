@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:trademaster/presentation/providers/message_provider.dart';
 import 'package:trademaster/presentation/screens/explore/explore_screen.dart';
-import 'package:trademaster/presentation/screens/messages/messages_screen.dart';
-import 'package:trademaster/presentation/screens/orders/orders_screen.dart';
 import 'package:trademaster/presentation/screens/profile/profile_screen.dart';
 import 'package:trademaster/presentation/screens/search/search_screen.dart';
 
@@ -14,59 +11,175 @@ class AppShell extends ConsumerStatefulWidget {
   ConsumerState<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends ConsumerState<AppShell> {
+class _AppShellState extends ConsumerState<AppShell>
+    with TickerProviderStateMixin {
   int _selectedIndex = 0;
 
   static const List<_TabInfo> _tabs = [
     _TabInfo(icon: Icons.explore_outlined, activeIcon: Icons.explore_rounded, label: 'Explore'),
     _TabInfo(icon: Icons.search_outlined, activeIcon: Icons.search_rounded, label: 'Search'),
-    _TabInfo(icon: Icons.receipt_long_outlined, activeIcon: Icons.receipt_long_rounded, label: 'Orders'),
-    _TabInfo(icon: Icons.chat_bubble_outline_rounded, activeIcon: Icons.chat_bubble_rounded, label: 'Messages'),
     _TabInfo(icon: Icons.person_outline_rounded, activeIcon: Icons.person_rounded, label: 'Profile'),
   ];
 
   static const List<Widget> _screens = [
     ExploreScreen(),
     SearchScreen(),
-    OrdersScreen(),
-    MessagesScreen(),
     ProfileScreen(),
   ];
 
+  void _onTabSelected(int index) {
+    if (index == _selectedIndex) return;
+    setState(() => _selectedIndex = index);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final unreadCount = ref.watch(unreadCountProvider);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
       body: IndexedStack(
         index: _selectedIndex,
         children: _screens,
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        destinations: [
-          for (int i = 0; i < _tabs.length; i++)
-            NavigationDestination(
-              icon: i == 3 && unreadCount > 0
-                  ? Badge(
-                      label: Text('$unreadCount'),
-                      child: Icon(_tabs[i].icon),
-                    )
-                  : Icon(_tabs[i].icon),
-              selectedIcon: i == 3 && unreadCount > 0
-                  ? Badge(
-                      label: Text('$unreadCount'),
-                      child: Icon(_tabs[i].activeIcon),
-                    )
-                  : Icon(_tabs[i].activeIcon),
-              label: _tabs[i].label,
+      bottomNavigationBar: SafeArea(
+        child: Container(
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: colorScheme.surface.withValues(alpha: 0.92),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.5),
             ),
-        ],
+            boxShadow: [
+              BoxShadow(
+                color: colorScheme.shadow.withValues(alpha: 0.12),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: List.generate(_tabs.length, (index) {
+              final tab = _tabs[index];
+              final isActive = index == _selectedIndex;
+
+              return _BottomNavItem(
+                key: ValueKey('tab_$index'),
+                icon: isActive ? tab.activeIcon : tab.icon,
+                label: tab.label,
+                isActive: isActive,
+                primaryColor: colorScheme.primary,
+                onSurfaceColor: colorScheme.onSurface,
+                onTap: () => _onTabSelected(index),
+              );
+            }),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BottomNavItem extends StatefulWidget {
+  final IconData icon;
+  final String label;
+  final bool isActive;
+  final Color primaryColor;
+  final Color onSurfaceColor;
+  final VoidCallback onTap;
+
+  const _BottomNavItem({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.isActive,
+    required this.primaryColor,
+    required this.onSurfaceColor,
+    required this.onTap,
+  });
+
+  @override
+  State<_BottomNavItem> createState() => _BottomNavItemState();
+}
+
+class _BottomNavItemState extends State<_BottomNavItem>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 250),
+      vsync: this,
+    );
+    _scale = Tween<double>(begin: 1, end: 0.88).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        _controller.forward().then((_) => _controller.reverse());
+        widget.onTap();
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: widget.isActive
+              ? widget.primaryColor.withValues(alpha: 0.12)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: AnimatedBuilder(
+          animation: _scale,
+          builder: (context, child) => Transform.scale(
+            scale: _scale.value,
+            child: child,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                transitionBuilder: AnimatedSwitcher.defaultTransitionBuilder,
+                child: Icon(
+                  widget.icon,
+                  key: ValueKey('${widget.icon}_${widget.isActive}'),
+                  color: widget.isActive
+                      ? widget.primaryColor
+                      : widget.onSurfaceColor.withValues(alpha: 0.6),
+                  size: widget.isActive ? 26 : 24,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                widget.label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: widget.isActive ? FontWeight.w600 : FontWeight.w500,
+                  color: widget.isActive
+                      ? widget.primaryColor
+                      : widget.onSurfaceColor.withValues(alpha: 0.6),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

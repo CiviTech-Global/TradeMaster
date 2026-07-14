@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:trademaster/data/datasources/product_remote_datasource.dart';
 import 'package:trademaster/presentation/providers/category_provider.dart';
+import 'package:trademaster/presentation/providers/product_provider.dart';
 
 final _createProductLoadingProvider = StateProvider<bool>((ref) => false);
 
@@ -235,7 +235,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
             // Category
             categories.when(
               data: (cats) => DropdownButtonFormField<int>(
-                value: _selectedCategoryId,
+                initialValue: _selectedCategoryId,
                 decoration: const InputDecoration(
                   labelText: 'Category',
                   border: OutlineInputBorder(),

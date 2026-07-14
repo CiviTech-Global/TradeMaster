@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:trademaster/core/utils/validators.dart';
+import 'package:trademaster/presentation/components/tm_button.dart';
+import 'package:trademaster/presentation/components/tm_input.dart';
 import 'package:trademaster/presentation/providers/auth_provider.dart';
+import 'package:trademaster/presentation/screens/auth/auth_scaffold.dart';
 import 'package:trademaster/presentation/widgets/common/loading_overlay.dart';
 
 class SignInScreen extends ConsumerStatefulWidget {
@@ -38,6 +41,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     ref.listen<AuthState>(authProvider, (previous, next) {
       if (next.error != null) {
@@ -50,108 +54,119 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       }
     });
 
-    return Scaffold(
-      body: LoadingOverlay(
+    return AuthScaffold(
+      child: LoadingOverlay(
         isLoading: authState.isLoading,
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Gradient logo area
-                    Center(
-                      child: Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: [
-                              theme.colorScheme.primary,
-                              theme.colorScheme.secondary,
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.storefront_rounded,
-                          size: 48,
-                          color: Colors.white,
-                        ),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Logo
+              Center(
+                child: Container(
+                  width: 88,
+                  height: 88,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [
+                        colorScheme.primary,
+                        colorScheme.secondary,
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: colorScheme.primary.withValues(alpha: 0.3),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
                       ),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'TradeMaster',
-                      style: theme.textTheme.headlineLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Welcome back! Sign in to continue',
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.6),
-                          ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 48),
-                    TextFormField(
-                      controller: _emailController,
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                        prefixIcon: Icon(Icons.email_outlined),
-                      ),
-                      keyboardType: TextInputType.emailAddress,
-                      textInputAction: TextInputAction.next,
-                      validator: Validators.validateEmail,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _passwordController,
-                      decoration: InputDecoration(
-                        labelText: 'Password',
-                        prefixIcon: const Icon(Icons.lock_outlined),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
-                        ),
-                      ),
-                      obscureText: _obscurePassword,
-                      textInputAction: TextInputAction.done,
-                      validator: Validators.validatePassword,
-                      onFieldSubmitted: (_) => _handleSignIn(),
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: authState.isLoading ? null : _handleSignIn,
-                      child: const Text('Sign In'),
-                    ),
-                    const SizedBox(height: 16),
-                    TextButton(
-                      onPressed: () => context.go('/signup'),
-                      child: const Text("Don't have an account? Sign Up"),
-                    ),
-                  ],
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.storefront_rounded,
+                    size: 42,
+                    color: Colors.white,
+                  ),
                 ),
               ),
-            ),
+              const SizedBox(height: 24),
+              Text(
+                'Welcome Back',
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Sign in to discover local businesses',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              TMInput(
+                label: 'Email',
+                hint: 'your@email.com',
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+                validator: Validators.validateEmail,
+                prefix: const Icon(Icons.email_outlined),
+              ),
+              const SizedBox(height: 16),
+              TMInput(
+                label: 'Password',
+                hint: '••••••••',
+                controller: _passwordController,
+                obscureText: _obscurePassword,
+                textInputAction: TextInputAction.done,
+                validator: Validators.validatePassword,
+                prefix: const Icon(Icons.lock_outlined),
+                suffix: IconButton(
+                  icon: Icon(
+                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  onPressed: () {
+                    setState(() => _obscurePassword = !_obscurePassword);
+                  },
+                ),
+                onSubmitted: (_) => _handleSignIn(),
+              ),
+              const SizedBox(height: 24),
+              TMButton(
+                label: 'Sign In',
+                onTap: authState.isLoading ? null : _handleSignIn,
+                isLoading: authState.isLoading,
+              ),
+              const SizedBox(height: 16),
+              Center(
+                child: TextButton(
+                  onPressed: () => context.go('/signup'),
+                  child: RichText(
+                    text: TextSpan(
+                      text: "Don't have an account? ",
+                      style: TextStyle(color: colorScheme.onSurfaceVariant),
+                      children: [
+                        TextSpan(
+                          text: 'Sign Up',
+                          style: TextStyle(
+                            color: colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

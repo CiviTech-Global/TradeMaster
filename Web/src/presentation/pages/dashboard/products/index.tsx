@@ -372,7 +372,7 @@ const Products: React.FC = () => {
 
   if (!numericBusinessId || isNaN(numericBusinessId)) {
     return (
-      <div className="dashboard-page">
+      <div className="dashboard-page fade-in">
         <div className="dashboard-page__content">
           <p>Invalid business ID.</p>
           <button className="products-back-link" onClick={() => navigate('/dashboard/my-businesses')}>
@@ -385,7 +385,7 @@ const Products: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="dashboard-page">
+      <div className="dashboard-page fade-in">
         <div className="dashboard-page__header">
           <h1 className="dashboard-page__title">Products</h1>
         </div>
@@ -397,7 +397,7 @@ const Products: React.FC = () => {
   }
 
   return (
-    <div className="dashboard-page">
+    <div className="dashboard-page fade-in">
       <div className="dashboard-page__header">
         <button
           className="products-back-link"

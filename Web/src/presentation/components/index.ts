@@ -12,3 +12,4 @@ export { default as TradeMasterMap } from './Map';
 export { default as BusinessLocationMap } from './Map/LocationSelector';
 export { default as ProtectedRoute } from './ProtectedRoute';
 export { default as PublicRoute } from './PublicRoute';
+export * from './TradeMaster';

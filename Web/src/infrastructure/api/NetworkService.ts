@@ -1,5 +1,6 @@
 import { TMAxios, httpService } from './TMAxios';
 import type { TMAxiosConfig, AxiosResponse, AxiosError } from './TMAxios';
+import { serverUrlConfig } from './serverUrlConfig';
 
 export interface NetworkResponse<T = any> {
   data: T;
@@ -177,7 +178,9 @@ export class NetworkService {
   }
 }
 
-export const networkService = new NetworkService();
+export const networkService = new NetworkService({
+  baseURL: serverUrlConfig.getUrl(),
+});
 
 import { AuthInterceptor } from './authInterceptor';
 

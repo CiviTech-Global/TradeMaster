@@ -7,10 +7,14 @@ import TMHome from "./presentation/pages/dashboard/home";
 import TMSettings from "./presentation/pages/dashboard/settings";
 import TMProfile from "./presentation/pages/dashboard/profile";
 import TMMyBusinesses from "./presentation/pages/dashboard/my-businesses";
-import TMProducts from "./presentation/pages/dashboard/products";
-import TMOrders from "./presentation/pages/dashboard/orders";
-import TMMessages from "./presentation/pages/dashboard/messages";
-import TMReviews from "./presentation/pages/dashboard/reviews";
+// [DISABLED] Products not shown in business directory mode
+// import TMProducts from "./presentation/pages/dashboard/products";
+// [DISABLED] Orders not shown in business directory mode
+// import TMOrders from "./presentation/pages/dashboard/orders";
+// [DISABLED] Messaging not shown in business directory mode
+// import TMMessages from "./presentation/pages/dashboard/messages";
+// [DISABLED] Reviews management not shown in business directory mode
+// import TMReviews from "./presentation/pages/dashboard/reviews";
 import TMDBoard from "./presentation/pages/dashboard/dboard";
 import TMSignin from "./presentation/pages/authentication/signin";
 import TMForgotPassword from "./presentation/pages/authentication/forgotPassword";
@@ -70,10 +74,14 @@ function App() {
             }>
               <Route path="home" element={<TMHome />} />
               <Route path="my-businesses" element={<TMMyBusinesses />} />
-              <Route path="products/:businessId" element={<TMProducts />} />
-              <Route path="orders" element={<TMOrders />} />
-              <Route path="messages" element={<TMMessages />} />
-              <Route path="reviews" element={<TMReviews />} />
+              {/* [DISABLED] Products not shown in business directory mode */}
+              {/* <Route path="products/:businessId" element={<TMProducts />} /> */}
+              {/* [DISABLED] Orders not shown in business directory mode */}
+              {/* <Route path="orders" element={<TMOrders />} /> */}
+              {/* [DISABLED] Messaging not shown in business directory mode */}
+              {/* <Route path="messages" element={<TMMessages />} /> */}
+              {/* [DISABLED] Reviews management not shown in business directory mode */}
+              {/* <Route path="reviews" element={<TMReviews />} /> */}
               <Route path="profile" element={<TMProfile />} />
               <Route path="settings" element={<TMSettings />} />
             </Route>

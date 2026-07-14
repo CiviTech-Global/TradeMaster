@@ -3,10 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../../../../application/redux/hooks';
 import { forgotPassword, clearError, selectAuthLoading, selectAuthError } from '../../../../application/redux';
 import AuthLayout from '../../../components/AuthLayout';
-import FormContainer from '../../../components/FormContainer';
-import Input from '../../../components/Input';
-import Button from '../../../components/Button';
-import AuthIllustration from '../../../components/AuthIllustration';
+import { TMButton, TMInput } from '../../../components';
 
 const TMForgotPassword: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -18,16 +15,8 @@ const TMForgotPassword: React.FC = () => {
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
-
-    // Clear validation errors when user starts typing
-    if (validationError) {
-      setValidationError('');
-    }
-
-    // Clear auth errors
-    if (error) {
-      dispatch(clearError());
-    }
+    if (validationError) setValidationError('');
+    if (error) dispatch(clearError());
   };
 
   const validateEmail = (): boolean => {
@@ -43,75 +32,56 @@ const TMForgotPassword: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!validateEmail()) {
-      return;
-    }
+    if (!validateEmail()) return;
 
     try {
       await dispatch(forgotPassword({ email: email.trim() })).unwrap();
       setIsSubmitted(true);
     } catch (error) {
-      // Error is already handled by the Redux slice
       console.error('Forgot password failed:', error);
     }
   };
 
-  const footer = (
-    <p>
-      Remember your password?{' '}
-      <Link to="/signin">Back to sign in</Link>
-    </p>
-  );
-
   if (isSubmitted) {
     return (
-      <AuthLayout illustration={<AuthIllustration />}>
-        <FormContainer
-          title="Check Your Email"
-          subtitle="We've sent a password reset link to your email address"
-          footer={footer}
-        >
-          <div style={{
-            padding: '16px',
-            backgroundColor: '#dcfce7',
-            border: '1px solid #bbf7d0',
-            borderRadius: '8px',
-            color: '#166534',
-            textAlign: 'center',
-            marginBottom: '16px'
-          }}>
-            A password reset link has been sent to <strong>{email}</strong>.
-            Please check your email and follow the instructions to reset your password.
-          </div>
-        </FormContainer>
+      <AuthLayout title="Check Your Email" subtitle="We've sent a password reset link">
+        <div style={{
+          padding: '16px',
+          backgroundColor: 'rgba(102, 187, 106, 0.1)',
+          border: '1px solid rgba(102, 187, 106, 0.2)',
+          borderRadius: 'var(--radius-md)',
+          color: 'var(--color-success)',
+          textAlign: 'center',
+          marginBottom: '16px'
+        }}>
+          A password reset link has been sent to <strong>{email}</strong>.
+        </div>
+        <p style={{ textAlign: 'center' }}>
+          <Link to="/signin" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
+            Back to sign in
+          </Link>
+        </p>
       </AuthLayout>
     );
   }
 
   return (
-    <AuthLayout illustration={<AuthIllustration />}>
-      <FormContainer
-        title="Forgot Password"
-        subtitle="Enter your email to reset your password"
-        footer={footer}
-        onSubmit={handleSubmit}
-      >
+    <AuthLayout title="Forgot Password" subtitle="Enter your email to reset your password">
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         {error && (
           <div style={{
             padding: '12px',
-            marginBottom: '16px',
-            backgroundColor: '#fee2e2',
-            border: '1px solid #fecaca',
-            borderRadius: '8px',
-            color: '#dc2626',
+            backgroundColor: 'rgba(239, 83, 80, 0.1)',
+            border: '1px solid rgba(239, 83, 80, 0.2)',
+            borderRadius: 'var(--radius-md)',
+            color: 'var(--color-error)',
             fontSize: '14px'
           }}>
             {error}
           </div>
         )}
 
-        <Input
+        <TMInput
           label="Email"
           type="email"
           placeholder="Enter your email address"
@@ -120,10 +90,17 @@ const TMForgotPassword: React.FC = () => {
           required
           error={validationError}
         />
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Sending...' : 'Send Reset Link'}
-        </Button>
-      </FormContainer>
+        <TMButton type="submit" isLoading={isLoading} isFullWidth>
+          Send Reset Link
+        </TMButton>
+      </form>
+
+      <p style={{ textAlign: 'center', marginTop: '1.5rem', color: 'var(--color-on-surface-variant)' }}>
+        Remember your password?{' '}
+        <Link to="/signin" style={{ color: 'var(--color-primary)', fontWeight: 600, textDecoration: 'none' }}>
+          Sign in
+        </Link>
+      </p>
     </AuthLayout>
   );
 };

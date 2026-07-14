@@ -125,6 +125,12 @@ class AppTheme {
     );
   }
 
+  // Dark mode tokens
+  static const Color _darkBackground = Color(0xFF1A1A1A);
+  static const Color _darkSurface = Color(0xFF242424);
+  static const Color _darkOnSurface = Color(0xFFF5F5F5);
+  static const Color _darkBorder = Color(0xFF3A3A3A);
+
   static ThemeData get darkTheme {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: _primary,
@@ -133,11 +139,14 @@ class AppTheme {
       secondary: _secondary,
       tertiary: _tertiary,
       error: _error,
+      surface: _darkSurface,
+      onSurface: _darkOnSurface,
     );
 
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
+      scaffoldBackgroundColor: _darkBackground,
       appBarTheme: AppBarTheme(
         centerTitle: true,
         elevation: 0,
@@ -154,11 +163,22 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: _darkBorder),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: _darkBorder),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: _primary, width: 2),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 14,
         ),
+        filled: true,
+        fillColor: _darkSurface,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
