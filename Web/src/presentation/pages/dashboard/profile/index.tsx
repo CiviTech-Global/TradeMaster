@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAppSelector, useAppDispatch } from '../../../../application/redux/hooks';
 import { selectUser, setUser } from '../../../../application/redux';
 import { TMButton, TMInput } from '../../../components';
@@ -7,6 +8,8 @@ import { networkService } from '../../../../infrastructure/api/NetworkService';
 import './Profile.css';
 
 const TMProfile: React.FC = () => {
+  const { t } = useTranslation('translation', { keyPrefix: 'profile' });
+  const { t: commonT } = useTranslation('translation', { keyPrefix: 'common' });
   const user = useAppSelector(selectUser);
   const dispatch = useAppDispatch();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -35,7 +38,7 @@ const TMProfile: React.FC = () => {
     if (!file || !user) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      setMessage({ type: 'error', text: 'File size must be under 5MB' });
+      setMessage({ type: 'error', text: t('fileSizeLimit') });
       return;
     }
 
@@ -43,9 +46,9 @@ const TMProfile: React.FC = () => {
     try {
       const avatarUrl = await uploadService.updateAvatar(user.id, file);
       dispatch(setUser({ ...user, avatar: avatarUrl } as any));
-      setMessage({ type: 'success', text: 'Avatar updated successfully' });
+      setMessage({ type: 'success', text: t('avatarUpdated') });
     } catch (error) {
-      setMessage({ type: 'error', text: 'Failed to upload avatar' });
+      setMessage({ type: 'error', text: t('avatarUploadFailed') });
     } finally {
       setIsUploadingAvatar(false);
     }
@@ -64,9 +67,9 @@ const TMProfile: React.FC = () => {
         bio: formData.bio || null,
       });
       dispatch(setUser({ ...user, ...response.data.data } as any));
-      setMessage({ type: 'success', text: 'Profile updated successfully' });
+      setMessage({ type: 'success', text: t('profileUpdated') });
     } catch (error) {
-      setMessage({ type: 'error', text: 'Failed to update profile' });
+      setMessage({ type: 'error', text: t('profileUpdateFailed') });
     } finally {
       setIsSubmitting(false);
     }
@@ -80,7 +83,7 @@ const TMProfile: React.FC = () => {
 
   return (
     <div className="profile-page">
-      <h2>My Profile</h2>
+      <h2>{t('title')}</h2>
 
       {message && (
         <div className={`profile-message profile-message--${message.type}`}>
@@ -92,14 +95,14 @@ const TMProfile: React.FC = () => {
         <div className="profile-avatar-section">
           <div className="profile-avatar" onClick={handleAvatarClick}>
             {avatarUrl ? (
-              <img src={avatarUrl} alt="Avatar" className="profile-avatar__image" />
+              <img src={avatarUrl} alt={t('avatarAlt')} className="profile-avatar__image" />
             ) : (
               <div className="profile-avatar__placeholder">
                 {user.firstname?.[0]}{user.lastname?.[0]}
               </div>
             )}
             <div className="profile-avatar__overlay">
-              {isUploadingAvatar ? 'Uploading...' : 'Change'}
+              {isUploadingAvatar ? t('uploading') : t('changeAvatar')}
             </div>
           </div>
           <input
@@ -109,15 +112,15 @@ const TMProfile: React.FC = () => {
             onChange={handleAvatarChange}
             style={{ display: 'none' }}
           />
-          <p className="profile-avatar__hint">Click to change avatar</p>
+          <p className="profile-avatar__hint">{t('avatarHint')}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="profile-form">
           <div className="form-row">
             <TMInput
-              label="First Name"
+              label={t('firstName')}
               type="text"
-              placeholder="Enter first name"
+              placeholder={t('firstNamePlaceholder')}
               value={formData.firstname}
               onChange={(e) => handleInputChange('firstname', e.target.value)}
               required
@@ -125,9 +128,9 @@ const TMProfile: React.FC = () => {
           </div>
           <div className="form-row">
             <TMInput
-              label="Last Name"
+              label={t('lastName')}
               type="text"
-              placeholder="Enter last name"
+              placeholder={t('lastNamePlaceholder')}
               value={formData.lastname}
               onChange={(e) => handleInputChange('lastname', e.target.value)}
               required
@@ -135,18 +138,18 @@ const TMProfile: React.FC = () => {
           </div>
           <div className="form-row">
             <TMInput
-              label="Phone"
+              label={commonT('phone')}
               type="tel"
-              placeholder="Enter phone number"
+              placeholder={t('phonePlaceholder')}
               value={formData.phone}
               onChange={(e) => handleInputChange('phone', e.target.value)}
             />
           </div>
           <div className="form-row">
-            <label className="input-label">Bio</label>
+            <label className="input-label">{t('bioLabel')}</label>
             <textarea
               className="form-textarea"
-              placeholder="Tell us about yourself"
+              placeholder={t('bioPlaceholder')}
               value={formData.bio}
               onChange={(e) => handleInputChange('bio', e.target.value)}
               rows={4}
@@ -154,9 +157,9 @@ const TMProfile: React.FC = () => {
           </div>
           <div className="form-row">
             <TMInput
-              label="Email"
+              label={commonT('email')}
               type="email"
-              placeholder="your@email.com"
+              placeholder={t('emailPlaceholder')}
               value={user.email}
               onChange={() => {}}
               disabled
@@ -164,7 +167,7 @@ const TMProfile: React.FC = () => {
           </div>
           <div className="form-actions">
             <TMButton type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Save Changes'}
+              {isSubmitting ? commonT('saving') : commonT('saveChanges')}
             </TMButton>
           </div>
         </form>

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:trademaster/l10n/generated/app_localizations.dart';
 import 'package:trademaster/presentation/providers/auth_provider.dart';
 import 'package:trademaster/core/network/server_url_provider.dart';
 import 'package:trademaster/presentation/screens/auth/sign_in_screen.dart';
@@ -176,7 +177,7 @@ class _SplashScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              'TradeMaster',
+              AppLocalizations.of(context).appTitle,
               style: theme.textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),

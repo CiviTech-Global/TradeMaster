@@ -50,4 +50,23 @@ export const env = {
   // Uploads
   UPLOAD_DIR: process.env.UPLOAD_DIR || "uploads",
   MAX_FILE_SIZE: parseInt(process.env.MAX_FILE_SIZE || "5242880", 10), // 5MB
+
+  // Rate limiting
+  RATE_LIMIT_WINDOW_MS: parseInt(process.env.RATE_LIMIT_WINDOW_MS || "900000", 10), // 15 minutes
+  RATE_LIMIT_MAX: parseInt(process.env.RATE_LIMIT_MAX || "5000", 10), // general API limit per window
+  AUTH_RATE_LIMIT_MAX: parseInt(process.env.AUTH_RATE_LIMIT_MAX || "100", 10), // auth endpoints limit per window
+
+  // Observability
+  LOG_LEVEL: process.env.LOG_LEVEL || "info",
+  LOG_DB_QUERIES: process.env.LOG_DB_QUERIES === "true",
+
+  // OpenTelemetry
+  OTEL_ENABLED: process.env.OTEL_ENABLED || "false",
+  OTEL_EXPORTER_OTLP_ENDPOINT: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || "http://localhost:4318",
+  OTEL_SERVICE_NAME: process.env.OTEL_SERVICE_NAME || "trademaster-server",
+
+  // Error tracking (GlitchTip / Sentry)
+  SENTRY_DSN: process.env.SENTRY_DSN || "",
+  SENTRY_TRACES_SAMPLE_RATE: process.env.SENTRY_TRACES_SAMPLE_RATE || "0.1",
+  SENTRY_PROFILES_SAMPLE_RATE: process.env.SENTRY_PROFILES_SAMPLE_RATE || "0.0",
 } as const;

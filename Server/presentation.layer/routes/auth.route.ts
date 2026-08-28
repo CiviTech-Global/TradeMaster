@@ -5,8 +5,10 @@ import {
   forgotPassword,
   resetPassword,
   verifyToken,
-  refreshToken
+  refreshToken,
+  signout
 } from "../../application.layer/controllers/auth.ctrl";
+import { optionalAuthenticateJWT } from "../../infrastructure.layer/utils/jwt.util";
 import { validate } from "../../infrastructure.layer/validation/middleware";
 import {
   signinSchema,
@@ -23,5 +25,8 @@ router.post("/refresh-token", refreshToken);
 router.post("/forgot-password", validate(forgotPasswordSchema), forgotPassword);
 router.post("/reset-password", validate(resetPasswordSchema), resetPassword);
 router.get("/verify-token", verifyToken);
+// Signout is intentionally tolerant: it must clear cookies even when the access
+// token is missing/expired, otherwise a stale session could silently restore itself.
+router.post("/signout", optionalAuthenticateJWT, signout);
 
 export default router;

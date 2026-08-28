@@ -227,6 +227,9 @@ export class TMAxios {
       return this.retryRequest(config, requestId);
     }
 
+    // Retries exhausted (or not applicable); drop the counter for this request
+    this.retryCount.delete(requestId);
+
     // Process and enhance the error
     const enhancedError = this.processError(error);
     return Promise.reject(enhancedError);
@@ -335,13 +338,20 @@ export class TMAxios {
   }
 
   /**
-   * Generates a unique identifier for a request (used for retry tracking)
+   * Generates a unique identifier for a request (used for retry tracking).
+   * The id is cached on the config object so it stays stable across retries;
+   * without this, each retry would get a fresh id and the retry counter would
+   * never reach the limit, causing infinite retry loops.
    * @param config - Request configuration
    * @returns Unique request identifier
    */
   private generateRequestId(config?: TMRequestConfig): string {
     if (!config) return Math.random().toString(36);
-    return `${config.method || 'GET'}-${config.url || ''}-${Date.now()}`;
+    const extended = config as TMRequestConfig & { __requestId?: string };
+    if (!extended.__requestId) {
+      extended.__requestId = `${config.method || 'GET'}-${config.url || ''}-${Date.now()}-${Math.random().toString(36)}`;
+    }
+    return extended.__requestId;
   }
 
   /**
@@ -571,6 +581,7 @@ export class TMAxios {
  */
 export const httpService = new TMAxios({
   timeout: 10000,
+  withCredentials: true,
   enableLogging: typeof window !== 'undefined' && window.location.hostname === 'localhost',
   retry: {
     attempts: 3,

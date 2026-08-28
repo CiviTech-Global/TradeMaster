@@ -1,17 +1,21 @@
-import { Response } from "express";
+import { Response, NextFunction } from "express";
+import { InternalError } from "../../infrastructure.layer/errors/app-error";
 import {
   validateFile,
   generateFilename,
   createUploadRecord,
   deleteUploadQuery,
   ensureUploadsDir,
+  stripImageMetadata,
 } from "../../infrastructure.layer/utils/upload.util";
 import { AuthenticatedRequest } from "../../infrastructure.layer/utils/jwt.util";
 import { User } from "../../domain.layer/models/user";
+import { logger } from "../../infrastructure.layer/utils/logger.util";
+import { recordSuccess } from "../../application.layer/services/audit.service";
 import path from "path";
 import fs from "fs";
 
-export async function uploadSingle(req: AuthenticatedRequest, res: Response) {
+export async function uploadSingle(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded" });
@@ -24,6 +28,15 @@ export async function uploadSingle(req: AuthenticatedRequest, res: Response) {
         fs.unlinkSync(req.file.path);
       }
       return res.status(400).json({ error: validationError });
+    }
+
+    try {
+      await stripImageMetadata(req.file.path, req.file.mimetype);
+    } catch (error) {
+      if (fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+      return res.status(400).json({ error: "Failed to process uploaded image" });
     }
 
     const { entity_type, entity_id } = req.body;
@@ -39,14 +52,25 @@ export async function uploadSingle(req: AuthenticatedRequest, res: Response) {
       entity_id: entity_id ? parseInt(entity_id, 10) : null,
     });
 
+    recordSuccess(
+      {
+        actorId: req.user!.id,
+        action: "upload:created",
+        resource: "upload",
+        resourceId: upload.id,
+        metadata: { filename: upload.filename, entityType: upload.entity_type },
+      },
+      req
+    );
+
     res.status(201).json({ data: upload, message: "File uploaded successfully" });
   } catch (error) {
-    console.error("Error uploading file:", error);
-    res.status(500).json({ error: "Failed to upload file" });
+    logger.error("UPLOAD", "Error uploading file", error);
+    next(new InternalError("Failed to upload file"));
   }
 }
 
-export async function uploadMultiple(req: AuthenticatedRequest, res: Response) {
+export async function uploadMultiple(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const files = req.files as Express.Multer.File[];
     if (!files || files.length === 0) {
@@ -64,6 +88,16 @@ export async function uploadMultiple(req: AuthenticatedRequest, res: Response) {
           fs.unlinkSync(file.path);
         }
         errors.push({ file: file.originalname, error: validationError });
+        continue;
+      }
+
+      try {
+        await stripImageMetadata(file.path, file.mimetype);
+      } catch (error) {
+        if (fs.existsSync(file.path)) {
+          fs.unlinkSync(file.path);
+        }
+        errors.push({ file: file.originalname, error: "Failed to process uploaded image" });
         continue;
       }
 
@@ -87,12 +121,12 @@ export async function uploadMultiple(req: AuthenticatedRequest, res: Response) {
       message: `${uploads.length} file(s) uploaded successfully`,
     });
   } catch (error) {
-    console.error("Error uploading files:", error);
-    res.status(500).json({ error: "Failed to upload files" });
+    logger.error("UPLOAD", "Error uploading files", error);
+    next(new InternalError("Failed to upload files"));
   }
 }
 
-export async function deleteUpload(req: AuthenticatedRequest, res: Response) {
+export async function deleteUpload(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
     const uploadId = parseInt(id, 10);
@@ -106,14 +140,19 @@ export async function deleteUpload(req: AuthenticatedRequest, res: Response) {
       return res.status(404).json({ error: "Upload not found or unauthorized" });
     }
 
+    recordSuccess(
+      { actorId: req.user!.id, action: "upload:deleted", resource: "upload", resourceId: uploadId },
+      req
+    );
+
     res.json({ message: "Upload deleted successfully" });
   } catch (error) {
-    console.error("Error deleting upload:", error);
-    res.status(500).json({ error: "Failed to delete upload" });
+    logger.error("UPLOAD", "Error deleting upload", error);
+    next(new InternalError("Failed to delete upload"));
   }
 }
 
-export async function updateAvatar(req: AuthenticatedRequest, res: Response) {
+export async function updateAvatar(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
     const userId = parseInt(id, 10);
@@ -136,6 +175,15 @@ export async function updateAvatar(req: AuthenticatedRequest, res: Response) {
         fs.unlinkSync(req.file.path);
       }
       return res.status(400).json({ error: validationError });
+    }
+
+    try {
+      await stripImageMetadata(req.file.path, req.file.mimetype);
+    } catch (error) {
+      if (fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+      return res.status(400).json({ error: "Failed to process uploaded image" });
     }
 
     const avatarUrl = `/uploads/${req.file.filename}`;
@@ -169,12 +217,12 @@ export async function updateAvatar(req: AuthenticatedRequest, res: Response) {
 
     res.json({ data: { avatar: avatarUrl }, message: "Avatar updated successfully" });
   } catch (error) {
-    console.error("Error updating avatar:", error);
-    res.status(500).json({ error: "Failed to update avatar" });
+    logger.error("UPLOAD", "Error updating avatar", error);
+    next(new InternalError("Failed to update avatar"));
   }
 }
 
-export async function getPublicProfile(req: AuthenticatedRequest, res: Response) {
+export async function getPublicProfile(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
     const userId = parseInt(id, 10);
@@ -193,7 +241,7 @@ export async function getPublicProfile(req: AuthenticatedRequest, res: Response)
 
     res.json({ data: user, message: "Public profile retrieved successfully" });
   } catch (error) {
-    console.error("Error fetching public profile:", error);
-    res.status(500).json({ error: "Failed to get public profile" });
+    logger.error("UPLOAD", "Error fetching public profile", error);
+    next(new InternalError("Failed to get public profile"));
   }
 }

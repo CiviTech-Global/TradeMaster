@@ -15,6 +15,7 @@ const TMSkeleton: React.FC<TMSkeletonProps> = ({
 }) => {
   return (
     <div
+      className="tm-skeleton"
       style={{
         width,
         height,
@@ -29,6 +30,13 @@ const TMSkeleton: React.FC<TMSkeletonProps> = ({
         @keyframes shimmer {
           0% { background-position: 200% 0; }
           100% { background-position: -200% 0; }
+        }
+        html[dir="rtl"] .tm-skeleton {
+          animation-name: shimmer-rtl;
+        }
+        @keyframes shimmer-rtl {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
         }
       `}</style>
     </div>

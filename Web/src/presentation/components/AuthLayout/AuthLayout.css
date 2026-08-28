@@ -6,7 +6,7 @@
 
 .auth-layout__illustration {
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
-  color: #fff;
+  color: var(--color-on-primary);
   padding: 3rem;
   display: flex;
   flex-direction: column;
@@ -20,14 +20,14 @@
   position: absolute;
   inset: 0;
   background-image:
-    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.15) 0%, transparent 40%),
-    radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.1) 0%, transparent 40%);
+    radial-gradient(circle at 20% 30%, var(--color-on-primary-mix-15) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, var(--color-on-primary-mix-10) 0%, transparent 40%);
 }
 
 .auth-layout__brand {
   position: absolute;
   top: 2rem;
-  left: 3rem;
+  inset-inline-start: 3rem;
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -64,10 +64,10 @@
   position: relative;
   width: 100%;
   height: 260px;
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--color-on-primary-mix-12);
   border-radius: var(--radius-xl);
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--color-on-primary-mix-20);
   z-index: 1;
 }
 
@@ -75,7 +75,7 @@
   position: absolute;
   width: 56px;
   height: 56px;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--color-surface-glass-strong);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -101,12 +101,41 @@
 .auth-layout__form-card {
   width: 100%;
   max-width: 420px;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--color-surface-glass-strong);
   backdrop-filter: blur(10px);
   border-radius: var(--radius-xl);
   padding: 2.5rem;
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-glass);
+}
+
+.auth-layout__language-row {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.auth-layout__language-btn {
+  padding: 0.375rem 0.875rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-on-surface-variant);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.auth-layout__language-btn:hover {
+  background: var(--color-background);
+}
+
+.auth-layout__language-btn--active {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border-color: var(--color-primary);
 }
 
 .auth-layout__title {

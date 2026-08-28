@@ -1,4 +1,5 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
+import { InternalError } from "../../infrastructure.layer/errors/app-error";
 import {
   getProductsQuery,
   getProductByIdQuery,
@@ -22,7 +23,7 @@ import { AuthenticatedRequest } from "../../infrastructure.layer/utils/jwt.util"
 import { logger } from "../../infrastructure.layer/utils/logger.util";
 
 // Products CRUD
-export async function getProducts(req: Request, res: Response) {
+export async function getProducts(req: Request, res: Response, next: NextFunction) {
   try {
     const filters = {
       business_id: req.query.business_id ? parseInt(req.query.business_id as string) : undefined,
@@ -43,11 +44,11 @@ export async function getProducts(req: Request, res: Response) {
     res.json({ ...result, message: "Products retrieved successfully" });
   } catch (error) {
     logger.error("ProductCtrl", "getProducts failed", error);
-    res.status(500).json({ error: "Failed to get products" });
+    next(new InternalError("Failed to get products"));
   }
 }
 
-export async function getProductById(req: Request, res: Response) {
+export async function getProductById(req: Request, res: Response, next: NextFunction) {
   try {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid product ID" });
@@ -57,12 +58,12 @@ export async function getProductById(req: Request, res: Response) {
 
     res.json({ data: product, message: "Product retrieved successfully" });
   } catch (error) {
-    console.error("Error fetching product:", error);
-    res.status(500).json({ error: "Failed to get product" });
+    logger.error("PRODUCT", "Error fetching product", error);
+    next(new InternalError("Failed to get product"));
   }
 }
 
-export async function getProductsByBusiness(req: Request, res: Response) {
+export async function getProductsByBusiness(req: Request, res: Response, next: NextFunction) {
   try {
     const businessId = parseInt(req.params.businessId, 10);
     if (isNaN(businessId)) return res.status(400).json({ error: "Invalid business ID" });
@@ -70,12 +71,12 @@ export async function getProductsByBusiness(req: Request, res: Response) {
     const products = await getProductsByBusinessQuery(businessId);
     res.json({ data: products, message: "Products retrieved successfully" });
   } catch (error) {
-    console.error("Error fetching business products:", error);
-    res.status(500).json({ error: "Failed to get business products" });
+    logger.error("PRODUCT", "Error fetching business products", error);
+    next(new InternalError("Failed to get business products"));
   }
 }
 
-export async function getNearbyProducts(req: Request, res: Response) {
+export async function getNearbyProducts(req: Request, res: Response, next: NextFunction) {
   try {
     const lat = parseFloat(req.query.lat as string);
     const lng = parseFloat(req.query.lng as string);
@@ -89,12 +90,12 @@ export async function getNearbyProducts(req: Request, res: Response) {
     const products = await getNearbyProductsQuery(lat, lng, radiusKm, limit);
     res.json({ data: products, message: "Nearby products retrieved successfully" });
   } catch (error) {
-    console.error("Error fetching nearby products:", error);
-    res.status(500).json({ error: "Failed to get nearby products" });
+    logger.error("PRODUCT", "Error fetching nearby products", error);
+    next(new InternalError("Failed to get nearby products"));
   }
 }
 
-export async function createProduct(req: AuthenticatedRequest, res: Response) {
+export async function createProduct(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const { business_id, category_id, title, description, price, currency, stock_quantity, is_active } = req.body;
 
@@ -120,12 +121,12 @@ export async function createProduct(req: AuthenticatedRequest, res: Response) {
 
     res.status(201).json({ data: product, message: "Product created successfully" });
   } catch (error) {
-    console.error("Error creating product:", error);
-    res.status(500).json({ error: "Failed to create product" });
+    logger.error("PRODUCT", "Error creating product", error);
+    next(new InternalError("Failed to create product"));
   }
 }
 
-export async function updateProduct(req: AuthenticatedRequest, res: Response) {
+export async function updateProduct(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid product ID" });
@@ -150,12 +151,12 @@ export async function updateProduct(req: AuthenticatedRequest, res: Response) {
 
     res.json({ data: product, message: "Product updated successfully" });
   } catch (error) {
-    console.error("Error updating product:", error);
-    res.status(500).json({ error: "Failed to update product" });
+    logger.error("PRODUCT", "Error updating product", error);
+    next(new InternalError("Failed to update product"));
   }
 }
 
-export async function deleteProduct(req: AuthenticatedRequest, res: Response) {
+export async function deleteProduct(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid product ID" });
@@ -170,13 +171,13 @@ export async function deleteProduct(req: AuthenticatedRequest, res: Response) {
 
     res.json({ message: "Product deleted successfully" });
   } catch (error) {
-    console.error("Error deleting product:", error);
-    res.status(500).json({ error: "Failed to delete product" });
+    logger.error("PRODUCT", "Error deleting product", error);
+    next(new InternalError("Failed to delete product"));
   }
 }
 
 // Product Images
-export async function uploadProductImages(req: AuthenticatedRequest, res: Response) {
+export async function uploadProductImages(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const productId = parseInt(req.params.id, 10);
     if (isNaN(productId)) return res.status(400).json({ error: "Invalid product ID" });
@@ -204,12 +205,12 @@ export async function uploadProductImages(req: AuthenticatedRequest, res: Respon
 
     res.status(201).json({ data: images, message: "Images uploaded successfully" });
   } catch (error) {
-    console.error("Error uploading product images:", error);
-    res.status(500).json({ error: "Failed to upload images" });
+    logger.error("PRODUCT", "Error uploading product images", error);
+    next(new InternalError("Failed to upload images"));
   }
 }
 
-export async function deleteProductImage(req: AuthenticatedRequest, res: Response) {
+export async function deleteProductImage(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const productId = parseInt(req.params.id, 10);
     const imageId = parseInt(req.params.imageId, 10);
@@ -224,12 +225,12 @@ export async function deleteProductImage(req: AuthenticatedRequest, res: Respons
 
     res.json({ message: "Image deleted successfully" });
   } catch (error) {
-    console.error("Error deleting product image:", error);
-    res.status(500).json({ error: "Failed to delete image" });
+    logger.error("PRODUCT", "Error deleting product image", error);
+    next(new InternalError("Failed to delete image"));
   }
 }
 
-export async function updateProductImage(req: AuthenticatedRequest, res: Response) {
+export async function updateProductImage(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const productId = parseInt(req.params.id, 10);
     const imageId = parseInt(req.params.imageId, 10);
@@ -250,13 +251,13 @@ export async function updateProductImage(req: AuthenticatedRequest, res: Respons
 
     res.json({ data: image, message: "Image updated successfully" });
   } catch (error) {
-    console.error("Error updating product image:", error);
-    res.status(500).json({ error: "Failed to update image" });
+    logger.error("PRODUCT", "Error updating product image", error);
+    next(new InternalError("Failed to update image"));
   }
 }
 
 // Product Variants
-export async function getVariants(req: Request, res: Response) {
+export async function getVariants(req: Request, res: Response, next: NextFunction) {
   try {
     const productId = parseInt(req.params.id, 10);
     if (isNaN(productId)) return res.status(400).json({ error: "Invalid product ID" });
@@ -264,12 +265,12 @@ export async function getVariants(req: Request, res: Response) {
     const variants = await getProductVariantsQuery(productId);
     res.json({ data: variants, message: "Variants retrieved successfully" });
   } catch (error) {
-    console.error("Error fetching variants:", error);
-    res.status(500).json({ error: "Failed to get variants" });
+    logger.error("PRODUCT", "Error fetching variants", error);
+    next(new InternalError("Failed to get variants"));
   }
 }
 
-export async function createVariant(req: AuthenticatedRequest, res: Response) {
+export async function createVariant(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const productId = parseInt(req.params.id, 10);
     if (isNaN(productId)) return res.status(400).json({ error: "Invalid product ID" });
@@ -290,12 +291,12 @@ export async function createVariant(req: AuthenticatedRequest, res: Response) {
 
     res.status(201).json({ data: variant, message: "Variant created successfully" });
   } catch (error) {
-    console.error("Error creating variant:", error);
-    res.status(500).json({ error: "Failed to create variant" });
+    logger.error("PRODUCT", "Error creating variant", error);
+    next(new InternalError("Failed to create variant"));
   }
 }
 
-export async function updateVariant(req: AuthenticatedRequest, res: Response) {
+export async function updateVariant(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const productId = parseInt(req.params.id, 10);
     const variantId = parseInt(req.params.variantId, 10);
@@ -310,12 +311,12 @@ export async function updateVariant(req: AuthenticatedRequest, res: Response) {
 
     res.json({ data: variant, message: "Variant updated successfully" });
   } catch (error) {
-    console.error("Error updating variant:", error);
-    res.status(500).json({ error: "Failed to update variant" });
+    logger.error("PRODUCT", "Error updating variant", error);
+    next(new InternalError("Failed to update variant"));
   }
 }
 
-export async function deleteVariant(req: AuthenticatedRequest, res: Response) {
+export async function deleteVariant(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const productId = parseInt(req.params.id, 10);
     const variantId = parseInt(req.params.variantId, 10);
@@ -330,13 +331,13 @@ export async function deleteVariant(req: AuthenticatedRequest, res: Response) {
 
     res.json({ message: "Variant deleted successfully" });
   } catch (error) {
-    console.error("Error deleting variant:", error);
-    res.status(500).json({ error: "Failed to delete variant" });
+    logger.error("PRODUCT", "Error deleting variant", error);
+    next(new InternalError("Failed to delete variant"));
   }
 }
 
 // Unified Search
-export async function unifiedSearch(req: Request, res: Response) {
+export async function unifiedSearch(req: Request, res: Response, next: NextFunction) {
   try {
     const q = req.query.q as string;
     if (!q || !q.trim()) {
@@ -354,7 +355,7 @@ export async function unifiedSearch(req: Request, res: Response) {
     const results = await unifiedSearchQuery(q, type, filters);
     res.json({ data: results, message: "Search completed successfully" });
   } catch (error) {
-    console.error("Error in search:", error);
-    res.status(500).json({ error: "Search failed" });
+    logger.error("PRODUCT", "Error in search", error);
+    next(new InternalError("Search failed"));
   }
 }

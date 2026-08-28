@@ -26,7 +26,7 @@ export const selectAuthError = createSelector(
 
 export const selectAuthToken = createSelector(
   [selectAuth],
-  (auth) => auth.token
+  (auth) => auth.accessToken
 );
 
 // UI Selectors

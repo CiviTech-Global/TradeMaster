@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:trademaster/l10n/generated/app_localizations.dart';
 import 'package:trademaster/presentation/screens/explore/explore_screen.dart';
 import 'package:trademaster/presentation/screens/profile/profile_screen.dart';
 import 'package:trademaster/presentation/screens/search/search_screen.dart';
@@ -14,12 +15,6 @@ class AppShell extends ConsumerStatefulWidget {
 class _AppShellState extends ConsumerState<AppShell>
     with TickerProviderStateMixin {
   int _selectedIndex = 0;
-
-  static const List<_TabInfo> _tabs = [
-    _TabInfo(icon: Icons.explore_outlined, activeIcon: Icons.explore_rounded, label: 'Explore'),
-    _TabInfo(icon: Icons.search_outlined, activeIcon: Icons.search_rounded, label: 'Search'),
-    _TabInfo(icon: Icons.person_outline_rounded, activeIcon: Icons.person_rounded, label: 'Profile'),
-  ];
 
   static const List<Widget> _screens = [
     ExploreScreen(),
@@ -36,6 +31,13 @@ class _AppShellState extends ConsumerState<AppShell>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
+
+    final tabs = [
+      _TabInfo(icon: Icons.explore_outlined, activeIcon: Icons.explore_rounded, label: l10n.explore),
+      _TabInfo(icon: Icons.search_outlined, activeIcon: Icons.search_rounded, label: l10n.search),
+      _TabInfo(icon: Icons.person_outline_rounded, activeIcon: Icons.person_rounded, label: l10n.profile),
+    ];
 
     return Scaffold(
       body: IndexedStack(
@@ -44,7 +46,7 @@ class _AppShellState extends ConsumerState<AppShell>
       ),
       bottomNavigationBar: SafeArea(
         child: Container(
-          margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          margin: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 12),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             color: colorScheme.surface.withValues(alpha: 0.92),
@@ -62,8 +64,8 @@ class _AppShellState extends ConsumerState<AppShell>
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: List.generate(_tabs.length, (index) {
-              final tab = _tabs[index];
+            children: List.generate(tabs.length, (index) {
+              final tab = tabs[index];
               final isActive = index == _selectedIndex;
 
               return _BottomNavItem(

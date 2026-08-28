@@ -7,6 +7,9 @@ abstract class AuthRepository {
     required String lastname,
     required String email,
     required String password,
+    required bool consentGiven,
+    String? privacyPolicyVersion,
+    String? termsVersion,
   });
   Future<void> signOut();
   Future<User?> getCurrentUser();

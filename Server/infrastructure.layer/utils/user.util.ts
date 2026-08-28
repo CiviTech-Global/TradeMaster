@@ -2,8 +2,12 @@ import { User } from "../../domain.layer/models/user";
 import { Optional } from "sequelize";
 import IUser from "../../domain.layer/interfaces/user";
 import bcrypt from "bcrypt";
+import crypto from "crypto";
+import fs from "fs/promises";
+import path from "path";
+import { env } from "../config/env";
 
-type UserCreationAttributes = Optional<IUser, "id" | "createdAt" | "updatedAt" | "deletedAt" | "avatar" | "phone" | "bio" | "default_latitude" | "default_longitude">;
+type UserCreationAttributes = Optional<IUser, "id" | "createdAt" | "updatedAt" | "deletedAt" | "avatar" | "phone" | "bio" | "default_latitude" | "default_longitude" | "consent_given" | "consent_given_at" | "privacy_policy_version" | "terms_version">;
 type UserUpdateAttributes = Partial<Omit<IUser, "id" | "createdAt" | "updatedAt" | "deletedAt">>;
 
 export async function getAllUsersQuery() {
@@ -21,10 +25,14 @@ export async function getUserByIdQuery(id: number) {
 export async function createUserQuery(userData: UserCreationAttributes) {
   const saltRounds = 10;
   const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
-  
+
   return await User.create({
     ...userData,
-    password: hashedPassword
+    password: hashedPassword,
+    consent_given: userData.consent_given ?? false,
+    consent_given_at: userData.consent_given ? (userData.consent_given_at ?? new Date()) : null,
+    privacy_policy_version: userData.privacy_policy_version ?? null,
+    terms_version: userData.terms_version ?? null,
   });
 }
 
@@ -67,6 +75,34 @@ export async function deleteUserQuery(id: number) {
   const user = await User.findByPk(id);
   if (!user) {
     return null;
+  }
+
+  // Anonymize PII before soft-delete so the retained record cannot identify the individual.
+  const deletedEmail = `deleted.${id}.${Date.now()}@trademaster.local`;
+  await user.update({
+    firstname: "Deleted",
+    lastname: "User",
+    email: deletedEmail,
+    password: await bcrypt.hash(crypto.randomUUID(), 10),
+    avatar: null,
+    phone: null,
+    bio: null,
+    default_latitude: null,
+    default_longitude: null,
+    consent_given: false,
+    consent_given_at: null,
+    privacy_policy_version: null,
+    terms_version: null,
+  });
+
+  // Remove avatar file if it was stored locally
+  if (user.avatar) {
+    try {
+      const avatarPath = path.join(process.cwd(), env.UPLOAD_DIR, user.avatar.replace(/^\/uploads\//, ''));
+      await fs.unlink(avatarPath);
+    } catch {
+      // Ignore cleanup errors; the file may not exist or path may be external.
+    }
   }
 
   await user.destroy();

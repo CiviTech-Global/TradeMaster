@@ -44,10 +44,4 @@ extension TMThemeModeExtension on TMThemeMode {
         TMThemeMode.light => Icons.light_mode,
         TMThemeMode.dark => Icons.dark_mode,
       };
-
-  String get label => switch (this) {
-        TMThemeMode.system => 'System',
-        TMThemeMode.light => 'Light',
-        TMThemeMode.dark => 'Dark',
-      };
 }

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:trademaster/l10n/generated/app_localizations.dart';
+import 'package:trademaster/presentation/providers/locale_provider.dart';
 
-class AuthScaffold extends StatelessWidget {
+class AuthScaffold extends ConsumerWidget {
   final Widget child;
   final bool showBackButton;
   final VoidCallback? onBack;
@@ -13,9 +16,11 @@ class AuthScaffold extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final locale = ref.watch(localeProvider);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       body: Container(
@@ -34,14 +39,36 @@ class AuthScaffold extends StatelessWidget {
           child: Stack(
             children: [
               if (showBackButton)
-                Positioned(
+                PositionedDirectional(
                   top: 8,
-                  left: 8,
+                  start: 8,
                   child: IconButton(
                     icon: const Icon(Icons.arrow_back),
                     onPressed: onBack ?? () => Navigator.pop(context),
                   ),
                 ),
+              PositionedDirectional(
+                top: 8,
+                end: 8,
+                child: SegmentedButton<String>(
+                  segments: [
+                    ButtonSegment(
+                      value: 'fa',
+                      label: Text(l10n.persian),
+                    ),
+                    ButtonSegment(
+                      value: 'en',
+                      label: Text(l10n.english),
+                    ),
+                  ],
+                  selected: {locale.languageCode},
+                  onSelectionChanged: (selection) {
+                    if (selection.isNotEmpty) {
+                      ref.read(localeProvider.notifier).setLocale(selection.first);
+                    }
+                  },
+                ),
+              ),
               Center(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(24),

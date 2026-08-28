@@ -1,4 +1,5 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
+import { InternalError } from "../../infrastructure.layer/errors/app-error";
 import {
   getAllCategoriesQuery,
   getCategoryByIdQuery,
@@ -8,19 +9,20 @@ import {
   generateSlug,
 } from "../../infrastructure.layer/utils/category.util";
 import { AuthenticatedRequest } from "../../infrastructure.layer/utils/jwt.util";
+import { logger } from "../../infrastructure.layer/utils/logger.util";
 
-export async function getAllCategories(req: Request, res: Response) {
+export async function getAllCategories(req: Request, res: Response, next: NextFunction) {
   try {
     const parentId = req.query.parent_id ? parseInt(req.query.parent_id as string, 10) : undefined;
     const categories = await getAllCategoriesQuery(parentId);
     res.json({ data: categories, message: "Categories retrieved successfully" });
   } catch (error) {
-    console.error("Error fetching categories:", error);
-    res.status(500).json({ error: "Failed to get categories" });
+    logger.error("CATEGORY", "Error fetching categories", error);
+    next(new InternalError("Failed to get categories"));
   }
 }
 
-export async function getCategoryById(req: Request, res: Response) {
+export async function getCategoryById(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
     const categoryId = parseInt(id, 10);
@@ -36,12 +38,12 @@ export async function getCategoryById(req: Request, res: Response) {
 
     res.json({ data: category, message: "Category retrieved successfully" });
   } catch (error) {
-    console.error("Error fetching category:", error);
-    res.status(500).json({ error: "Failed to get category" });
+    logger.error("CATEGORY", "Error fetching category", error);
+    next(new InternalError("Failed to get category"));
   }
 }
 
-export async function createCategory(req: AuthenticatedRequest, res: Response) {
+export async function createCategory(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const { name, description, parent_id, icon, sort_order, is_active } = req.body;
 
@@ -66,12 +68,12 @@ export async function createCategory(req: AuthenticatedRequest, res: Response) {
     if (error.name === 'SequelizeUniqueConstraintError') {
       return res.status(409).json({ error: "A category with this name already exists" });
     }
-    console.error("Error creating category:", error);
-    res.status(500).json({ error: "Failed to create category" });
+    logger.error("CATEGORY", "Error creating category", error);
+    next(new InternalError("Failed to create category"));
   }
 }
 
-export async function updateCategory(req: AuthenticatedRequest, res: Response) {
+export async function updateCategory(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
     const categoryId = parseInt(id, 10);
@@ -103,12 +105,12 @@ export async function updateCategory(req: AuthenticatedRequest, res: Response) {
     if (error.name === 'SequelizeUniqueConstraintError') {
       return res.status(409).json({ error: "A category with this name already exists" });
     }
-    console.error("Error updating category:", error);
-    res.status(500).json({ error: "Failed to update category" });
+    logger.error("CATEGORY", "Error updating category", error);
+    next(new InternalError("Failed to update category"));
   }
 }
 
-export async function deleteCategory(req: AuthenticatedRequest, res: Response) {
+export async function deleteCategory(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
     const categoryId = parseInt(id, 10);
@@ -124,7 +126,7 @@ export async function deleteCategory(req: AuthenticatedRequest, res: Response) {
 
     res.json({ message: "Category deleted successfully" });
   } catch (error) {
-    console.error("Error deleting category:", error);
-    res.status(500).json({ error: "Failed to delete category" });
+    logger.error("CATEGORY", "Error deleting category", error);
+    next(new InternalError("Failed to delete category"));
   }
 }

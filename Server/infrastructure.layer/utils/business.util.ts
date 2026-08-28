@@ -10,7 +10,8 @@ type BusinessUpdateAttributes = Partial<Omit<IBusiness, "id" | "createdAt" | "up
 const defaultIncludes = [
   {
     model: User,
-    attributes: ['id', 'firstname', 'lastname', 'email']
+    // Email is PII and must not be exposed on public directory endpoints.
+    attributes: ['id', 'firstname', 'lastname']
   },
   {
     model: Category,

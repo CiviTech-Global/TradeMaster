@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TradeMasterMap } from '../../../components';
 import { businessService } from '../../../../infrastructure/api/businessService';
 import type { Business } from '../../../../domain/types/business';
 import type { TradingDataPoint, UserLocation, StaticLocation, MapOverlay, MapPosition } from '../../../components/Map/types';
 
 const DBoard: React.FC = () => {
+  const { t } = useTranslation('translation', { keyPrefix: 'dashboard' });
+  const { t: commonT } = useTranslation('translation', { keyPrefix: 'common' });
   // State for businesses and loading
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [isLoadingBusinesses, setIsLoadingBusinesses] = useState(true);
@@ -159,7 +162,7 @@ const DBoard: React.FC = () => {
         { lat: 40.7550, lng: -73.9840 },
         { lat: 40.7484, lng: -73.9857 }
       ],
-      color: '#3b82f6',
+      color: 'var(--color-info)',
       opacity: 0.3
     },
     {
@@ -171,7 +174,7 @@ const DBoard: React.FC = () => {
         { lat: 40.7505, lng: -73.9934 },
         { lat: 40.7400, lng: -73.9900 }
       ],
-      color: '#10b981',
+      color: 'var(--color-success)',
       opacity: 0.2
     }
   ]);
@@ -189,7 +192,7 @@ const DBoard: React.FC = () => {
       const business = businesses.find(b => b.id.toString() === businessId);
 
       if (business) {
-        alert(`Business: ${business.title}\nOwner: ${business.user?.firstname} ${business.user?.lastname}\nAddress: ${business.address}\nStatus: ${business.is_active ? 'Active' : 'Inactive'}\nEmails: ${business.emails.join(', ')}\nPhones: ${business.phones.join(', ')}`);
+        alert(`${t('businessAlertTitle')}: ${business.title}\n${t('businessAlertOwner')}: ${business.user?.firstname} ${business.user?.lastname}\n${t('businessAlertAddress')}: ${business.address}\n${t('businessAlertStatus')}: ${business.is_active ? commonT('active') : commonT('inactive')}\n${t('businessAlertEmails')}: ${business.emails.join(', ')}\n${t('businessAlertPhones')}: ${business.phones.join(', ')}`);
       }
     }
   }, [businesses]);
@@ -197,10 +200,10 @@ const DBoard: React.FC = () => {
   return (
     <div className="dashboard-page fade-in">
       <div className="dashboard-page__header">
-        <h1 className="dashboard-page__title">TradeMaster Global Dashboard</h1>
+        <h1 className="dashboard-page__title">{t('dboardTitle')}</h1>
         <p className="dashboard-page__subtitle">
-          Comprehensive view of all platform businesses, trading data, and market locations
-          {!isLoadingBusinesses && ` (${businessLocations.length} businesses • ${tradingData.length} active trades • ${staticLocations.length} institutions)`}
+          {t('dboardSubtitle')}
+          {!isLoadingBusinesses && ` (${t('businessesCount', { count: businessLocations.length })} • ${t('tradesCount', { count: tradingData.length })} • ${t('institutionsCount', { count: staticLocations.length })})`}
         </p>
       </div>
       <div className="dashboard-page__content">
@@ -211,11 +214,11 @@ const DBoard: React.FC = () => {
             alignItems: 'center',
             height: 'calc(100vh - 200px)',
             fontSize: '18px',
-            color: '#666'
+            color: 'var(--color-text-tertiary)'
           }}>
             <div>
               <div style={{ marginBottom: '10px' }}>🌍</div>
-              Loading global business data...
+              {t('dboardLoading')}
             </div>
           </div>
         ) : (

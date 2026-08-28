@@ -1,14 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { TradeMasterMap } from '../../../components';
 import { TMCard, TMSkeleton, TMEmptyState } from '../../../components';
 import { businessService } from '../../../../infrastructure/api/businessService';
+import { formatNumber } from '../../../../infrastructure/i18n/format';
 import { useAppSelector } from '../../../../application/redux';
 import { selectUser } from '../../../../application/redux';
 import type { Business } from '../../../../domain/types/business';
 import type { UserLocation, MapPosition } from '../../../components/Map/types';
 
 const TMHome: React.FC = () => {
+  const { t } = useTranslation('translation', { keyPrefix: 'dashboard' });
+  const { t: commonT } = useTranslation('translation', { keyPrefix: 'common' });
   const navigate = useNavigate();
   const user = useAppSelector(selectUser);
   const [businesses, setBusinesses] = useState<Business[]>([]);
@@ -63,9 +67,9 @@ const TMHome: React.FC = () => {
   return (
     <div className="dashboard-page fade-in">
       <div className="dashboard-page__header">
-        <h1 className="dashboard-page__title">Dashboard</h1>
+        <h1 className="dashboard-page__title">{t('homeTitle')}</h1>
         <p className="dashboard-page__subtitle">
-          Overview of your businesses and platform activity
+          {t('homeSubtitle')}
         </p>
       </div>
 
@@ -80,19 +84,19 @@ const TMHome: React.FC = () => {
           }}
         >
           <SummaryCard
-            label="Total Businesses"
+            label={t('totalBusinesses')}
             value={businesses.length}
             icon="🏪"
             color="var(--color-primary)"
           />
           <SummaryCard
-            label="My Businesses"
+            label={t('myBusinesses')}
             value={myBusinesses.length}
             icon="🏢"
             color="var(--color-secondary)"
           />
           <SummaryCard
-            label="Active"
+            label={t('active')}
             value={businesses.filter((b) => b.is_active).length}
             icon="✅"
             color="var(--color-success)"
@@ -102,7 +106,7 @@ const TMHome: React.FC = () => {
         {/* Map */}
         <TMCard style={{ marginBottom: '1.5rem', padding: '1rem' }}>
           <h3 style={{ margin: '0 0 1rem', fontSize: 'var(--font-size-lg)' }}>
-            Business Map
+            {t('businessMap')}
           </h3>
           {isLoading ? (
             <TMSkeleton width="100%" height={400} />
@@ -118,15 +122,15 @@ const TMHome: React.FC = () => {
           ) : (
             <TMEmptyState
               icon="🗺️"
-              title="No businesses on the map yet"
-              subtitle="Register a business with a location to see it here."
+              title={t('noBusinessesOnMap')}
+              subtitle={t('registerBusinessToSee')}
             />
           )}
         </TMCard>
 
         {/* Recent businesses */}
         <h3 style={{ margin: '0 0 1rem', fontSize: 'var(--font-size-lg)' }}>
-          Recently Added Businesses
+          {t('recentlyAdded')}
         </h3>
         {isLoading ? (
           <div style={{ display: 'grid', gap: '0.75rem' }}>
@@ -143,9 +147,9 @@ const TMHome: React.FC = () => {
         ) : (
           <TMEmptyState
             icon="🏪"
-            title="No businesses yet"
-            subtitle="Add your first business to get started."
-            actionLabel="Create Business"
+            title={t('noBusinessesYet')}
+            subtitle={t('addFirstBusiness')}
+            actionLabel={commonT('createBusiness')}
             onAction={() => navigate('/dashboard/my-businesses')}
           />
         )}
@@ -185,7 +189,7 @@ const SummaryCard: React.FC<{
               color: 'var(--color-on-surface)',
             }}
           >
-            {value}
+            {formatNumber(value)}
           </div>
           <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-muted)' }}>
             {label}
@@ -197,6 +201,7 @@ const SummaryCard: React.FC<{
 };
 
 const BusinessRow: React.FC<{ business: Business }> = ({ business }) => {
+  const { t: commonT } = useTranslation('translation', { keyPrefix: 'common' });
   const navigate = useNavigate();
   return (
     <TMCard
@@ -213,7 +218,7 @@ const BusinessRow: React.FC<{ business: Business }> = ({ business }) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#fff',
+            color: 'var(--color-on-primary)',
             fontWeight: 700,
           }}
         >
@@ -232,7 +237,7 @@ const BusinessRow: React.FC<{ business: Business }> = ({ business }) => {
               textOverflow: 'ellipsis',
             }}
           >
-            {business.address || business.category?.name || 'No details'}
+            {business.address || business.category?.name || commonT('noDetails')}
           </div>
         </div>
         <span
@@ -241,11 +246,11 @@ const BusinessRow: React.FC<{ business: Business }> = ({ business }) => {
             borderRadius: 'var(--radius-full)',
             fontSize: 'var(--font-size-xs)',
             fontWeight: 600,
-            background: business.is_active ? 'rgba(102, 187, 106, 0.12)' : 'var(--color-border)',
+            background: business.is_active ? 'var(--color-success-bg)' : 'var(--color-border)',
             color: business.is_active ? 'var(--color-success)' : 'var(--color-muted)',
           }}
         >
-          {business.is_active ? 'Active' : 'Inactive'}
+          {business.is_active ? commonT('active') : commonT('inactive')}
         </span>
       </div>
     </TMCard>

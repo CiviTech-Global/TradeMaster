@@ -2,9 +2,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:trademaster/core/constants/api_constants.dart';
 import 'package:trademaster/data/models/review_model.dart';
+import 'package:trademaster/l10n/generated/app_localizations.dart';
 import 'package:trademaster/presentation/components/tm_badge.dart';
 import 'package:trademaster/presentation/components/tm_button.dart';
 import 'package:trademaster/presentation/components/tm_card.dart';
@@ -56,6 +58,7 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final businessState = ref.watch(businessDetailProvider(widget.businessId));
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       body: businessState.when(
@@ -140,7 +143,7 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                               ),
                             ),
                             Text(
-                              ' (${_reviewStats!.reviewCount} reviews)',
+                              ' (${_reviewStats!.reviewCount} ${l10n.reviews})',
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: colorScheme.onSurfaceVariant,
                               ),
@@ -161,7 +164,7 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                         children: [
                           Expanded(
                             child: TMButton(
-                              label: 'Call',
+                              label: l10n.call,
                               icon: Icons.phone,
                               variant: TMButtonVariant.outline,
                               isFullWidth: true,
@@ -174,7 +177,7 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: TMButton(
-                              label: 'Directions',
+                              label: l10n.directions,
                               icon: Icons.directions,
                               variant: TMButtonVariant.outline,
                               isFullWidth: true,
@@ -192,21 +195,21 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                       if (business.address != null)
                         _InfoCard(
                           icon: Icons.location_on,
-                          title: 'Address',
+                          title: l10n.address,
                           content: business.address!,
                         ),
                       if (business.phones != null &&
                           business.phones!.isNotEmpty)
                         _InfoCard(
                           icon: Icons.phone,
-                          title: 'Phone',
+                          title: l10n.phone,
                           content: business.phones!.join(', '),
                         ),
                       if (business.emails != null &&
                           business.emails!.isNotEmpty)
                         _InfoCard(
                           icon: Icons.email,
-                          title: 'Email',
+                          title: l10n.email,
                           content: business.emails!.join(', '),
                         ),
 
@@ -260,9 +263,9 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
               // Reviews header
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+                  padding: const EdgeInsetsDirectional.fromSTEB(16, 24, 16, 8),
                   child: Text(
-                    'Reviews',
+                    l10n.reviews,
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -287,13 +290,13 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                   ),
                 )
               else if (_reviews == null || _reviews!.isEmpty)
-                const SliverToBoxAdapter(
+                SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 32),
+                    padding: const EdgeInsets.symmetric(vertical: 32),
                     child: TMEmptyState(
                       icon: Icons.rate_review_outlined,
-                      title: 'No reviews yet',
-                      subtitle: 'Be the first to share your experience.',
+                      title: l10n.noReviewsYet,
+                      subtitle: l10n.noReviewsYetSubtitle,
                     ),
                   ),
                 )
@@ -319,9 +322,9 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
         error: (e, _) => Center(
           child: TMEmptyState(
             icon: Icons.error_outline,
-            title: 'Failed to load business',
+            title: AppLocalizations.of(context).failedToLoadBusiness,
             subtitle: e.toString(),
-            actionLabel: 'Retry',
+            actionLabel: AppLocalizations.of(context).retry,
             onAction: () => ref
                 .read(businessDetailProvider(widget.businessId).notifier)
                 .load(widget.businessId),
@@ -399,6 +402,7 @@ class _ReviewCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TMCard(
@@ -429,14 +433,14 @@ class _ReviewCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      review.reviewer?.fullName ?? 'Anonymous',
+                      review.reviewer?.fullName ?? l10n.anonymous,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     if (review.createdAt != null)
                       Text(
-                        _formatDate(review.createdAt!),
+                        _formatDate(context, review.createdAt!),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -458,14 +462,11 @@ class _ReviewCard extends StatelessWidget {
   );
 }
 
-  String _formatDate(String dateStr) {
+  String _formatDate(BuildContext context, String dateStr) {
     try {
       final date = DateTime.parse(dateStr);
-      final months = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-      ];
-      return '${months[date.month - 1]} ${date.day}, ${date.year}';
+      final locale = Localizations.localeOf(context).toString();
+      return DateFormat.yMMMMd(locale).format(date);
     } catch (_) {
       return dateStr;
     }

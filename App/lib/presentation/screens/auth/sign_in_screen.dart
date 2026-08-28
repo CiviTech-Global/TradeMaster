@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:trademaster/core/security/secure_screen_service.dart';
 import 'package:trademaster/core/utils/validators.dart';
+import 'package:trademaster/l10n/generated/app_localizations.dart';
 import 'package:trademaster/presentation/components/tm_button.dart';
 import 'package:trademaster/presentation/components/tm_input.dart';
 import 'package:trademaster/presentation/providers/auth_provider.dart';
@@ -22,9 +24,16 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   bool _obscurePassword = true;
 
   @override
+  void initState() {
+    super.initState();
+    SecureScreenService.setFlagSecure(true);
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    SecureScreenService.setFlagSecure(false);
     super.dispose();
   }
 
@@ -37,16 +46,45 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
         );
   }
 
+  String _localizeAuthError(BuildContext context, String error) {
+    final l10n = AppLocalizations.of(context);
+    if (error == 'Connection timed out. Please check your internet connection.') {
+      return l10n.connectionTimedOut;
+    }
+    if (error == 'Unable to connect to server. Please check your connection.') {
+      return l10n.unableToConnect;
+    }
+    if (error == 'Invalid email or password.') {
+      return l10n.invalidEmailOrPassword;
+    }
+    if (error == 'An account with this email already exists.') {
+      return l10n.emailAlreadyExists;
+    }
+    if (error == 'Server error. Please try again later.') {
+      return l10n.serverError;
+    }
+    if (error == 'An unexpected error occurred. Please try again.') {
+      return l10n.unexpectedError;
+    }
+    final statusMatch = RegExp(r'Request failed \(status (\d+)\)\.').firstMatch(error);
+    if (statusMatch != null) {
+      final code = int.tryParse(statusMatch.group(1) ?? '');
+      if (code != null) return l10n.requestFailedStatus(code);
+    }
+    return error;
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     ref.listen<AuthState>(authProvider, (previous, next) {
       if (next.error != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.error!)),
+          SnackBar(content: Text(_localizeAuthError(context, next.error!))),
         );
       }
       if (next.isAuthenticated) {
@@ -95,7 +133,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
               ),
               const SizedBox(height: 24),
               Text(
-                'Welcome Back',
+                l10n.welcomeBack,
                 style: theme.textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -103,7 +141,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
               ),
               const SizedBox(height: 6),
               Text(
-                'Sign in to discover local businesses',
+                l10n.signInSubtitle,
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -111,22 +149,22 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
               ),
               const SizedBox(height: 32),
               TMInput(
-                label: 'Email',
-                hint: 'your@email.com',
+                label: l10n.emailLabel,
+                hint: l10n.emailHint,
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.next,
-                validator: Validators.validateEmail,
+                validator: (v) => Validators.validateEmail(v, l10n),
                 prefix: const Icon(Icons.email_outlined),
               ),
               const SizedBox(height: 16),
               TMInput(
-                label: 'Password',
+                label: l10n.passwordLabel,
                 hint: '••••••••',
                 controller: _passwordController,
                 obscureText: _obscurePassword,
                 textInputAction: TextInputAction.done,
-                validator: Validators.validatePassword,
+                validator: (v) => Validators.validatePassword(v, l10n),
                 prefix: const Icon(Icons.lock_outlined),
                 suffix: IconButton(
                   icon: Icon(
@@ -141,7 +179,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
               ),
               const SizedBox(height: 24),
               TMButton(
-                label: 'Sign In',
+                label: l10n.signIn,
                 onTap: authState.isLoading ? null : _handleSignIn,
                 isLoading: authState.isLoading,
               ),
@@ -151,11 +189,11 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   onPressed: () => context.go('/signup'),
                   child: RichText(
                     text: TextSpan(
-                      text: "Don't have an account? ",
+                      text: l10n.dontHaveAccount,
                       style: TextStyle(color: colorScheme.onSurfaceVariant),
                       children: [
                         TextSpan(
-                          text: 'Sign Up',
+                          text: l10n.signUp,
                           style: TextStyle(
                             color: colorScheme.primary,
                             fontWeight: FontWeight.bold,

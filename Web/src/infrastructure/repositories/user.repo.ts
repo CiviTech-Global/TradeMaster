@@ -16,6 +16,9 @@ export interface IUserCreationRequest {
   lastname: string;
   email: string;
   password: string;
+  consent_given: boolean;
+  privacy_policy_version?: string;
+  terms_version?: string;
 }
 
 export interface IUserUpdateRequest {
@@ -60,8 +63,8 @@ class UserRepository {
     return await networkService.get<APIResponse<IUser>>(`${this.baseUrl}/${id}`, options);
   }
 
-  async createUser(userData: IUserCreationRequest, options?: NetworkRequestOptions): Promise<NetworkResponse<APIResponse<IUser>>> {
-    return await networkService.post<APIResponse<IUser>>(`${this.baseUrl}`, userData, options);
+  async createUser(userData: IUserCreationRequest, options?: NetworkRequestOptions): Promise<NetworkResponse<APIResponse<{ user: IUser; accessToken: string; refreshToken: string }>>> {
+    return await networkService.post<APIResponse<{ user: IUser; accessToken: string; refreshToken: string }>>(`/auth/signup`, userData, { enableRetry: false, ...options });
   }
 
   async updateUser(id: number, userData: IUserUpdateRequest, options?: NetworkRequestOptions): Promise<NetworkResponse<APIResponse<IUser>>> {
@@ -77,20 +80,20 @@ class UserRepository {
   }
 
   async signin(credentials: ISigninRequest, options?: NetworkRequestOptions): Promise<NetworkResponse<APIResponse<{ user: IUser; accessToken: string; refreshToken: string }>>> {
-    const response = await networkService.post<APIResponse<{ user: IUser; accessToken: string; refreshToken: string }>>(`/auth/signin`, credentials, options);
+    const response = await networkService.post<APIResponse<{ user: IUser; accessToken: string; refreshToken: string }>>(`/auth/signin`, credentials, { enableRetry: false, ...options });
     return response;
   }
 
   async forgotPassword(data: IForgotPasswordRequest, options?: NetworkRequestOptions): Promise<NetworkResponse<APIResponse<void>>> {
-    return await networkService.post<APIResponse<void>>(`/auth/forgot-password`, data, options);
+    return await networkService.post<APIResponse<void>>(`/auth/forgot-password`, data, { enableRetry: false, ...options });
   }
 
   async resetPassword(data: IResetPasswordRequest, options?: NetworkRequestOptions): Promise<NetworkResponse<APIResponse<void>>> {
-    return await networkService.post<APIResponse<void>>(`/auth/reset-password`, data, options);
+    return await networkService.post<APIResponse<void>>(`/auth/reset-password`, data, { enableRetry: false, ...options });
   }
 
   async refreshToken(refreshToken: string, options?: NetworkRequestOptions): Promise<NetworkResponse<APIResponse<{ accessToken: string; refreshToken: string }>>> {
-    return await networkService.post<APIResponse<{ accessToken: string; refreshToken: string }>>(`/auth/refresh-token`, { refreshToken }, options);
+    return await networkService.post<APIResponse<{ accessToken: string; refreshToken: string }>>(`/auth/refresh-token`, { refreshToken }, { enableRetry: false, ...options });
   }
 }
 

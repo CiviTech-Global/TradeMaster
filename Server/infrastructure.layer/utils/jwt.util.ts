@@ -2,6 +2,9 @@ import jwt, { SignOptions } from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 import { logger } from './logger.util';
 import { env } from '../config/env';
+import { AuthenticationError } from '../errors/app-error';
+import { setUserLogContext } from '../middleware/request-id.middleware';
+import { isRefreshTokenValid } from './refresh-token.util';
 
 const { JWT_SECRET, JWT_EXPIRES_IN, JWT_REFRESH_SECRET, JWT_REFRESH_EXPIRES_IN } = env;
 
@@ -81,7 +84,7 @@ export function verifyAccessToken(token: string): JWTPayload | null {
 
     return decoded;
   } catch (error) {
-    console.error('JWT verification failed:', error);
+    logger.error('JWT', 'JWT verification failed', error);
     return null;
   }
 }
@@ -102,7 +105,7 @@ export function verifyRefreshToken(token: string): JWTPayload | null {
 
     return decoded;
   } catch (error) {
-    console.error('JWT refresh token verification failed:', error);
+    logger.error('JWT', 'JWT refresh token verification failed', error);
     return null;
   }
 }
@@ -118,35 +121,36 @@ export function extractTokenFromHeader(authHeader: string): string | null {
 }
 
 /**
+ * Extract access token from Authorization header or httpOnly cookie.
+ */
+export function extractAccessToken(req: AuthenticatedRequest): string | null {
+  const authHeader = req.headers.authorization;
+  if (authHeader) {
+    return extractTokenFromHeader(authHeader);
+  }
+
+  if (req.cookies && typeof req.cookies.accessToken === 'string') {
+    return req.cookies.accessToken;
+  }
+
+  return null;
+}
+
+/**
  * JWT Authentication Middleware
  */
 export function authenticateJWT(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  const authHeader = req.headers.authorization;
+  const token = extractAccessToken(req);
 
-  if (!authHeader) {
-    logger.warn("JWT", "Missing Authorization header", { url: req.originalUrl, method: req.method });
-    return res.status(401).json({
-      error: 'Access token required',
-      code: 'TOKEN_MISSING'
-    });
-  }
-
-  const token = extractTokenFromHeader(authHeader);
   if (!token) {
-    logger.warn("JWT", "Invalid Authorization header format", { url: req.originalUrl });
-    return res.status(401).json({
-      error: 'Invalid authorization header format',
-      code: 'INVALID_AUTH_HEADER'
-    });
+    logger.warn("JWT", "Missing access token", { url: req.originalUrl, method: req.method });
+    return next(new AuthenticationError('Access token required'));
   }
 
   const decoded = verifyAccessToken(token);
   if (!decoded) {
     logger.warn("JWT", "Token verification failed", { url: req.originalUrl });
-    return res.status(401).json({
-      error: 'Invalid or expired token',
-      code: 'TOKEN_INVALID'
-    });
+    return next(new AuthenticationError('Invalid or expired token'));
   }
 
   // Add user info to request
@@ -155,22 +159,19 @@ export function authenticateJWT(req: AuthenticatedRequest, res: Response, next: 
     email: decoded.email
   };
 
+  setUserLogContext(req, decoded.userId);
   logger.debug("JWT", "Authenticated", { userId: decoded.userId, url: req.originalUrl });
   next();
 }
 
 /**
  * Optional JWT Authentication Middleware
- * Continues even if no token is provided
+ * Continues even if no valid token is provided; reads the Authorization header
+ * or the httpOnly access-token cookie.
  */
 export function optionalAuthenticateJWT(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  const authHeader = req.headers.authorization;
+  const token = extractAccessToken(req);
 
-  if (!authHeader) {
-    return next();
-  }
-
-  const token = extractTokenFromHeader(authHeader);
   if (!token) {
     return next();
   }
@@ -181,9 +182,57 @@ export function optionalAuthenticateJWT(req: AuthenticatedRequest, res: Response
       id: decoded.userId,
       email: decoded.email
     };
+    setUserLogContext(req, decoded.userId);
   }
 
   next();
+}
+
+/**
+ * Calculate the absolute expiry Date for a token given its `expiresIn` string.
+ */
+export function getTokenExpiryDate(expiresIn: string | number): Date {
+  const now = Date.now();
+  if (typeof expiresIn === 'number') {
+    return new Date(now + expiresIn * 1000);
+  }
+
+  const match = String(expiresIn).match(/^((\d+)\s*)?(d|days?|h|hours?|m|minutes?|s|seconds?)$/i);
+  if (match) {
+    const value = parseInt(match[2] || '1', 10);
+    const unit = match[3].toLowerCase();
+    let ms = value * 1000;
+    if (unit.startsWith('d')) ms *= 86400;
+    else if (unit.startsWith('h')) ms *= 3600;
+    else if (unit.startsWith('m')) ms *= 60;
+    return new Date(now + ms);
+  }
+
+  // Fallback: assume seconds if numeric-looking
+  const seconds = parseInt(String(expiresIn), 10);
+  if (!isNaN(seconds)) {
+    return new Date(now + seconds * 1000);
+  }
+
+  return new Date(now + 30 * 24 * 60 * 60 * 1000);
+}
+
+/**
+ * Verify a refresh JWT and ensure it has not been revoked in the database.
+ */
+export async function verifyAndValidateRefreshToken(token: string): Promise<JWTPayload | null> {
+  const decoded = verifyRefreshToken(token);
+  if (!decoded) {
+    return null;
+  }
+
+  const valid = await isRefreshTokenValid(token);
+  if (!valid) {
+    logger.warn('JWT', 'Refresh token has been revoked or expired in database');
+    return null;
+  }
+
+  return decoded;
 }
 
 /**

@@ -36,7 +36,7 @@ const TMEmptyState: React.FC<TMEmptyStateProps> = ({
           alignItems: 'center',
           justifyContent: 'center',
           fontSize: '2.5rem',
-          background: 'rgba(255, 107, 107, 0.12)',
+          background: 'var(--color-primary-mix-12)',
           marginBottom: '24px',
         }}
       >

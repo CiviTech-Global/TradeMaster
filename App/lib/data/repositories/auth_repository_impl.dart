@@ -84,6 +84,9 @@ class AuthRepositoryImpl implements AuthRepository {
     required String lastname,
     required String email,
     required String password,
+    required bool consentGiven,
+    String? privacyPolicyVersion,
+    String? termsVersion,
   }) async {
     developer.log('AuthRepository.signUp: starting');
     final data = await _datasource.signUp(
@@ -91,6 +94,9 @@ class AuthRepositoryImpl implements AuthRepository {
       lastname: lastname,
       email: email,
       password: password,
+      consentGiven: consentGiven,
+      privacyPolicyVersion: privacyPolicyVersion,
+      termsVersion: termsVersion,
     );
 
     // Server returns { data: { user, accessToken, refreshToken }, message }
@@ -105,6 +111,11 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> signOut() async {
     developer.log('AuthRepository.signOut: clearing tokens and cached data');
+    try {
+      await _datasource.signOut();
+    } catch (e) {
+      developer.log('AuthRepository.signOut: server signout failed - $e');
+    }
     await _storage.delete(key: AppConstants.tokenKey);
     await _storage.delete(key: AppConstants.refreshTokenKey);
     await _storage.delete(key: AppConstants.userDataKey);

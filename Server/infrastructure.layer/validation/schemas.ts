@@ -4,7 +4,16 @@ export const signupSchema = z.object({
   firstname: z.string().min(1, "First name is required").max(100),
   lastname: z.string().min(1, "Last name is required").max(100),
   email: z.string().email("Invalid email format"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain an uppercase letter")
+    .regex(/[a-z]/, "Password must contain a lowercase letter")
+    .regex(/[0-9]/, "Password must contain a number"),
+  consent_given: z.boolean().refine((val) => val === true, {
+    message: "You must agree to the Privacy Policy and Terms of Service"
+  }),
+  privacy_policy_version: z.string().max(50).optional(),
+  terms_version: z.string().max(50).optional(),
 });
 
 export const signinSchema = z.object({
@@ -18,7 +27,11 @@ export const forgotPasswordSchema = z.object({
 
 export const resetPasswordSchema = z.object({
   token: z.string().min(1, "Reset token is required"),
-  newPassword: z.string().min(6, "New password must be at least 6 characters"),
+  newPassword: z.string()
+    .min(8, "New password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain an uppercase letter")
+    .regex(/[a-z]/, "Password must contain a lowercase letter")
+    .regex(/[0-9]/, "Password must contain a number"),
 });
 
 export const createBusinessSchema = z.object({

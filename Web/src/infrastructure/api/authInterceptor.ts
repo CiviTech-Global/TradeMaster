@@ -3,6 +3,39 @@ import { store } from '../../application/redux';
 import { signout } from '../../application/redux/slices/authSlice';
 import { userRepository } from '../repositories/user.repo';
 
+/** Prevents concurrent/recursive signout dispatches; resets once signout finishes. */
+let signoutPromise: Promise<unknown> | null = null;
+
+function safeSignout(): void {
+  if (signoutPromise) return;
+
+  // Nothing to tear down (e.g. probe 401s on public pages); avoid a pointless
+  // POST /auth/signout that would also spam the server logs.
+  const state = store.getState();
+  if (!state.auth.isAuthenticated && !state.auth.accessToken && !state.auth.user) {
+    return;
+  }
+
+  signoutPromise = store.dispatch(signout()) as Promise<unknown>;
+  signoutPromise.finally(() => {
+    signoutPromise = null;
+  });
+}
+
+/** Deduplicates concurrent token refreshes so parallel 401s share one attempt. */
+let refreshPromise: Promise<unknown> | null = null;
+
+function refreshTokens(refreshToken: string | null): Promise<unknown> {
+  if (!refreshPromise) {
+    refreshPromise = userRepository
+      .refreshToken(refreshToken ?? '')
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+  return refreshPromise;
+}
+
 interface AuthRequestConfig extends AxiosRequestConfig {
   _retry?: boolean;
 }
@@ -64,11 +97,15 @@ export class AuthInterceptor {
   public responseErrorInterceptor = async (error: AxiosError): Promise<any> => {
     const originalRequest = error.config as AuthRequestConfig;
 
-    // Skip token refresh for authentication endpoints
+    // Skip token refresh for authentication endpoints (including signout to avoid loops,
+    // verify-token which is a session probe, and refresh-token which must not retry itself).
     if (originalRequest.url?.includes('/auth/signin') ||
         originalRequest.url?.includes('/auth/signup') ||
         originalRequest.url?.includes('/auth/forgot-password') ||
-        originalRequest.url?.includes('/auth/reset-password')) {
+        originalRequest.url?.includes('/auth/reset-password') ||
+        originalRequest.url?.includes('/auth/signout') ||
+        originalRequest.url?.includes('/auth/verify-token') ||
+        originalRequest.url?.includes('/auth/refresh-token')) {
       return Promise.reject(error);
     }
 
@@ -77,47 +114,47 @@ export class AuthInterceptor {
       originalRequest._retry = true;
 
       const state = store.getState();
+      // May be null after a page reload; the server also accepts the httpOnly cookie.
       const refreshToken = state.auth.refreshToken;
 
-      if (refreshToken) {
-        try {
-          // Attempt to refresh the token
-          const response = await userRepository.refreshToken(refreshToken);
+      try {
+        // Attempt to refresh the token (deduplicated across concurrent 401s)
+        const response = (await refreshTokens(refreshToken)) as Awaited<
+          ReturnType<typeof userRepository.refreshToken>
+        >;
 
-          if (response.success && response.data?.data) {
-            const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data.data;
+        if (response.success && response.data?.data) {
+          const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data.data;
 
-            // Update the store with new tokens
-            store.dispatch({
-              type: 'auth/updateTokens',
-              payload: {
-                accessToken: newAccessToken,
-                refreshToken: newRefreshToken,
-              },
-            });
+          // Update the store with new tokens
+          store.dispatch({
+            type: 'auth/updateTokens',
+            payload: {
+              accessToken: newAccessToken,
+              refreshToken: newRefreshToken,
+            },
+          });
 
-            // Update localStorage
-            localStorage.setItem('authToken', newAccessToken);
-            localStorage.setItem('refreshToken', newRefreshToken);
+          // Update localStorage
+          localStorage.setItem('authToken', newAccessToken);
+          localStorage.setItem('refreshToken', newRefreshToken);
 
-            // Retry the original request with the new token
-            if (originalRequest.headers) {
-              originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-            }
-
-            // Import the HTTP client dynamically to avoid circular dependency
-            const { httpService } = await import('./TMAxios');
-            return httpService.getAxiosInstance().request(originalRequest);
+          // Retry the original request with the new token
+          if (originalRequest.headers) {
+            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
           }
-        } catch (refreshError) {
-          // Refresh failed, sign out the user
-          console.error('Token refresh failed:', refreshError);
-          store.dispatch(signout());
-          return Promise.reject(refreshError);
+
+          // Import the HTTP client dynamically to avoid circular dependency
+          const { httpService } = await import('./TMAxios');
+          return httpService.getAxiosInstance().request(originalRequest);
         }
-      } else {
-        // No refresh token available, sign out the user
-        store.dispatch(signout());
+
+        safeSignout();
+      } catch (refreshError) {
+        // Refresh failed, sign out the user
+        console.error('Token refresh failed:', refreshError);
+        safeSignout();
+        return Promise.reject(refreshError);
       }
     }
 

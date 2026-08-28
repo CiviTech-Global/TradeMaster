@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../../../components';
 import { messageService } from '../../../../infrastructure/api/messageService';
+import { formatDate, formatDateTime } from '../../../../infrastructure/i18n/format';
 import { useAppSelector } from '../../../../application/redux';
 import { selectUser } from '../../../../application/redux';
 import type { Conversation, Message } from '../../../../domain/types/message';
 import './Messages.css';
 
 const Messages: React.FC = () => {
+  const { t } = useTranslation('translation', { keyPrefix: 'messages' });
   const user = useAppSelector(selectUser);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedPartnerId, setSelectedPartnerId] = useState<number | null>(null);
@@ -128,11 +131,11 @@ const Messages: React.FC = () => {
           )
         );
       } else {
-        alert('Failed to send message. Please try again.');
+        alert(t('sendFailed'));
       }
     } catch (error) {
       console.error('Failed to send message:', error);
-      alert('Failed to send message. Please try again.');
+      alert(t('sendFailed'));
     } finally {
       setIsSending(false);
     }
@@ -148,12 +151,7 @@ const Messages: React.FC = () => {
 
   // Format time for messages
   const formatMessageTime = (dateStr: string): string => {
-    const date = new Date(dateStr);
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
+    return formatDateTime(dateStr, { hour: 'numeric', minute: '2-digit', hour12: true });
   };
 
   // Format time for conversation list
@@ -164,20 +162,13 @@ const Messages: React.FC = () => {
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
     if (diffDays === 0) {
-      return date.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-      });
+      return formatDateTime(dateStr, { hour: 'numeric', minute: '2-digit', hour12: true });
     }
-    if (diffDays === 1) return 'Yesterday';
+    if (diffDays === 1) return t('yesterday');
     if (diffDays < 7) {
-      return date.toLocaleDateString('en-US', { weekday: 'short' });
+      return formatDate(dateStr, { weekday: 'short' });
     }
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-    });
+    return formatDate(dateStr, { month: 'short', day: 'numeric' });
   };
 
   // Get initials for avatar
@@ -204,14 +195,9 @@ const Messages: React.FC = () => {
       (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
     );
 
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Yesterday';
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-    });
+    if (diffDays === 0) return t('today');
+    if (diffDays === 1) return t('yesterday');
+    return formatDate(dateStr, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
   };
 
   const selectedConversation = conversations.find(
@@ -222,10 +208,10 @@ const Messages: React.FC = () => {
     return (
       <div className="dashboard-page fade-in">
         <div className="dashboard-page__header">
-          <h1 className="dashboard-page__title">Messages</h1>
+          <h1 className="dashboard-page__title">{t('title')}</h1>
         </div>
         <div className="dashboard-page__content">
-          <div className="loading-spinner">Loading messages...</div>
+          <div className="loading-spinner">{t('loading')}</div>
         </div>
       </div>
     );
@@ -234,9 +220,9 @@ const Messages: React.FC = () => {
   return (
     <div className="dashboard-page fade-in">
       <div className="dashboard-page__header">
-        <h1 className="dashboard-page__title">Messages</h1>
+        <h1 className="dashboard-page__title">{t('title')}</h1>
         <p className="dashboard-page__subtitle">
-          Communicate with your buyers and partners
+          {t('subtitle')}
         </p>
       </div>
 
@@ -245,12 +231,12 @@ const Messages: React.FC = () => {
           {/* Left Panel: Conversations */}
           <div className="conversations-panel">
             <div className="conversations-panel__header">
-              <h3>Conversations</h3>
+              <h3>{t('conversations')}</h3>
             </div>
 
             {conversations.length === 0 ? (
               <div className="conversations-empty">
-                <p>No conversations yet.</p>
+                <p>{t('noConversations')}</p>
               </div>
             ) : (
               <ul className="conversations-list">
@@ -282,7 +268,7 @@ const Messages: React.FC = () => {
                         )}
                       </div>
                       <div className="conversation-preview">
-                        {conv.lastMessage?.content || 'No messages yet'}
+                        {conv.lastMessage?.content || t('noMessages')}
                       </div>
                     </div>
                     {conv.unreadCount > 0 && (
@@ -300,7 +286,7 @@ const Messages: React.FC = () => {
           <div className="message-thread-panel">
             {!selectedPartnerId ? (
               <div className="no-conversation-selected">
-                <p>Select a conversation to view messages</p>
+                <p>{t('noConversationSelected')}</p>
               </div>
             ) : (
               <>
@@ -318,8 +304,8 @@ const Messages: React.FC = () => {
                         {selectedConversation.partner.firstname}{' '}
                         {selectedConversation.partner.lastname}
                       </div>
-                      <div className="message-thread__header-email">
-                        {selectedConversation.partner.email}
+                      <div className="message-thread__header-email" dir="ltr">
+                        <bdi>{selectedConversation.partner.email}</bdi>
                       </div>
                     </div>
                   </div>
@@ -332,12 +318,11 @@ const Messages: React.FC = () => {
                 >
                   {isLoadingMessages ? (
                     <div className="message-thread-empty">
-                      Loading messages...
+                      {t('loadingMessages')}
                     </div>
                   ) : messages.length === 0 ? (
                     <div className="message-thread-empty">
-                      No messages in this conversation yet. Send a message to
-                      start the conversation.
+                      {t('noMessages')}
                     </div>
                   ) : (
                     <>
@@ -384,7 +369,7 @@ const Messages: React.FC = () => {
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="Type a message..."
+                    placeholder={t('typeMessage')}
                     rows={1}
                   />
                   <Button
@@ -392,7 +377,7 @@ const Messages: React.FC = () => {
                     onClick={handleSendMessage}
                     disabled={!newMessage.trim() || isSending}
                   >
-                    {isSending ? 'Sending...' : 'Send'}
+                    {isSending ? t('sending') : t('send')}
                   </Button>
                 </div>
               </>

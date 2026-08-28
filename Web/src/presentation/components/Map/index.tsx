@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents, Circle, Polygon } from 'react-leaflet';
 import L from 'leaflet';
 import type { MapProps, MapPosition, SearchResult } from './types';
+import { formatDateTime, formatNumber } from '../../../infrastructure/i18n/format';
 import './Map.css';
 
 // Fix default markers in React Leaflet
@@ -28,13 +30,13 @@ const createCustomIcon = (color: string, symbol?: string) => {
 };
 
 const tradingIcon = (type: 'buy' | 'sell' | 'neutral') => {
-  const colors = { buy: '#10b981', sell: '#ef4444', neutral: '#6b7280' };
+  const colors = { buy: 'var(--color-success)', sell: 'var(--color-error)', neutral: 'var(--color-muted)' };
   const symbols = { buy: '↗', sell: '↘', neutral: '•' };
-  return createCustomIcon(colors[type], symbols[type]);
+  return createCustomIcon(colors[type], `<span class="icon-flip-rtl">${symbols[type]}</span>`);
 };
 
 const userIcon = (type: 'home' | 'office' | 'favorite') => {
-  const colors = { home: '#3b82f6', office: '#8b5cf6', favorite: '#f59e0b' };
+  const colors = { home: 'var(--color-info)', office: '#8b5cf6', favorite: 'var(--color-warning)' };
   const symbols = { home: '🏠', office: '🏢', favorite: '⭐' };
   return createCustomIcon(colors[type], symbols[type]);
 };
@@ -47,6 +49,7 @@ const staticIcon = (type: 'exchange' | 'bank' | 'financial_institution') => {
 
 // Location Detection Component
 const LocationMarker: React.FC<{ onLocationFound?: (position: MapPosition) => void }> = ({ onLocationFound }) => {
+  const { t } = useTranslation('translation', { keyPrefix: 'map' });
   const [userPosition, setUserPosition] = useState<MapPosition | null>(null);
   const map = useMap();
 
@@ -65,14 +68,15 @@ const LocationMarker: React.FC<{ onLocationFound?: (position: MapPosition) => vo
   }, []); // Empty dependency array to prevent continuous location requests
 
   return userPosition ? (
-    <Marker position={[userPosition.lat, userPosition.lng]} icon={createCustomIcon('#ef4444', '📍')}>
-      <Popup>Your current location</Popup>
+    <Marker position={[userPosition.lat, userPosition.lng]} icon={createCustomIcon('var(--color-error)', '📍')}>
+      <Popup>{t('currentLocation')}</Popup>
     </Marker>
   ) : null;
 };
 
 // Search Component
 const MapSearch: React.FC<{ onLocationSelect: (position: MapPosition) => void }> = ({ onLocationSelect }) => {
+  const { t } = useTranslation('translation', { keyPrefix: 'map' });
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -126,7 +130,7 @@ const MapSearch: React.FC<{ onLocationSelect: (position: MapPosition) => void }>
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search for locations..."
+          placeholder={t('searchPlaceholder')}
           className="map-search__input"
         />
         {isLoading && <div className="map-search__loading">🔍</div>}
@@ -150,9 +154,10 @@ const MapSearch: React.FC<{ onLocationSelect: (position: MapPosition) => void }>
 
 // Map Controls Component
 const MapControls: React.FC<{ onLocateUser: () => void }> = ({ onLocateUser }) => {
+  const { t } = useTranslation('translation', { keyPrefix: 'map' });
   return (
     <div className="map-controls">
-      <button onClick={onLocateUser} className="map-control-btn" title="Find my location">
+      <button onClick={onLocateUser} className="map-control-btn" title={t('findMyLocation')}>
         📍
       </button>
     </div>
@@ -210,6 +215,7 @@ const TradeMasterMap: React.FC<MapProps> = ({
   onLocationFound,
   onMarkerClick
 }) => {
+  const { t } = useTranslation('translation', { keyPrefix: 'map' });
   const [map, setMap] = useState<L.Map | null>(null);
 
   const handleLocateUser = () => {
@@ -250,12 +256,12 @@ const TradeMasterMap: React.FC<MapProps> = ({
             <Popup>
               <div className="trading-popup">
                 <h3>{data.symbol}</h3>
-                <p>Price: ${data.price.toFixed(2)}</p>
-                <p>Change: <span className={data.change >= 0 ? 'positive' : 'negative'}>
-                  {data.change >= 0 ? '+' : ''}{data.change.toFixed(2)}%
+                <p>{t('price')}: {formatNumber(data.price, { style: 'currency', currency: 'USD' })}</p>
+                <p>{t('change')}: <span className={data.change >= 0 ? 'positive' : 'negative'}>
+                  {data.change >= 0 ? '+' : ''}{formatNumber(data.change)}%
                 </span></p>
-                <p>Volume: {data.volume.toLocaleString()}</p>
-                <p>Time: {data.timestamp.toLocaleTimeString()}</p>
+                <p>{t('volume')}: {formatNumber(data.volume)}</p>
+                <p>{t('time')}: {formatDateTime(data.timestamp, { hour: 'numeric', minute: '2-digit' })}</p>
               </div>
             </Popup>
           </Marker>
@@ -274,7 +280,7 @@ const TradeMasterMap: React.FC<MapProps> = ({
             <Popup>
               <div className="user-popup">
                 <h3>{location.name}</h3>
-                <p>Type: {location.type}</p>
+                <p>{t('type')}: {location.type}</p>
                 {location.description && <p>{location.description}</p>}
               </div>
             </Popup>
@@ -294,11 +300,11 @@ const TradeMasterMap: React.FC<MapProps> = ({
             <Popup>
               <div className="static-popup">
                 <h3>{location.name}</h3>
-                <p>Type: {location.type.replace('_', ' ')}</p>
+                <p>{t('type')}: {location.type.replace('_', ' ')}</p>
                 {location.description && <p>{location.description}</p>}
                 {location.website && (
                   <a href={location.website} target="_blank" rel="noopener noreferrer">
-                    Visit Website
+                    {t('visitWebsite')}
                   </a>
                 )}
               </div>

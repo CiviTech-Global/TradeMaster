@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAppSelector, useAppDispatch } from '../../../../application/redux/hooks';
 import { signin, clearError, selectAuthLoading, selectAuthError } from '../../../../application/redux';
 import AuthLayout from '../../../components/AuthLayout';
 import { TMButton, TMInput } from '../../../components';
 
 const TMSignin: React.FC = () => {
+  const { t } = useTranslation('translation', { keyPrefix: 'auth' });
+  const { t: commonT } = useTranslation('translation', { keyPrefix: 'common' });
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const isLoading = useAppSelector(selectAuthLoading);
@@ -45,15 +48,15 @@ const TMSignin: React.FC = () => {
     const errors: { email?: string; password?: string } = {};
 
     if (!formData.email.trim()) {
-      errors.email = 'Email is required';
+      errors.email = t('emailRequired');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      errors.email = 'Please enter a valid email address';
+      errors.email = t('emailInvalid');
     }
 
     if (!formData.password.trim()) {
-      errors.password = 'Password is required';
+      errors.password = t('passwordRequired');
     } else if (formData.password.length < 6) {
-      errors.password = 'Password must be at least 6 characters long';
+      errors.password = t('passwordMinLength');
     }
 
     setValidationErrors(errors);
@@ -80,13 +83,13 @@ const TMSignin: React.FC = () => {
   };
 
   return (
-    <AuthLayout title="Welcome back" subtitle="Sign in to manage your business directory">
+    <AuthLayout title={t('welcomeBack')} subtitle={t('signInSubtitle')}>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         {error && (
           <div style={{
             padding: '12px',
-            backgroundColor: 'rgba(239, 83, 80, 0.1)',
-            border: '1px solid rgba(239, 83, 80, 0.2)',
+            backgroundColor: 'var(--color-error-mix-10)',
+            border: '1px solid var(--color-error-mix-20)',
             borderRadius: 'var(--radius-md)',
             color: 'var(--color-error)',
             fontSize: '14px'
@@ -96,25 +99,25 @@ const TMSignin: React.FC = () => {
         )}
 
         <TMInput
-          label="Email"
+          label={commonT('email')}
           type="email"
-          placeholder="Enter your email"
+          placeholder={t('enterEmail')}
           value={formData.email}
           onChange={handleInputChange('email')}
           required
           error={validationErrors.email}
         />
         <TMInput
-          label="Password"
+          label={commonT('password')}
           type="password"
-          placeholder="Enter your password"
+          placeholder={t('enterPassword')}
           value={formData.password}
           onChange={handleInputChange('password')}
           required
           error={validationErrors.password}
         />
 
-        <div style={{ textAlign: 'right' }}>
+        <div style={{ textAlign: 'end' }}>
           <Link
             to="/forgot-password"
             style={{
@@ -124,22 +127,22 @@ const TMSignin: React.FC = () => {
               fontWeight: 500
             }}
           >
-            Forgot password?
+            {t('forgotPasswordLink')}
           </Link>
         </div>
 
         <TMButton type="submit" isLoading={isLoading} isFullWidth>
-          Sign In
+          {t('signInButton')}
         </TMButton>
       </form>
 
       <p style={{ textAlign: 'center', marginTop: '1.5rem', color: 'var(--color-on-surface-variant)' }}>
-        Don&apos;t have an account?{' '}
+        {t('dontHaveAccount')}{' '}
         <Link
           to="/signup"
           style={{ color: 'var(--color-primary)', fontWeight: 600, textDecoration: 'none' }}
         >
-          Sign up
+          {commonT('signUp')}
         </Link>
       </p>
     </AuthLayout>

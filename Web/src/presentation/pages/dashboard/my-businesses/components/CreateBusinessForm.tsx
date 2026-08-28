@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button, Input } from '../../../../components';
 import { businessService } from '../../../../../infrastructure/api/businessService';
 import { categoryService } from '../../../../../infrastructure/api/categoryService';
@@ -21,6 +22,9 @@ const CreateBusinessForm: React.FC<CreateBusinessFormProps> = ({
   onCancel,
   isEditing = false
 }) => {
+  const { t } = useTranslation('translation', { keyPrefix: 'createBusinessForm' });
+  const { t: commonT } = useTranslation('translation', { keyPrefix: 'common' });
+  const { t: mbT } = useTranslation('translation', { keyPrefix: 'myBusinesses' });
   const [formData, setFormData] = useState<BusinessFormData>({
     title: '',
     longitude: 0,
@@ -127,13 +131,13 @@ const CreateBusinessForm: React.FC<CreateBusinessFormProps> = ({
     e.preventDefault();
 
     if (!isEditing && !selectedLocation) {
-      setErrors(['Please select a location on the map']);
+      setErrors([mbT('locationRequired')]);
       return;
     }
 
     // For editing, ensure we have valid coordinates
     if (isEditing && (!formData.latitude || !formData.longitude)) {
-      setErrors(['Valid coordinates are required']);
+      setErrors([mbT('coordinatesRequired')]);
       return;
     }
 
@@ -169,7 +173,7 @@ const CreateBusinessForm: React.FC<CreateBusinessFormProps> = ({
       console.error('Form submission error:', error);
 
       // Extract error message from API response or use default
-      let errorMessage = 'Failed to save business. Please try again.';
+      let errorMessage = mbT('saveFailed');
 
       if (error instanceof Error) {
         errorMessage = error.message;
@@ -191,13 +195,13 @@ const CreateBusinessForm: React.FC<CreateBusinessFormProps> = ({
   return (
     <form onSubmit={handleSubmit} className="create-business-form">
       <div className="form-section">
-        <h4>Business Information</h4>
+        <h4>{t('businessInformation')}</h4>
 
         <div className="form-row">
           <Input
-            label="Business Title"
+            label={t('businessTitle')}
             type="text"
-            placeholder="Enter business title"
+            placeholder={t('businessTitlePlaceholder')}
             value={formData.title}
             onChange={(e) => handleInputChange('title', e.target.value)}
             required
@@ -207,7 +211,7 @@ const CreateBusinessForm: React.FC<CreateBusinessFormProps> = ({
         <div className="form-row">
           <textarea
             className="form-textarea"
-            placeholder="Business Address"
+            placeholder={t('addressPlaceholder')}
             value={formData.address}
             onChange={(e) => handleInputChange('address', e.target.value)}
             rows={3}
@@ -216,10 +220,10 @@ const CreateBusinessForm: React.FC<CreateBusinessFormProps> = ({
         </div>
 
         <div className="form-row">
-          <label className="input-label">Description (Optional)</label>
+          <label className="input-label">{t('descriptionOptional')}</label>
           <textarea
             className="form-textarea"
-            placeholder="Describe your business"
+            placeholder={t('descriptionPlaceholder')}
             value={formData.description}
             onChange={(e) => handleInputChange('description', e.target.value)}
             rows={3}
@@ -227,13 +231,13 @@ const CreateBusinessForm: React.FC<CreateBusinessFormProps> = ({
         </div>
 
         <div className="form-row">
-          <label className="input-label">Category</label>
+          <label className="input-label">{t('category')}</label>
           <select
             className="input-field"
             value={formData.category_id || ''}
             onChange={(e) => handleInputChange('category_id', e.target.value ? parseInt(e.target.value) : '')}
           >
-            <option value="">Select a category</option>
+            <option value="">{commonT('selectCategory')}</option>
             {categories.map(cat => (
               <option key={cat.id} value={cat.id}>{cat.name}</option>
             ))}
@@ -242,9 +246,9 @@ const CreateBusinessForm: React.FC<CreateBusinessFormProps> = ({
 
         <div className="form-row">
           <Input
-            label="Logo URL (Optional)"
+            label={t('logoUrlOptional')}
             type="url"
-            placeholder="https://example.com/logo.png"
+            placeholder={t('logoUrlPlaceholder')}
             value={formData.logo}
             onChange={(e) => handleInputChange('logo', e.target.value)}
           />
@@ -252,9 +256,9 @@ const CreateBusinessForm: React.FC<CreateBusinessFormProps> = ({
 
         <div className="form-row">
           <Input
-            label="Cover Image URL (Optional)"
+            label={t('coverImageUrlOptional')}
             type="url"
-            placeholder="https://example.com/cover.png"
+            placeholder={t('coverImageUrlPlaceholder')}
             value={formData.cover_image}
             onChange={(e) => handleInputChange('cover_image', e.target.value)}
           />
@@ -267,27 +271,27 @@ const CreateBusinessForm: React.FC<CreateBusinessFormProps> = ({
               checked={formData.is_active}
               onChange={(e) => handleInputChange('is_active', e.target.checked)}
             />
-            Business is active
+            {t('businessIsActive')}
           </label>
         </div>
       </div>
 
       <div className="form-section">
-        <h4>Contact Information</h4>
+        <h4>{t('contactInformation')}</h4>
 
         <div className="form-subsection">
           <div className="form-subsection-header">
-            <h5>Email Addresses</h5>
+            <h5>{t('emailAddresses')}</h5>
             <Button type="button" variant="secondary" onClick={addEmailField}>
-              Add Email
+              {t('addEmail')}
             </Button>
           </div>
           {formData.emails.map((email, index) => (
             <div key={index} className="form-row-with-remove">
               <Input
-                label={`Email ${index + 1}`}
+                label={t('emailLabel', { index: index + 1 })}
                 type="email"
-                placeholder={`Enter email address ${index + 1}`}
+                placeholder={t('emailPlaceholder', { index: index + 1 })}
                 value={email}
                 onChange={(e) => handleEmailChange(index, e.target.value)}
                 required={index === 0}
@@ -298,7 +302,7 @@ const CreateBusinessForm: React.FC<CreateBusinessFormProps> = ({
                   variant="secondary"
                   onClick={() => removeEmailField(index)}
                 >
-                  Remove
+                  {commonT('remove')}
                 </Button>
               )}
             </div>
@@ -307,17 +311,17 @@ const CreateBusinessForm: React.FC<CreateBusinessFormProps> = ({
 
         <div className="form-subsection">
           <div className="form-subsection-header">
-            <h5>Phone Numbers</h5>
+            <h5>{t('phoneNumbers')}</h5>
             <Button type="button" variant="secondary" onClick={addPhoneField}>
-              Add Phone
+              {t('addPhone')}
             </Button>
           </div>
           {formData.phones.map((phone, index) => (
             <div key={index} className="form-row-with-remove">
               <Input
-                label={`Phone ${index + 1}`}
+                label={t('phoneLabel', { index: index + 1 })}
                 type="tel"
-                placeholder={`Enter phone number ${index + 1}`}
+                placeholder={t('phonePlaceholder', { index: index + 1 })}
                 value={phone}
                 onChange={(e) => handlePhoneChange(index, e.target.value)}
                 required={index === 0}
@@ -328,7 +332,7 @@ const CreateBusinessForm: React.FC<CreateBusinessFormProps> = ({
                   variant="secondary"
                   onClick={() => removePhoneField(index)}
                 >
-                  Remove
+                  {commonT('remove')}
                 </Button>
               )}
             </div>
@@ -337,14 +341,14 @@ const CreateBusinessForm: React.FC<CreateBusinessFormProps> = ({
       </div>
 
       <div className="form-section">
-        <h4>Location</h4>
+        <h4>{t('location')}</h4>
         <div className="location-info">
           <div className="form-row">
-            <label className="input-label">Latitude</label>
+            <label className="input-label">{t('latitude')}</label>
             <input
               className="input-field"
               type="number"
-              placeholder="Latitude"
+              placeholder={t('latitude')}
               value={formData.latitude.toString()}
               onChange={(e) => handleInputChange('latitude', parseFloat(e.target.value) || 0)}
               step="any"
@@ -353,11 +357,11 @@ const CreateBusinessForm: React.FC<CreateBusinessFormProps> = ({
             />
           </div>
           <div className="form-row">
-            <label className="input-label">Longitude</label>
+            <label className="input-label">{t('longitude')}</label>
             <input
               className="input-field"
               type="number"
-              placeholder="Longitude"
+              placeholder={t('longitude')}
               value={formData.longitude.toString()}
               onChange={(e) => handleInputChange('longitude', parseFloat(e.target.value) || 0)}
               step="any"
@@ -366,14 +370,14 @@ const CreateBusinessForm: React.FC<CreateBusinessFormProps> = ({
             />
           </div>
           {!selectedLocation && !isEditing && (
-            <p className="location-hint">Please select a location on the map above</p>
+            <p className="location-hint">{t('locationHint')}</p>
           )}
         </div>
       </div>
 
       {errors.length > 0 && (
         <div className="form-errors">
-          <h5>Please fix the following errors:</h5>
+          <h5>{mbT('fixErrors')}</h5>
           <ul>
             {errors.map((error, index) => (
               <li key={index}>{error}</li>
@@ -388,10 +392,10 @@ const CreateBusinessForm: React.FC<CreateBusinessFormProps> = ({
           variant="primary"
           disabled={isSubmitting || (!isEditing && !selectedLocation) || (isEditing && (!formData.latitude || !formData.longitude))}
         >
-          {isSubmitting ? 'Saving...' : (isEditing ? 'Update Business' : 'Create Business')}
+          {isSubmitting ? t('saving') : (isEditing ? t('updateBusiness') : t('createBusiness'))}
         </Button>
         <Button type="button" variant="secondary" onClick={onCancel}>
-          Cancel
+          {commonT('cancel')}
         </Button>
       </div>
     </form>

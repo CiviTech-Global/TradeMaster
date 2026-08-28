@@ -1,9 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trademaster/core/theme/theme_provider.dart';
+import 'package:trademaster/l10n/generated/app_localizations.dart';
 
 class TMThemeToggle extends ConsumerWidget {
   const TMThemeToggle({super.key});
+
+  String _label(BuildContext context, TMThemeMode mode) {
+    final l10n = AppLocalizations.of(context);
+    return switch (mode) {
+      TMThemeMode.system => l10n.system,
+      TMThemeMode.light => l10n.light,
+      TMThemeMode.dark => l10n.dark,
+    };
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -15,7 +25,7 @@ class TMThemeToggle extends ConsumerWidget {
           .map(
             (mode) => ButtonSegment(
               value: mode,
-              label: Text(mode.label),
+              label: Text(_label(context, mode)),
               icon: Icon(mode.icon),
             ),
           )

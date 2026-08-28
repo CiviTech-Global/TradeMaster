@@ -9,7 +9,8 @@ import type {
   ISigninRequest,
   IForgotPasswordRequest,
   IResetPasswordRequest,
-  IChangePasswordRequest
+  IChangePasswordRequest,
+  APIResponse
 } from '../../../infrastructure/repositories/user.repo';
 
 export interface AuthState {
@@ -42,9 +43,9 @@ export const signin = createAsyncThunk(
         const { user, accessToken, refreshToken } = response.data.data;
 
         if (accessToken) {
+          // The server also sets httpOnly cookies; for the web app we rely on those
+          // instead of storing tokens in localStorage.
           networkService.setAuthToken(accessToken);
-          localStorage.setItem('authToken', accessToken);
-          localStorage.setItem('refreshToken', refreshToken);
         }
 
         return { user, accessToken, refreshToken };
@@ -68,8 +69,13 @@ export const signup = createAsyncThunk(
       const response = await userRepository.createUser(userData);
 
       if (response.success && response.data?.data) {
-        const user = response.data.data;
-        return { user, accessToken: null, refreshToken: null };
+        const { user, accessToken, refreshToken } = response.data.data;
+
+        if (accessToken) {
+          networkService.setAuthToken(accessToken);
+        }
+
+        return { user, accessToken, refreshToken };
       } else {
         throw new Error(response.data?.error || response.data?.message || 'Signup failed');
       }
@@ -158,15 +164,42 @@ export const initializeAuth = createAsyncThunk(
     const baseURL = serverUrlConfig.getUrl();
     networkService.setBaseURL(baseURL);
 
-    const storedAccessToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-    const storedRefreshToken = localStorage.getItem('refreshToken') || sessionStorage.getItem('refreshToken');
+    const verify = async (): Promise<IUser | null> => {
+      const response = await networkService.get<APIResponse<{ user: IUser; valid: boolean; expiresAt: string }>>('/auth/verify-token');
+      return response.data.data?.user ?? null;
+    };
 
-    if (storedAccessToken) {
-      networkService.setAuthToken(storedAccessToken);
-      return { accessToken: storedAccessToken, refreshToken: storedRefreshToken };
+    // The web app relies on httpOnly cookies set by the server; do not read tokens from storage.
+    try {
+      const user = await verify();
+      if (user) return { user };
+    } catch {
+      // Access token missing/expired — attempt a single cookie-based refresh before giving up.
+      try {
+        await networkService.post('/auth/refresh-token', {}, { enableRetry: false });
+        const user = await verify();
+        if (user) return { user };
+      } catch {
+        // No valid session; remain signed out.
+      }
     }
 
     return null;
+  }
+);
+
+export const signout = createAsyncThunk(
+  'auth/signout',
+  async () => {
+    try {
+      // Best-effort server-side revocation; local cleanup happens regardless.
+      await networkService.post('/auth/signout', undefined, {
+        skipGlobalErrorHandling: true,
+        enableRetry: false,
+      });
+    } catch {
+      // Ignore network errors during signout.
+    }
   }
 );
 
@@ -174,20 +207,6 @@ export const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    signout: (state) => {
-      state.user = null;
-      state.isAuthenticated = false;
-      state.accessToken = null;
-      state.refreshToken = null;
-      state.tokenExpiresAt = null;
-      state.error = null;
-
-      networkService.clearAuthToken();
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('refreshToken');
-      sessionStorage.removeItem('authToken');
-      sessionStorage.removeItem('refreshToken');
-    },
     clearError: (state) => {
       state.error = null;
     },
@@ -281,17 +300,51 @@ export const authSlice = createSlice({
         state.error = action.payload as string;
       })
 
+      .addCase(initializeAuth.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
       .addCase(initializeAuth.fulfilled, (state, action) => {
-        if (action.payload?.accessToken) {
-          state.accessToken = action.payload.accessToken;
-          state.refreshToken = action.payload.refreshToken;
+        state.isLoading = false;
+        if (action.payload?.user) {
+          state.user = action.payload.user;
           state.isAuthenticated = true;
+          state.error = null;
         }
+      })
+      .addCase(initializeAuth.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string || 'Failed to initialize authentication';
+      })
+
+      .addCase(signout.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(signout.fulfilled, (state) => {
+        state.isLoading = false;
+        state.user = null;
+        state.isAuthenticated = false;
+        state.accessToken = null;
+        state.refreshToken = null;
+        state.tokenExpiresAt = null;
+        state.error = null;
+
+        networkService.clearAuthToken();
+        // Tokens are stored in httpOnly cookies; clear any legacy localStorage entries.
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('refreshToken');
+        sessionStorage.removeItem('authToken');
+        sessionStorage.removeItem('refreshToken');
+      })
+      .addCase(signout.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string || 'Signout failed';
       });
   },
 });
 
-export const { signout, clearError, setUser, updateTokens } = authSlice.actions;
+export const { clearError, setUser, updateTokens } = authSlice.actions;
 
 // Selectors
 export const selectUser = (state: { auth: AuthState }) => state.auth.user;

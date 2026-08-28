@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import type { MapPosition } from './types';
@@ -16,8 +17,8 @@ L.Icon.Default.mergeOptions({
 const businessLocationIcon = L.divIcon({
   className: 'custom-marker business-location-marker',
   html: `
-    <div class="marker-pin" style="background-color: #3b82f6; border: 3px solid #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
-      <div class="marker-symbol" style="color: white; font-weight: bold;">🏢</div>
+    <div class="marker-pin" style="background-color: var(--color-info); border: 3px solid var(--color-surface); box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
+      <div class="marker-symbol" style="color: var(--color-surface); font-weight: bold;">🏢</div>
     </div>
   `,
   iconSize: [35, 45],
@@ -38,6 +39,7 @@ interface LocationSelectorProps {
 const LocationFinder: React.FC<{
   onLocationFound: (position: MapPosition) => void;
 }> = ({ onLocationFound }) => {
+  const { t } = useTranslation('translation', { keyPrefix: 'locationSelector' });
   useMapEvents({
     locationfound(e) {
       const position = { lat: e.latlng.lat, lng: e.latlng.lng };
@@ -45,7 +47,7 @@ const LocationFinder: React.FC<{
     },
     locationerror(e) {
       console.error('Location error:', e.message);
-      alert('Unable to find your location. Please ensure location services are enabled.');
+      alert(t('locationError'));
     }
   });
 
@@ -57,6 +59,7 @@ const LocationSelector: React.FC<{
   onLocationSelect: (position: MapPosition) => void;
   selectedLocation?: MapPosition | null;
 }> = ({ onLocationSelect, selectedLocation }) => {
+  const { t } = useTranslation('translation', { keyPrefix: 'locationSelector' });
   const [tempMarker, setTempMarker] = useState<MapPosition | null>(selectedLocation || null);
 
   useMapEvents({
@@ -77,10 +80,10 @@ const LocationSelector: React.FC<{
     <Marker position={[tempMarker.lat, tempMarker.lng]} icon={businessLocationIcon}>
       <Popup>
         <div className="location-selector-popup">
-          <h4>📍 Selected Business Location</h4>
-          <p><strong>Latitude:</strong> {tempMarker.lat.toFixed(6)}</p>
-          <p><strong>Longitude:</strong> {tempMarker.lng.toFixed(6)}</p>
-          <small>Click elsewhere on the map to change location</small>
+          <h4>📍 {t('selectedLocation')}</h4>
+          <p><strong>{t('latitude')}:</strong> <bdi dir="ltr">{tempMarker.lat.toFixed(6)}</bdi></p>
+          <p><strong>{t('longitude')}:</strong> <bdi dir="ltr">{tempMarker.lng.toFixed(6)}</bdi></p>
+          <small>{t('clickElsewhere')}</small>
         </div>
       </Popup>
     </Marker>
@@ -89,11 +92,12 @@ const LocationSelector: React.FC<{
 
 // Existing businesses marker component
 const ExistingBusinessMarkers: React.FC<{ businesses: MapPosition[] }> = ({ businesses }) => {
+  const { t } = useTranslation('translation', { keyPrefix: 'locationSelector' });
   const existingBusinessIcon = L.divIcon({
     className: 'custom-marker existing-business-marker',
     html: `
-      <div class="marker-pin" style="background-color: #6b7280; border: 2px solid #ffffff; opacity: 0.7;">
-        <div class="marker-symbol" style="color: white; font-size: 12px;">🏢</div>
+      <div class="marker-pin" style="background-color: var(--color-muted); border: 2px solid var(--color-surface); opacity: 0.7;">
+        <div class="marker-symbol" style="color: var(--color-surface); font-size: 12px;">🏢</div>
       </div>
     `,
     iconSize: [25, 32],
@@ -122,8 +126,8 @@ const ExistingBusinessMarkers: React.FC<{ businesses: MapPosition[] }> = ({ busi
           >
             <Popup>
               <div className="existing-business-popup">
-                <p><strong>Existing Business Location</strong></p>
-                <small>{lat.toFixed(6)}, {lng.toFixed(6)}</small>
+                <p><strong>{t('existingBusinessLocation')}</strong></p>
+                <small dir="ltr"><bdi>{lat.toFixed(6)}, {lng.toFixed(6)}</bdi></small>
               </div>
             </Popup>
           </Marker>
@@ -137,12 +141,13 @@ const ExistingBusinessMarkers: React.FC<{ businesses: MapPosition[] }> = ({ busi
 const FindLocationButton: React.FC<{
   onFindLocation: () => void;
 }> = ({ onFindLocation }) => {
+  const { t } = useTranslation('translation', { keyPrefix: 'map' });
   return (
     <div className="map-controls">
       <button
         onClick={onFindLocation}
         className="map-control-btn find-location-btn"
-        title="Find my location"
+        title={t('findMyLocation')}
       >
         📍
       </button>
@@ -159,6 +164,7 @@ const BusinessLocationMap: React.FC<LocationSelectorProps> = ({
   onLocationSelect,
   existingBusinesses = []
 }) => {
+  const { t } = useTranslation('translation', { keyPrefix: 'locationSelector' });
   const [mapCenter, setMapCenter] = useState<MapPosition>(selectedLocation || center);
   const [mapRef, setMapRef] = useState<L.Map | null>(null);
 
@@ -184,15 +190,15 @@ const BusinessLocationMap: React.FC<LocationSelectorProps> = ({
       <div className="location-selector-instructions">
         <div className="instruction-item">
           <span className="instruction-icon">👆</span>
-          <span>Click anywhere on the map to place your business location pin</span>
+          <span>{t('instructionClick')}</span>
         </div>
         <div className="instruction-item">
           <span className="instruction-icon">📍</span>
-          <span>Use the "Find my location" button to center the map on your current location</span>
+          <span>{t('instructionFindLocation')}</span>
         </div>
         {selectedLocation && (
           <div className="selected-coordinates">
-            <span className="coordinate-label">Selected:</span>
+            <span className="coordinate-label">{t('selectedLabel')}</span>
             <span className="coordinate-value">
               {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
             </span>
@@ -232,13 +238,13 @@ const BusinessLocationMap: React.FC<LocationSelectorProps> = ({
 
       <div className="location-selector-legend">
         <div className="legend-item">
-          <span className="legend-icon" style={{ color: '#3b82f6' }}>🏢</span>
-          <span>New Business Location</span>
+          <span className="legend-icon" style={{ color: 'var(--color-info)' }}>🏢</span>
+          <span>{t('newBusinessLocation')}</span>
         </div>
         {existingBusinesses.length > 0 && (
           <div className="legend-item">
-            <span className="legend-icon" style={{ color: '#6b7280' }}>🏢</span>
-            <span>Existing Business ({existingBusinesses.length})</span>
+            <span className="legend-icon" style={{ color: 'var(--color-muted)' }}>🏢</span>
+            <span>{t('existingBusinessCount', { count: existingBusinesses.length })}</span>
           </div>
         )}
       </div>

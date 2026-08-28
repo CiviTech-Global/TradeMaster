@@ -1,6 +1,8 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { withTranslation, WithTranslation } from 'react-i18next';
+import './ErrorBoundary.css';
 
-interface Props {
+interface Props extends WithTranslation {
   children: ReactNode;
   fallback?: ReactNode;
 }
@@ -35,76 +37,32 @@ class ErrorBoundary extends Component<Props, State> {
   };
 
   render() {
+    const { t } = this.props;
+
     if (this.state.hasError) {
       if (this.props.fallback) {
         return this.props.fallback;
       }
 
       return (
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '100vh',
-          padding: '24px',
-          fontFamily: 'system-ui, -apple-system, sans-serif',
-          backgroundColor: '#f8fafc',
-        }}>
-          <div style={{
-            maxWidth: '480px',
-            textAlign: 'center',
-            background: 'white',
-            borderRadius: '12px',
-            padding: '32px',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-          }}>
-            <div style={{
-              width: '64px',
-              height: '64px',
-              borderRadius: '50%',
-              backgroundColor: '#fef2f2',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 16px',
-            }}>
-              <span style={{ fontSize: '32px' }}>⚠️</span>
+        <div className="error-boundary">
+          <div className="error-boundary__card">
+            <div className="error-boundary__icon">
+              <span>⚠️</span>
             </div>
 
-            <h1 style={{
-              fontSize: '20px',
-              fontWeight: '600',
-              color: '#1e293b',
-              marginBottom: '8px',
-            }}>
-              Something went wrong
+            <h1 className="error-boundary__title">
+              {t('errorBoundary.title')}
             </h1>
 
-            <p style={{
-              fontSize: '14px',
-              color: '#64748b',
-              marginBottom: '24px',
-            }}>
-              An unexpected error occurred. Please try again or return to the home page.
+            <p className="error-boundary__subtitle">
+              {t('errorBoundary.subtitle')}
             </p>
 
             {import.meta.env.DEV && this.state.error && (
-              <details style={{
-                textAlign: 'left',
-                marginBottom: '16px',
-                padding: '12px',
-                backgroundColor: '#f1f5f9',
-                borderRadius: '8px',
-                fontSize: '12px',
-                fontFamily: 'monospace',
-                overflow: 'auto',
-                maxHeight: '200px',
-              }}>
-                <summary style={{ cursor: 'pointer', fontWeight: '500' }}>
-                  Error Details
-                </summary>
-                <pre style={{ margin: '8px 0 0', whiteSpace: 'pre-wrap' }}>
+              <details className="error-boundary__details">
+                <summary>{t('errorBoundary.errorDetails')}</summary>
+                <pre>
                   {this.state.error.message}
                   {'\n\n'}
                   {this.state.errorInfo?.componentStack}
@@ -112,36 +70,18 @@ class ErrorBoundary extends Component<Props, State> {
               </details>
             )}
 
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+            <div className="error-boundary__actions">
               <button
                 onClick={this.handleReset}
-                style={{
-                  padding: '10px 20px',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  color: '#475569',
-                  backgroundColor: 'white',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                }}
+                className="error-boundary__btn"
               >
-                Try Again
+                {t('errorBoundary.tryAgain')}
               </button>
               <button
                 onClick={this.handleGoHome}
-                style={{
-                  padding: '10px 20px',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  color: 'white',
-                  backgroundColor: '#3b82f6',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                }}
+                className="error-boundary__btn error-boundary__btn--primary"
               >
-                Go Home
+                {t('errorBoundary.goHome')}
               </button>
             </div>
           </div>
@@ -153,4 +93,4 @@ class ErrorBoundary extends Component<Props, State> {
   }
 }
 
-export default ErrorBoundary;
+export default withTranslation('translation')(ErrorBoundary);

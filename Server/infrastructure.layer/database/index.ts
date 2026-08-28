@@ -1,23 +1,24 @@
 import { sequelize } from './sequelize';
 import { runMigrations } from './migrator';
+import { logger } from '../utils/logger.util';
 
 export const initializeDatabase = async (): Promise<void> => {
   try {
-    console.log('🔌 Connecting to PostgreSQL database...');
-    
+    logger.info('DB', 'Connecting to PostgreSQL database');
+
     await sequelize.authenticate();
-    console.log('✅ Database connection established successfully.');
-    
-    console.log('🔄 Running database migrations...');
+    logger.info('DB', 'Database connection established successfully');
+
+    logger.info('DB', 'Running database migrations');
     await runMigrations();
-    console.log('✅ Database migrations completed.');
-    
-    console.log('🔄 Synchronizing models...');
+    logger.info('DB', 'Database migrations completed');
+
+    logger.info('DB', 'Synchronizing models');
     await sequelize.sync({ alter: false });
-    console.log('✅ Database models synchronized.');
+    logger.info('DB', 'Database models synchronized');
     
   } catch (error) {
-    console.error('❌ Database initialization failed:', error);
+    logger.error('DB', 'Database initialization failed', error);
     throw error;
   }
 };
@@ -25,9 +26,9 @@ export const initializeDatabase = async (): Promise<void> => {
 export const closeDatabase = async (): Promise<void> => {
   try {
     await sequelize.close();
-    console.log('✅ Database connection closed.');
+    logger.info('DB', 'Database connection closed');
   } catch (error) {
-    console.error('❌ Error closing database connection:', error);
+    logger.error('DB', 'Error closing database connection', error);
   }
 };
 

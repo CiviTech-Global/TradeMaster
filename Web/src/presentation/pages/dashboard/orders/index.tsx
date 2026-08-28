@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../../../components';
 import { businessService } from '../../../../infrastructure/api/businessService';
 import { orderService } from '../../../../infrastructure/api/orderService';
+import { formatDate, formatNumber } from '../../../../infrastructure/i18n/format';
 import { useAppSelector } from '../../../../application/redux';
 import { selectUser } from '../../../../application/redux';
 import type { Business } from '../../../../domain/types/business';
@@ -10,21 +12,9 @@ import './Orders.css';
 
 type FilterTab = 'all' | OrderStatus;
 
-interface StatusTabConfig {
-  key: FilterTab;
-  label: string;
-}
-
-const STATUS_TABS: StatusTabConfig[] = [
-  { key: 'all', label: 'All' },
-  { key: 'pending', label: 'Pending' },
-  { key: 'confirmed', label: 'Confirmed' },
-  { key: 'in_transit', label: 'In Transit' },
-  { key: 'delivered', label: 'Delivered' },
-  { key: 'cancelled', label: 'Cancelled' },
-];
-
 const Orders: React.FC = () => {
+  const { t } = useTranslation('translation', { keyPrefix: 'orders' });
+  const { t: commonT } = useTranslation('translation', { keyPrefix: 'common' });
   const user = useAppSelector(selectUser);
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -34,6 +24,15 @@ const Orders: React.FC = () => {
   const [showCancelInput, setShowCancelInput] = useState<number | null>(null);
   const [cancelReason, setCancelReason] = useState('');
   const [updatingOrderId, setUpdatingOrderId] = useState<number | null>(null);
+
+  const STATUS_TABS: { key: FilterTab; label: string }[] = [
+    { key: 'all', label: t('all') },
+    { key: 'pending', label: t('pending') },
+    { key: 'confirmed', label: t('confirmed') },
+    { key: 'in_transit', label: t('inTransit') },
+    { key: 'delivered', label: t('delivered') },
+    { key: 'cancelled', label: t('cancelled') },
+  ];
 
   // Load businesses and then orders for each
   const loadOrders = useCallback(async () => {
@@ -107,11 +106,11 @@ const Orders: React.FC = () => {
         setShowCancelInput(null);
         setCancelReason('');
       } else {
-        alert('Failed to update order status. Please try again.');
+        alert(t('updateFailed'));
       }
     } catch (error) {
       console.error('Failed to update order status:', error);
-      alert('Failed to update order status. Please try again.');
+      alert(t('updateFailed'));
     } finally {
       setUpdatingOrderId(null);
     }
@@ -128,35 +127,27 @@ const Orders: React.FC = () => {
     }
   };
 
-  // Format date
-  const formatDate = (dateStr: string): string => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  };
+
 
   // Format status label
   const formatStatus = (status: OrderStatus): string => {
-    return status.replace('_', ' ');
+    return t(status);
   };
 
   // Get business name by ID
   const getBusinessName = (businessId: number): string => {
     const business = businesses.find((b) => b.id === businessId);
-    return business?.title || `Business #${businessId}`;
+    return business?.title || t('businessName', { id: businessId });
   };
 
   if (isLoading) {
     return (
       <div className="dashboard-page fade-in">
         <div className="dashboard-page__header">
-          <h1 className="dashboard-page__title">Orders</h1>
+          <h1 className="dashboard-page__title">{t('title')}</h1>
         </div>
         <div className="dashboard-page__content">
-          <div className="loading-spinner">Loading orders...</div>
+          <div className="loading-spinner">{t('loading')}</div>
         </div>
       </div>
     );
@@ -165,9 +156,9 @@ const Orders: React.FC = () => {
   return (
     <div className="dashboard-page fade-in">
       <div className="dashboard-page__header">
-        <h1 className="dashboard-page__title">Orders</h1>
+        <h1 className="dashboard-page__title">{t('title')}</h1>
         <p className="dashboard-page__subtitle">
-          Manage incoming orders across all your businesses
+          {t('subtitle')}
         </p>
       </div>
 
@@ -197,11 +188,11 @@ const Orders: React.FC = () => {
             {filteredOrders.length === 0 ? (
               <div className="empty-state">
                 <div className="empty-state__content">
-                  <h3>No orders found</h3>
+                  <h3>{t('noOrdersFound')}</h3>
                   <p>
                     {activeFilter === 'all'
-                      ? 'You have no incoming orders yet.'
-                      : `No orders with status "${formatStatus(activeFilter as OrderStatus)}".`}
+                      ? t('noIncomingOrders')
+                      : t('noOrdersWithStatus', { status: formatStatus(activeFilter as OrderStatus) })}
                   </p>
                 </div>
               </div>
@@ -211,13 +202,13 @@ const Orders: React.FC = () => {
                   <table className="order-table">
                     <thead>
                       <tr>
-                        <th>Order #</th>
-                        <th>Buyer</th>
-                        <th>Business</th>
-                        <th>Items</th>
-                        <th>Total</th>
-                        <th>Status</th>
-                        <th>Date</th>
+                        <th>{t('orderNumber')}</th>
+                        <th>{t('buyer')}</th>
+                        <th>{t('business')}</th>
+                        <th>{t('items')}</th>
+                        <th>{t('total')}</th>
+                        <th>{t('status')}</th>
+                        <th>{t('date')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -235,13 +226,13 @@ const Orders: React.FC = () => {
                             <td>
                               {order.buyer
                                 ? `${order.buyer.firstname} ${order.buyer.lastname}`
-                                : `Buyer #${order.buyer_id}`}
+                                : t('buyerName', { id: order.buyer_id })}
                             </td>
                             <td>{getBusinessName(order.business_id)}</td>
                             <td>{order.items ? order.items.length : 0}</td>
                             <td>
                               <span className="order-amount">
-                                {order.currency} {Number(order.total_amount).toFixed(2)}
+                                {formatNumber(Number(order.total_amount), { style: 'currency', currency: order.currency })}
                               </span>
                             </td>
                             <td>
@@ -265,16 +256,16 @@ const Orders: React.FC = () => {
                                   <div className="order-detail__grid">
                                     {/* Order Items */}
                                     <div className="order-items-section">
-                                      <h4>Order Items</h4>
+                                      <h4>{t('orderItems')}</h4>
                                       {order.items && order.items.length > 0 ? (
                                         <table className="order-items-table">
                                           <thead>
                                             <tr>
-                                              <th>Product</th>
-                                              <th>Variant</th>
-                                              <th>Qty</th>
-                                              <th>Unit Price</th>
-                                              <th>Total</th>
+                                              <th>{t('product')}</th>
+                                              <th>{t('variant')}</th>
+                                              <th>{t('qty')}</th>
+                                              <th>{t('unitPrice')}</th>
+                                              <th>{t('total')}</th>
                                             </tr>
                                           </thead>
                                           <tbody>
@@ -282,21 +273,19 @@ const Orders: React.FC = () => {
                                               <tr key={item.id}>
                                                 <td>
                                                   {item.product?.title ||
-                                                    `Product #${item.product_id}`}
+                                                    t('productName', { id: item.product_id })}
                                                 </td>
                                                 <td>
                                                   {item.variant
                                                     ? `${item.variant.name}: ${item.variant.value}`
-                                                    : '-'}
+                                                    : t('noVariant')}
                                                 </td>
                                                 <td>{item.quantity}</td>
                                                 <td>
-                                                  {order.currency}{' '}
-                                                  {Number(item.unit_price).toFixed(2)}
+                                                  {formatNumber(Number(item.unit_price), { style: 'currency', currency: order.currency })}
                                                 </td>
                                                 <td>
-                                                  {order.currency}{' '}
-                                                  {Number(item.total_price).toFixed(2)}
+                                                  {formatNumber(Number(item.total_price), { style: 'currency', currency: order.currency })}
                                                 </td>
                                               </tr>
                                             ))}
@@ -304,32 +293,32 @@ const Orders: React.FC = () => {
                                         </table>
                                       ) : (
                                         <p className="order-info-value--muted">
-                                          No item details available.
+                                          {t('noItemDetails')}
                                         </p>
                                       )}
                                     </div>
 
                                     {/* Order Info */}
                                     <div className="order-info-section">
-                                      <h4>Order Details</h4>
+                                      <h4>{t('orderDetails')}</h4>
                                       <div className="order-info-item">
                                         <span className="order-info-label">
-                                          Shipping Address
+                                          {t('shippingAddress')}
                                         </span>
                                         <span className="order-info-value">
                                           {order.shipping_address || (
                                             <span className="order-info-value--muted">
-                                              Not provided
+                                              {t('notProvided')}
                                             </span>
                                           )}
                                         </span>
                                       </div>
                                       <div className="order-info-item">
-                                        <span className="order-info-label">Notes</span>
+                                        <span className="order-info-label">{t('notes')}</span>
                                         <span className="order-info-value">
                                           {order.notes || (
                                             <span className="order-info-value--muted">
-                                              No notes
+                                              {t('noNotes')}
                                             </span>
                                           )}
                                         </span>
@@ -337,7 +326,7 @@ const Orders: React.FC = () => {
                                       {order.cancelled_reason && (
                                         <div className="order-info-item">
                                           <span className="order-info-label">
-                                            Cancellation Reason
+                                            {t('cancellationReason')}
                                           </span>
                                           <span className="order-info-value">
                                             {order.cancelled_reason}
@@ -347,7 +336,7 @@ const Orders: React.FC = () => {
                                       {order.confirmed_at && (
                                         <div className="order-info-item">
                                           <span className="order-info-label">
-                                            Confirmed At
+                                            {t('confirmedAt')}
                                           </span>
                                           <span className="order-info-value">
                                             {formatDate(order.confirmed_at)}
@@ -357,7 +346,7 @@ const Orders: React.FC = () => {
                                       {order.shipped_at && (
                                         <div className="order-info-item">
                                           <span className="order-info-label">
-                                            Shipped At
+                                            {t('shippedAt')}
                                           </span>
                                           <span className="order-info-value">
                                             {formatDate(order.shipped_at)}
@@ -367,7 +356,7 @@ const Orders: React.FC = () => {
                                       {order.delivered_at && (
                                         <div className="order-info-item">
                                           <span className="order-info-label">
-                                            Delivered At
+                                            {t('deliveredAt')}
                                           </span>
                                           <span className="order-info-value">
                                             {formatDate(order.delivered_at)}
@@ -389,15 +378,15 @@ const Orders: React.FC = () => {
                                           disabled={updatingOrderId === order.id}
                                         >
                                           {updatingOrderId === order.id
-                                            ? 'Updating...'
-                                            : 'Confirm Order'}
+                                            ? commonT('updating')
+                                            : t('confirmOrder')}
                                         </Button>
                                         <Button
                                           variant="secondary"
                                           onClick={() => handleCancelOrder(order.id)}
                                           disabled={updatingOrderId === order.id}
                                         >
-                                          Cancel Order
+                                          {t('cancelOrder')}
                                         </Button>
                                       </>
                                     )}
@@ -411,15 +400,15 @@ const Orders: React.FC = () => {
                                           disabled={updatingOrderId === order.id}
                                         >
                                           {updatingOrderId === order.id
-                                            ? 'Updating...'
-                                            : 'Mark as Shipped'}
+                                            ? commonT('updating')
+                                            : t('markAsShipped')}
                                         </Button>
                                         <Button
                                           variant="secondary"
                                           onClick={() => handleCancelOrder(order.id)}
                                           disabled={updatingOrderId === order.id}
                                         >
-                                          Cancel Order
+                                          {t('cancelOrder')}
                                         </Button>
                                       </>
                                     )}
@@ -432,14 +421,14 @@ const Orders: React.FC = () => {
                                         disabled={updatingOrderId === order.id}
                                       >
                                         {updatingOrderId === order.id
-                                          ? 'Updating...'
-                                          : 'Mark as Delivered'}
+                                          ? commonT('updating')
+                                          : t('markAsDelivered')}
                                       </Button>
                                     )}
                                     {(order.status === 'delivered' ||
                                       order.status === 'cancelled') && (
                                       <span className="order-info-value--muted">
-                                        No actions available for this order.
+                                        {t('noActionsAvailable')}
                                       </span>
                                     )}
                                   </div>
@@ -447,11 +436,11 @@ const Orders: React.FC = () => {
                                   {/* Cancel Reason Input */}
                                   {showCancelInput === order.id && (
                                     <div className="cancel-reason-section">
-                                      <label>Reason for cancellation (optional):</label>
+                                      <label>{t('cancelReasonLabel')}</label>
                                       <textarea
                                         value={cancelReason}
                                         onChange={(e) => setCancelReason(e.target.value)}
-                                        placeholder="Enter reason for cancellation..."
+                                        placeholder={t('cancelReasonPlaceholder')}
                                       />
                                       <div className="cancel-reason-actions">
                                         <Button
@@ -466,8 +455,8 @@ const Orders: React.FC = () => {
                                           disabled={updatingOrderId === order.id}
                                         >
                                           {updatingOrderId === order.id
-                                            ? 'Cancelling...'
-                                            : 'Confirm Cancellation'}
+                                            ? t('cancelling')
+                                            : t('confirmCancellation')}
                                         </Button>
                                         <Button
                                           variant="secondary"
@@ -476,7 +465,7 @@ const Orders: React.FC = () => {
                                             setCancelReason('');
                                           }}
                                         >
-                                          Dismiss
+                                          {t('dismiss')}
                                         </Button>
                                       </div>
                                     </div>
@@ -492,9 +481,10 @@ const Orders: React.FC = () => {
                 </div>
                 <div className="table-summary">
                   <p>
-                    Showing {filteredOrders.length} order
-                    {filteredOrders.length !== 1 ? 's' : ''}
-                    {activeFilter !== 'all' && ` (filtered by ${formatStatus(activeFilter as OrderStatus)})`}
+                    {filteredOrders.length === 1
+                      ? t('showingOrders', { count: filteredOrders.length })
+                      : t('showingOrdersPlural', { count: filteredOrders.length })}
+                    {activeFilter !== 'all' && t('filteredBy', { status: formatStatus(activeFilter as OrderStatus) })}
                   </p>
                 </div>
               </div>

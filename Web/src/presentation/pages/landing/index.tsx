@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import type { CSSProperties } from 'react';
 import { businessService } from '../../../infrastructure/api/businessService';
+import { formatNumber } from '../../../infrastructure/i18n/format';
 import { TMBadge, TMButton, TMCard, TMSkeleton } from '../../components';
 import type { Business } from '../../../domain/types/business';
 import './Landing.css';
 
 const TMLanding: React.FC = () => {
+  const { t, i18n } = useTranslation('translation', { keyPrefix: 'landing' });
+  const { t: commonT } = useTranslation('translation', { keyPrefix: 'common' });
   const navigate = useNavigate();
   const [featuredBusinesses, setFeaturedBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,23 +45,23 @@ const TMLanding: React.FC = () => {
   const features = [
     {
       icon: '📍',
-      title: 'Map-Based Discovery',
-      desc: 'Explore businesses on an interactive map and find local gems near you.',
+      titleKey: 'featureMapDiscoveryTitle',
+      descKey: 'featureMapDiscoveryDesc',
     },
     {
       icon: '🏪',
-      title: 'Business Profiles',
-      desc: 'Rich profiles with photos, contact info, hours, and customer reviews.',
+      titleKey: 'featureBusinessProfilesTitle',
+      descKey: 'featureBusinessProfilesDesc',
     },
     {
       icon: '📱',
-      title: 'Mobile App',
-      desc: 'Browse and connect with businesses on the go with our Android app.',
+      titleKey: 'featureMobileAppTitle',
+      descKey: 'featureMobileAppDesc',
     },
     {
       icon: '⭐',
-      title: 'Reviews & Ratings',
-      desc: 'Build trust with verified reviews from the community.',
+      titleKey: 'featureReviewsTitle',
+      descKey: 'featureReviewsDesc',
     },
   ];
 
@@ -67,21 +72,37 @@ const TMLanding: React.FC = () => {
         <div className="landing__header-inner">
           <div className="landing__logo">🏪 TradeMaster</div>
           <nav className="landing__nav">
-            <a href="#features" className="landing__nav-link">Features</a>
-            <a href="#how-it-works" className="landing__nav-link">How It Works</a>
-            <a href="#businesses" className="landing__nav-link">Businesses</a>
+            <a href="#features" className="landing__nav-link">{t('features')}</a>
+            <a href="#how-it-works" className="landing__nav-link">{t('howItWorks')}</a>
+            <a href="#businesses" className="landing__nav-link">{t('businessesNav')}</a>
+            <div className="landing__language-switcher">
+              <button
+                type="button"
+                className={`landing__language-btn${i18n.language === 'fa' ? ' landing__language-btn--active' : ''}`}
+                onClick={() => i18n.changeLanguage('fa')}
+              >
+                فارسی
+              </button>
+              <button
+                type="button"
+                className={`landing__language-btn${i18n.language === 'en' ? ' landing__language-btn--active' : ''}`}
+                onClick={() => i18n.changeLanguage('en')}
+              >
+                English
+              </button>
+            </div>
             <TMButton
               variant="outline"
               onClick={() => navigate('/signin')}
               style={{ minHeight: '40px', padding: '8px 16px' }}
             >
-              Sign In
+              {commonT('signIn')}
             </TMButton>
             <TMButton
               onClick={() => navigate('/signup')}
               style={{ minHeight: '40px', padding: '8px 16px' }}
             >
-              Get Started
+              {commonT('getStarted')}
             </TMButton>
           </nav>
         </div>
@@ -91,16 +112,15 @@ const TMLanding: React.FC = () => {
       <section className="landing__hero">
         <div className="landing__hero-content">
           <h1 className="landing__hero-title">
-            Discover Local<br />
-            <span className="landing__hero-highlight">Businesses</span>
+            {t('heroTitle')}<br />
+            <span className="landing__hero-highlight">{t('heroHighlight')}</span>
           </h1>
           <p className="landing__hero-subtitle">
-            TradeMaster connects you with local businesses on an interactive map.
-            Find shops, services, and trusted sellers near you.
+            {t('heroSubtitle')}
           </p>
           <div className="landing__hero-actions">
             <TMButton onClick={() => navigate('/signup')}>
-              Join Free
+              {commonT('joinFree')}
             </TMButton>
             <TMButton
               variant="outline"
@@ -109,33 +129,33 @@ const TMLanding: React.FC = () => {
                 el?.scrollIntoView({ behavior: 'smooth' });
               }}
             >
-              Learn More
+              {commonT('learnMore')}
             </TMButton>
           </div>
           <div className="landing__hero-stats">
             <div className="landing__stat">
-              <span className="landing__stat-number">{stats.businesses}+</span>
-              <span className="landing__stat-label">Businesses</span>
+              <span className="landing__stat-number">{formatNumber(stats.businesses)}+</span>
+              <span className="landing__stat-label">{t('statBusinesses')}</span>
             </div>
             <div className="landing__stat">
-              <span className="landing__stat-number">{stats.cities}+</span>
-              <span className="landing__stat-label">Cities</span>
+              <span className="landing__stat-number">{formatNumber(stats.cities)}+</span>
+              <span className="landing__stat-label">{t('statCities')}</span>
             </div>
           </div>
         </div>
         <div className="landing__hero-visual">
           <TMCard glassmorphic style={{ height: '100%', padding: '24px' }}>
             <div className="landing__hero-map">
-              <div className="landing__hero-map-marker" style={{ top: '30%', left: '25%' }}>
+              <div className="landing__hero-map-marker floating-pin" style={{ top: '30%', '--pin-inline': '25%' } as CSSProperties}>
                 🍽️
               </div>
-              <div className="landing__hero-map-marker" style={{ top: '55%', left: '60%' }}>
+              <div className="landing__hero-map-marker floating-pin" style={{ top: '55%', '--pin-inline': '60%' } as CSSProperties}>
                 💈
               </div>
-              <div className="landing__hero-map-marker" style={{ top: '70%', left: '35%' }}>
+              <div className="landing__hero-map-marker floating-pin" style={{ top: '70%', '--pin-inline': '35%' } as CSSProperties}>
                 🏥
               </div>
-              <div className="landing__hero-map-marker" style={{ top: '40%', left: '75%' }}>
+              <div className="landing__hero-map-marker floating-pin" style={{ top: '40%', '--pin-inline': '75%' } as CSSProperties}>
                 🛒
               </div>
             </div>
@@ -146,16 +166,16 @@ const TMLanding: React.FC = () => {
       {/* Features */}
       <section className="landing__features" id="features">
         <div className="landing__section-inner">
-          <h2 className="landing__section-title">Why TradeMaster?</h2>
+          <h2 className="landing__section-title">{t('whyTitle')}</h2>
           <p className="landing__section-subtitle">
-            A modern business directory designed for local discovery
+            {t('whySubtitle')}
           </p>
           <div className="landing__features-grid stagger">
             {features.map((f) => (
-              <TMCard key={f.title} style={{ padding: '24px' }}>
+              <TMCard key={f.titleKey} style={{ padding: '24px' }}>
                 <div className="landing__feature-icon">{f.icon}</div>
-                <h3 className="landing__feature-title">{f.title}</h3>
-                <p className="landing__feature-desc">{f.desc}</p>
+                <h3 className="landing__feature-title">{t(f.titleKey)}</h3>
+                <p className="landing__feature-desc">{t(f.descKey)}</p>
               </TMCard>
             ))}
           </div>
@@ -165,19 +185,19 @@ const TMLanding: React.FC = () => {
       {/* How it Works */}
       <section className="landing__how-it-works" id="how-it-works">
         <div className="landing__section-inner">
-          <h2 className="landing__section-title">How It Works</h2>
-          <p className="landing__section-subtitle">Get started in three simple steps</p>
+          <h2 className="landing__section-title">{t('howItWorksTitle')}</h2>
+          <p className="landing__section-subtitle">{t('howItWorksSubtitle')}</p>
           <div className="landing__steps">
             {[
-              { num: '1', title: 'Create Your Account', desc: 'Sign up for free and set up your profile in seconds.' },
-              { num: '2', title: 'Register Your Business', desc: 'Add your business with location, photos, and contact info.' },
-              { num: '3', title: 'Get Discovered', desc: 'Appear on the map and connect with local customers.' },
+              { num: '1', titleKey: 'step1Title', descKey: 'step1Desc' },
+              { num: '2', titleKey: 'step2Title', descKey: 'step2Desc' },
+              { num: '3', titleKey: 'step3Title', descKey: 'step3Desc' },
             ].map((step, idx, arr) => (
               <React.Fragment key={step.num}>
                 <div className="landing__step">
                   <div className="landing__step-number">{step.num}</div>
-                  <h3 className="landing__step-title">{step.title}</h3>
-                  <p className="landing__step-desc">{step.desc}</p>
+                  <h3 className="landing__step-title">{t(step.titleKey)}</h3>
+                  <p className="landing__step-desc">{t(step.descKey)}</p>
                 </div>
                 {idx < arr.length - 1 && <div className="landing__step-connector" />}
               </React.Fragment>
@@ -189,8 +209,8 @@ const TMLanding: React.FC = () => {
       {/* Featured Businesses */}
       <section className="landing__businesses" id="businesses">
         <div className="landing__section-inner">
-          <h2 className="landing__section-title">Featured Businesses</h2>
-          <p className="landing__section-subtitle">Discover what's available on the platform</p>
+          <h2 className="landing__section-title">{t('featuredBusinessesTitle')}</h2>
+          <p className="landing__section-subtitle">{t('featuredBusinessesSubtitle')}</p>
           {loading ? (
             <div className="landing__businesses-grid stagger">
               {Array.from({ length: 3 }).map((_, i) => (
@@ -225,15 +245,18 @@ const TMLanding: React.FC = () => {
                     </p>
                   )}
                   {business.address && (
-                    <div className="landing__business-location">📍 {business.address}</div>
+                    <div className="landing__business-location">
+                      <span>📍</span>
+                      <span dir="auto">{business.address}</span>
+                    </div>
                   )}
                 </TMCard>
               ))}
             </div>
           ) : (
             <div className="landing__businesses-empty">
-              <p>No businesses registered yet. Be the first!</p>
-              <TMButton onClick={() => navigate('/signup')}>Register Your Business</TMButton>
+              <p>{t('noBusinessesYet')}</p>
+              <TMButton onClick={() => navigate('/signup')}>{t('registerYourBusiness')}</TMButton>
             </div>
           )}
         </div>
@@ -242,15 +265,15 @@ const TMLanding: React.FC = () => {
       {/* CTA */}
       <section className="landing__cta">
         <div className="landing__section-inner">
-          <h2 className="landing__cta-title">Ready to Grow Your Business?</h2>
+          <h2 className="landing__cta-title">{t('ctaTitle')}</h2>
           <p className="landing__cta-subtitle">
-            Join TradeMaster today and reach local customers in your area.
+            {t('ctaSubtitle')}
           </p>
           <TMButton
             onClick={() => navigate('/signup')}
-            style={{ background: '#fff', color: 'var(--color-primary)' }}
+            style={{ background: 'var(--color-surface)', color: 'var(--color-primary)' }}
           >
-            Create Free Account
+            {t('createFreeAccount')}
           </TMButton>
         </div>
       </section>
@@ -261,25 +284,25 @@ const TMLanding: React.FC = () => {
           <div className="landing__footer-brand">
             <div className="landing__logo">🏪 TradeMaster</div>
             <p className="landing__footer-tagline">
-              Connecting local businesses with their community.
+              {t('footerTagline')}
             </p>
           </div>
           <div className="landing__footer-links">
             <div className="landing__footer-col">
-              <h4>Platform</h4>
-              <a href="#features">Features</a>
-              <a href="#how-it-works">How It Works</a>
-              <a href="#businesses">Businesses</a>
+              <h4>{t('footerPlatform')}</h4>
+              <a href="#features">{t('features')}</a>
+              <a href="#how-it-works">{t('howItWorks')}</a>
+              <a href="#businesses">{t('businessesNav')}</a>
             </div>
             <div className="landing__footer-col">
-              <h4>Account</h4>
-              <a href="/signin">Sign In</a>
-              <a href="/signup">Sign Up</a>
+              <h4>{t('footerAccount')}</h4>
+              <a href="/signin">{commonT('signIn')}</a>
+              <a href="/signup">{commonT('signUp')}</a>
             </div>
           </div>
         </div>
         <div className="landing__footer-bottom">
-          <p>&copy; {new Date().getFullYear()} TradeMaster. All rights reserved.</p>
+          <p>{t('footerCopyright', { year: new Date().getFullYear() })}</p>
         </div>
       </footer>
     </div>

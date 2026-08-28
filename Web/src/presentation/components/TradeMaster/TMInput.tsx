@@ -56,7 +56,7 @@ const TMInput: React.FC<TMInputProps> = ({
         }}
         onFocus={(e) => {
           e.currentTarget.style.borderColor = 'var(--color-primary)';
-          e.currentTarget.style.boxShadow = '0 0 0 3px rgba(255, 107, 107, 0.12)';
+          e.currentTarget.style.boxShadow = '0 0 0 3px var(--color-primary-mix-12)';
         }}
         onBlur={(e) => {
           e.currentTarget.style.borderColor = error ? 'var(--color-error)' : 'var(--color-border)';

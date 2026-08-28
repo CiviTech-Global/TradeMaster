@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button, Input } from '../../../components';
 import { productService } from '../../../../infrastructure/api/productService';
 import { categoryService } from '../../../../infrastructure/api/categoryService';
 import { uploadService } from '../../../../infrastructure/api/uploadService';
+import { formatNumber } from '../../../../infrastructure/i18n/format';
 import type {
   Product,
   CreateProductRequest,
@@ -48,6 +50,8 @@ const emptyVariant: VariantFormData = {
 };
 
 const Products: React.FC = () => {
+  const { t } = useTranslation('translation', { keyPrefix: 'products' });
+  const { t: commonT } = useTranslation('translation', { keyPrefix: 'common' });
   const { businessId } = useParams<{ businessId: string }>();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -181,7 +185,7 @@ const Products: React.FC = () => {
 
   const handleRemoveExistingImage = async (image: ProductImage) => {
     if (!editingProduct) return;
-    const confirmed = window.confirm('Are you sure you want to delete this image?');
+    const confirmed = window.confirm(t('imageDeleteConfirm'));
     if (!confirmed) return;
 
     try {
@@ -189,11 +193,11 @@ const Products: React.FC = () => {
       if (success) {
         setExistingImages(prev => prev.filter(img => img.id !== image.id));
       } else {
-        alert('Failed to delete image.');
+        alert(t('deleteImageFailed'));
       }
     } catch (error) {
       console.error('Failed to delete image:', error);
-      alert('Failed to delete image.');
+      alert(t('deleteImageFailed'));
     }
   };
 
@@ -215,16 +219,16 @@ const Products: React.FC = () => {
   // Validate form
   const validateForm = (): string[] => {
     const errors: string[] = [];
-    if (!formData.title.trim()) errors.push('Product title is required.');
+    if (!formData.title.trim()) errors.push(t('titleRequired'));
     const price = parseFloat(formData.price);
-    if (isNaN(price) || price < 0) errors.push('A valid price is required.');
+    if (isNaN(price) || price < 0) errors.push(t('priceInvalid'));
     const stock = parseInt(formData.stock_quantity, 10);
-    if (isNaN(stock) || stock < 0) errors.push('A valid stock quantity is required.');
+    if (isNaN(stock) || stock < 0) errors.push(t('stockInvalid'));
 
     for (let i = 0; i < variants.length; i++) {
       const v = variants[i];
-      if (!v.name.trim()) errors.push(`Variant ${i + 1}: name is required.`);
-      if (!v.value.trim()) errors.push(`Variant ${i + 1}: value is required.`);
+      if (!v.name.trim()) errors.push(t('variantNameRequired', { index: i + 1 }));
+      if (!v.value.trim()) errors.push(t('variantValueRequired', { index: i + 1 }));
     }
     return errors;
   };
@@ -312,17 +316,17 @@ const Products: React.FC = () => {
           await productService.uploadProductImages(product.id, newImageFiles);
         } catch (err) {
           console.error('Image upload failed:', err);
-          alert('Product saved but image upload failed. You can add images later.');
+          alert(t('imageUploadFailed'));
         }
       }
 
       await loadProducts();
       setShowForm(false);
       resetForm();
-      alert(editingProduct ? 'Product updated successfully!' : 'Product created successfully!');
+      alert(editingProduct ? t('productUpdated') : t('productCreated'));
     } catch (error) {
       console.error('Failed to save product:', error);
-      alert('Failed to save product. Please try again.');
+      alert(t('saveFailed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -330,18 +334,18 @@ const Products: React.FC = () => {
 
   // Delete product
   const handleDeleteProduct = async (id: number) => {
-    if (!window.confirm('Are you sure you want to delete this product?')) return;
+    if (!window.confirm(t('deleteConfirm'))) return;
     try {
       const success = await productService.deleteProduct(id);
       if (success) {
         setProducts(prev => prev.filter(p => p.id !== id));
-        alert('Product deleted successfully!');
+        alert(t('productDeleted'));
       } else {
-        alert('Failed to delete product. Please try again.');
+        alert(t('deleteFailed'));
       }
     } catch (error) {
       console.error('Failed to delete product:', error);
-      alert('Failed to delete product. Please try again.');
+      alert(t('deleteFailed'));
     }
   };
 
@@ -353,8 +357,8 @@ const Products: React.FC = () => {
   };
 
   const getStockLabel = (qty: number): string => {
-    if (qty <= 0) return 'Out of stock';
-    if (qty <= 10) return `Low (${qty})`;
+    if (qty <= 0) return t('outOfStock');
+    if (qty <= 10) return t('lowStock', { count: qty });
     return qty.toString();
   };
 
@@ -374,9 +378,9 @@ const Products: React.FC = () => {
     return (
       <div className="dashboard-page fade-in">
         <div className="dashboard-page__content">
-          <p>Invalid business ID.</p>
+          <p>{t('invalidBusinessId')}</p>
           <button className="products-back-link" onClick={() => navigate('/dashboard/my-businesses')}>
-            Back to My Businesses
+            {t('backToMyBusinesses')}
           </button>
         </div>
       </div>
@@ -387,10 +391,10 @@ const Products: React.FC = () => {
     return (
       <div className="dashboard-page fade-in">
         <div className="dashboard-page__header">
-          <h1 className="dashboard-page__title">Products</h1>
+          <h1 className="dashboard-page__title">{t('title')}</h1>
         </div>
         <div className="dashboard-page__content">
-          <div className="loading-spinner">Loading products...</div>
+          <div className="loading-spinner">{t('loading')}</div>
         </div>
       </div>
     );
@@ -403,15 +407,15 @@ const Products: React.FC = () => {
           className="products-back-link"
           onClick={() => navigate('/dashboard/my-businesses')}
         >
-          &larr; Back to My Businesses
+          {t('backToMyBusinesses')}
         </button>
-        <h1 className="dashboard-page__title">Products</h1>
+        <h1 className="dashboard-page__title">{t('title')}</h1>
         <p className="dashboard-page__subtitle">
-          Manage products for this business
+          {t('subtitle')}
         </p>
         <div className="dashboard-page__actions">
           <Button variant="primary" onClick={handleOpenCreate}>
-            Add New Product
+            {t('addNewProduct')}
           </Button>
         </div>
       </div>
@@ -421,32 +425,32 @@ const Products: React.FC = () => {
         {showForm && (
           <div className="product-creation-section">
             <div className="product-creation__header">
-              <h2>{editingProduct ? 'Edit Product' : 'Create New Product'}</h2>
+              <h2>{editingProduct ? t('editProduct') : t('createNewProduct')}</h2>
               <Button variant="secondary" onClick={handleCancel}>
-                Cancel
+                {commonT('cancel')}
               </Button>
             </div>
 
             <form className="product-creation__form" onSubmit={handleSubmit}>
               {/* Basic Info */}
               <div className="form-section">
-                <h4>Basic Information</h4>
+                <h4>{t('basicInformation')}</h4>
                 <div className="product-form-grid">
                   <div className="form-row form-row--full">
                     <Input
-                      label="Title"
+                      label={t('productTitle')}
                       type="text"
-                      placeholder="Product title"
+                      placeholder={t('productTitlePlaceholder')}
                       value={formData.title}
                       onChange={(e) => handleFormChange('title', e.target.value)}
                       required
                     />
                   </div>
                   <div className="form-row form-row--full">
-                    <label className="input-label">Description</label>
+                    <label className="input-label">{t('description')}</label>
                     <textarea
                       className="form-textarea"
-                      placeholder="Product description"
+                      placeholder={t('descriptionPlaceholder')}
                       value={formData.description}
                       onChange={(e) => handleFormChange('description', e.target.value)}
                       rows={3}
@@ -454,16 +458,16 @@ const Products: React.FC = () => {
                   </div>
                   <div className="form-row">
                     <Input
-                      label="Price"
+                      label={t('price')}
                       type="number"
-                      placeholder="0.00"
+                      placeholder={t('pricePlaceholder')}
                       value={formData.price}
                       onChange={(e) => handleFormChange('price', e.target.value)}
                       required
                     />
                   </div>
                   <div className="form-row">
-                    <label className="input-label">Currency</label>
+                    <label className="input-label">{t('currency')}</label>
                     <select
                       className="category-select"
                       value={formData.currency}
@@ -478,21 +482,21 @@ const Products: React.FC = () => {
                   </div>
                   <div className="form-row">
                     <Input
-                      label="Stock Quantity"
+                      label={t('stockQuantity')}
                       type="number"
-                      placeholder="0"
+                      placeholder={t('stockPlaceholder')}
                       value={formData.stock_quantity}
                       onChange={(e) => handleFormChange('stock_quantity', e.target.value)}
                     />
                   </div>
                   <div className="form-row">
-                    <label className="input-label">Category</label>
+                    <label className="input-label">{commonT('category')}</label>
                     <select
                       className="category-select"
                       value={formData.category_id}
                       onChange={(e) => handleFormChange('category_id', e.target.value)}
                     >
-                      <option value="">-- No Category --</option>
+                      <option value="">{commonT('noCategory')}</option>
                       {categories.map(cat => (
                         <option key={cat.id} value={cat.id.toString()}>
                           {cat.name}
@@ -507,7 +511,7 @@ const Products: React.FC = () => {
                         checked={formData.is_active}
                         onChange={(e) => handleFormChange('is_active', e.target.checked)}
                       />
-                      Active (visible to buyers)
+                      {t('activeVisible')}
                     </label>
                   </div>
                 </div>
@@ -515,19 +519,19 @@ const Products: React.FC = () => {
 
               {/* Images */}
               <div className="image-upload-section">
-                <h4>Product Images</h4>
+                <h4>{t('productImages')}</h4>
 
                 {/* Existing images (edit mode) */}
                 {existingImages.length > 0 && (
                   <div className="image-preview-grid">
                     {existingImages.map(img => (
                       <div key={img.id} className="image-preview-item">
-                        <img src={getImageUrl(img.url)} alt={img.alt_text || 'Product image'} />
+                        <img src={getImageUrl(img.url)} alt={img.alt_text || t('productImages')} />
                         <button
                           type="button"
                           className="image-preview-remove"
                           onClick={() => handleRemoveExistingImage(img)}
-                          title="Remove image"
+                          title={t('removeImage')}
                         >
                           X
                         </button>
@@ -546,7 +550,7 @@ const Products: React.FC = () => {
                           type="button"
                           className="image-preview-remove"
                           onClick={() => handleRemoveNewImage(index)}
-                          title="Remove image"
+                          title={t('removeImage')}
                         >
                           X
                         </button>
@@ -559,8 +563,8 @@ const Products: React.FC = () => {
                   className="image-upload-area"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  <span>Click to upload images</span>
-                  <p>PNG, JPG, WEBP up to 5MB each</p>
+                  <span>{t('uploadImages')}</span>
+                  <p>{t('uploadImagesHint')}</p>
                 </div>
                 <input
                   ref={fileInputRef}
@@ -574,32 +578,32 @@ const Products: React.FC = () => {
 
               {/* Variants */}
               <div className="variant-section">
-                <h4>Product Variants</h4>
+                <h4>{t('productVariants')}</h4>
                 {variants.length > 0 && (
                   <div className="variant-list">
                     {variants.map((variant, index) => (
                       <div key={index} className="variant-item">
                         <input
                           type="text"
-                          placeholder="Name (e.g. Size)"
+                          placeholder={t('variantNamePlaceholder')}
                           value={variant.name}
                           onChange={(e) => handleVariantChange(index, 'name', e.target.value)}
                         />
                         <input
                           type="text"
-                          placeholder="Value (e.g. Large)"
+                          placeholder={t('variantValuePlaceholder')}
                           value={variant.value}
                           onChange={(e) => handleVariantChange(index, 'value', e.target.value)}
                         />
                         <input
                           type="number"
-                          placeholder="Price +/-"
+                          placeholder={t('variantPriceModifierPlaceholder')}
                           value={variant.price_modifier}
                           onChange={(e) => handleVariantChange(index, 'price_modifier', e.target.value)}
                         />
                         <input
                           type="number"
-                          placeholder="Stock"
+                          placeholder={t('variantStockPlaceholder')}
                           value={variant.stock_quantity}
                           onChange={(e) => handleVariantChange(index, 'stock_quantity', e.target.value)}
                         />
@@ -608,21 +612,21 @@ const Products: React.FC = () => {
                           className="variant-remove-btn"
                           onClick={() => handleRemoveVariant(index)}
                         >
-                          Remove
+                          {t('remove')}
                         </button>
                       </div>
                     ))}
                   </div>
                 )}
                 <button type="button" className="variant-add-btn" onClick={handleAddVariant}>
-                  + Add Variant
+                  {t('addVariant')}
                 </button>
               </div>
 
               {/* Errors */}
               {formErrors.length > 0 && (
                 <div className="form-errors">
-                  <h5>Please fix the following errors:</h5>
+                  <h5>{t('fixErrors')}</h5>
                   <ul>
                     {formErrors.map((err, i) => (
                       <li key={i}>{err}</li>
@@ -634,14 +638,14 @@ const Products: React.FC = () => {
               {/* Actions */}
               <div className="form-actions">
                 <Button variant="secondary" onClick={handleCancel}>
-                  Cancel
+                  {commonT('cancel')}
                 </Button>
                 <Button variant="primary" type="submit" disabled={isSubmitting}>
                   {isSubmitting
-                    ? 'Saving...'
+                    ? t('saving')
                     : editingProduct
-                    ? 'Update Product'
-                    : 'Create Product'}
+                    ? t('updateProduct')
+                    : t('createProduct')}
                 </Button>
               </div>
             </form>
@@ -653,14 +657,14 @@ const Products: React.FC = () => {
           <div className="businesses-section">
             <div className="businesses-table-section">
               <div className="businesses-header">
-                <h3>Products ({products.length})</h3>
+                <h3>{t('productsCount', { count: products.length })}</h3>
               </div>
 
               {products.length === 0 ? (
                 <div className="empty-state">
                   <div className="empty-state__content">
-                    <h3>No products yet</h3>
-                    <p>Click "Add New Product" to create your first product.</p>
+                    <h3>{t('noProductsYet')}</h3>
+                    <p>{t('createFirstProduct')}</p>
                   </div>
                 </div>
               ) : (
@@ -669,12 +673,12 @@ const Products: React.FC = () => {
                     <table className="product-table">
                       <thead>
                         <tr>
-                          <th>Product</th>
-                          <th>Price</th>
-                          <th>Stock</th>
-                          <th>Category</th>
-                          <th>Status</th>
-                          <th>Actions</th>
+                          <th>{t('productTitle')}</th>
+                          <th>{t('price')}</th>
+                          <th>{t('stockQuantity')}</th>
+                          <th>{commonT('category')}</th>
+                          <th>{commonT('status')}</th>
+                          <th>{commonT('actions')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -701,7 +705,7 @@ const Products: React.FC = () => {
                               </td>
                               <td>
                                 <span className="product-price">
-                                  {product.currency} {Number(product.price).toFixed(2)}
+                                  {formatNumber(Number(product.price), { style: 'currency', currency: product.currency || 'USD' })}
                                 </span>
                               </td>
                               <td>
@@ -714,16 +718,16 @@ const Products: React.FC = () => {
                               </td>
                               <td>
                                 <span className={`status-badge ${product.is_active ? 'active' : 'inactive'}`}>
-                                  {product.is_active ? 'Active' : 'Inactive'}
+                                  {product.is_active ? commonT('active') : commonT('inactive')}
                                 </span>
                               </td>
                               <td>
                                 <div className="table-actions">
                                   <Button variant="secondary" onClick={() => handleOpenEdit(product)}>
-                                    Edit
+                                    {commonT('edit')}
                                   </Button>
                                   <Button variant="secondary" onClick={() => handleDeleteProduct(product.id)}>
-                                    Delete
+                                    {commonT('delete')}
                                   </Button>
                                 </div>
                               </td>
@@ -735,9 +739,11 @@ const Products: React.FC = () => {
                   </div>
                   <div className="table-summary">
                     <p>
-                      Showing {products.length} product{products.length !== 1 ? 's' : ''}
+                      {products.length === 1
+                        ? t('showingProducts', { count: products.length })
+                        : t('showingProductsPlural', { count: products.length })}
                       {products.filter(p => p.is_active).length > 0 && (
-                        <span> &bull; {products.filter(p => p.is_active).length} active</span>
+                        <span> • {t('activeCount', { count: products.filter(p => p.is_active).length })}</span>
                       )}
                     </p>
                   </div>

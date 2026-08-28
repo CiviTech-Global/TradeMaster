@@ -128,6 +128,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
     required String lastname,
     required String email,
     required String password,
+    required bool consentGiven,
+    String? privacyPolicyVersion,
+    String? termsVersion,
   }) async {
     developer.log('AuthNotifier.signUp: starting for $email');
     state = state.copyWith(isLoading: true, error: null);
@@ -137,6 +140,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
         lastname: lastname,
         email: email,
         password: password,
+        consentGiven: consentGiven,
+        privacyPolicyVersion: privacyPolicyVersion,
+        termsVersion: termsVersion,
       );
       developer.log('AuthNotifier.signUp: success');
       state = AuthState(

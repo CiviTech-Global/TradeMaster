@@ -1,4 +1,5 @@
 import React, { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../application/hooks/useAuth';
 
@@ -11,6 +12,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   redirectTo = '/signin'
 }) => {
+  const { t } = useTranslation('translation', { keyPrefix: 'common' });
   const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
 
@@ -22,9 +24,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         alignItems: 'center',
         height: '100vh',
         fontSize: '18px',
-        color: '#666'
+        color: 'var(--color-text-tertiary)'
       }}>
-        Loading...
+        {t('loading')}
       </div>
     );
   }

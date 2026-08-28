@@ -1,4 +1,5 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
+import { InternalError } from "../../infrastructure.layer/errors/app-error";
 import {
   getBusinessReviewsQuery,
   getProductReviewsQuery,
@@ -11,8 +12,9 @@ import {
   verifyOrderDelivered,
 } from "../../infrastructure.layer/utils/review.util";
 import { AuthenticatedRequest } from "../../infrastructure.layer/utils/jwt.util";
+import { logger } from "../../infrastructure.layer/utils/logger.util";
 
-export async function getBusinessReviews(req: Request, res: Response) {
+export async function getBusinessReviews(req: Request, res: Response, next: NextFunction) {
   try {
     const businessId = parseInt(req.params.businessId, 10);
     if (isNaN(businessId)) return res.status(400).json({ error: "Invalid business ID" });
@@ -25,12 +27,12 @@ export async function getBusinessReviews(req: Request, res: Response) {
 
     res.json({ ...result, stats, message: "Reviews retrieved successfully" });
   } catch (error) {
-    console.error("Error fetching business reviews:", error);
-    res.status(500).json({ error: "Failed to get reviews" });
+    logger.error("REVIEW", "Error fetching business reviews", error);
+    next(new InternalError("Failed to get reviews"));
   }
 }
 
-export async function getProductReviews(req: Request, res: Response) {
+export async function getProductReviews(req: Request, res: Response, next: NextFunction) {
   try {
     const productId = parseInt(req.params.productId, 10);
     if (isNaN(productId)) return res.status(400).json({ error: "Invalid product ID" });
@@ -41,12 +43,12 @@ export async function getProductReviews(req: Request, res: Response) {
     const result = await getProductReviewsQuery(productId, page, limit);
     res.json({ ...result, message: "Reviews retrieved successfully" });
   } catch (error) {
-    console.error("Error fetching product reviews:", error);
-    res.status(500).json({ error: "Failed to get reviews" });
+    logger.error("REVIEW", "Error fetching product reviews", error);
+    next(new InternalError("Failed to get reviews"));
   }
 }
 
-export async function createReview(req: AuthenticatedRequest, res: Response) {
+export async function createReview(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const userId = req.user!.id;
     const { business_id, product_id, order_id, rating, comment } = req.body;
@@ -84,12 +86,12 @@ export async function createReview(req: AuthenticatedRequest, res: Response) {
 
     res.status(201).json({ data: review, message: "Review created successfully" });
   } catch (error) {
-    console.error("Error creating review:", error);
-    res.status(500).json({ error: "Failed to create review" });
+    logger.error("REVIEW", "Error creating review", error);
+    next(new InternalError("Failed to create review"));
   }
 }
 
-export async function updateReview(req: AuthenticatedRequest, res: Response) {
+export async function updateReview(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid review ID" });
@@ -110,12 +112,12 @@ export async function updateReview(req: AuthenticatedRequest, res: Response) {
     const updated = await updateReviewQuery(id, { rating, comment });
     res.json({ data: updated, message: "Review updated successfully" });
   } catch (error) {
-    console.error("Error updating review:", error);
-    res.status(500).json({ error: "Failed to update review" });
+    logger.error("REVIEW", "Error updating review", error);
+    next(new InternalError("Failed to update review"));
   }
 }
 
-export async function deleteReview(req: AuthenticatedRequest, res: Response) {
+export async function deleteReview(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid review ID" });
@@ -130,7 +132,7 @@ export async function deleteReview(req: AuthenticatedRequest, res: Response) {
     await deleteReviewQuery(id);
     res.json({ message: "Review deleted successfully" });
   } catch (error) {
-    console.error("Error deleting review:", error);
-    res.status(500).json({ error: "Failed to delete review" });
+    logger.error("REVIEW", "Error deleting review", error);
+    next(new InternalError("Failed to delete review"));
   }
 }

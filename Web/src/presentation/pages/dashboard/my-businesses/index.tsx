@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BusinessLocationMap } from '../../../components';
 import { TMButton, TMEmptyState } from '../../../components';
 import { businessService } from '../../../../infrastructure/api/businessService';
@@ -11,6 +12,8 @@ import BusinessTable from './components/BusinessTable';
 import './MyBusinesses.css';
 
 const MyBusinesses: React.FC = () => {
+  const { t } = useTranslation('translation', { keyPrefix: 'myBusinesses' });
+  const { t: commonT } = useTranslation('translation', { keyPrefix: 'common' });
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -51,10 +54,10 @@ const MyBusinesses: React.FC = () => {
       setSelectedLocation(null);
 
       // Show success message
-      alert('Business created successfully!');
+      alert(t('businessCreated'));
     } catch (error) {
       console.error('Failed to create business:', error);
-      alert('Failed to create business. Please try again.');
+      alert(t('createFailed'));
       throw error;
     }
   };
@@ -75,17 +78,17 @@ const MyBusinesses: React.FC = () => {
       setSelectedLocation(null);
 
       // Show success message
-      alert('Business updated successfully!');
+      alert(t('businessUpdated'));
     } catch (error) {
       console.error('Failed to update business:', error);
-      alert('Failed to update business. Please try again.');
+      alert(t('updateFailed'));
       throw error;
     }
   };
 
   // Handle deleting a business
   const handleDeleteBusiness = async (id: number) => {
-    if (!window.confirm('Are you sure you want to delete this business?')) {
+    if (!window.confirm(t('deleteConfirm'))) {
       return;
     }
 
@@ -93,13 +96,13 @@ const MyBusinesses: React.FC = () => {
       const success = await businessService.deleteBusiness(id);
       if (success) {
         setBusinesses(prev => prev.filter(business => business.id !== id));
-        alert('Business deleted successfully!');
+        alert(t('businessDeleted'));
       } else {
-        alert('Failed to delete business. Please try again.');
+        alert(t('deleteFailed'));
       }
     } catch (error) {
       console.error('Failed to delete business:', error);
-      alert('Failed to delete business. Please try again.');
+      alert(t('deleteFailed'));
     }
   };
 
@@ -130,7 +133,7 @@ const MyBusinesses: React.FC = () => {
     return (
       <div className="dashboard-page fade-in">
         <div className="dashboard-page__header">
-          <h1 className="dashboard-page__title">My Businesses</h1>
+          <h1 className="dashboard-page__title">{t('title')}</h1>
         </div>
         <div className="dashboard-page__content">
           <div style={{ display: 'grid', gap: '0.75rem' }}>
@@ -146,9 +149,9 @@ const MyBusinesses: React.FC = () => {
   return (
     <div className="dashboard-page fade-in">
       <div className="dashboard-page__header">
-        <h1 className="dashboard-page__title">My Businesses</h1>
+        <h1 className="dashboard-page__title">{t('title')}</h1>
         <p className="dashboard-page__subtitle">
-          Manage your business locations and information
+          {t('subtitle')}
         </p>
         <div className="dashboard-page__actions">
           <TMButton
@@ -158,7 +161,7 @@ const MyBusinesses: React.FC = () => {
               setShowCreateForm(true);
             }}
           >
-            Create a new business
+            {t('createBusiness')}
           </TMButton>
         </div>
       </div>
@@ -167,15 +170,15 @@ const MyBusinesses: React.FC = () => {
         {showCreateForm && (
           <div className="business-creation-section">
             <div className="business-creation__header">
-              <h2>{editingBusiness ? 'Edit Business' : 'Create New Business'}</h2>
+              <h2>{editingBusiness ? t('editBusiness') : t('createNewBusiness')}</h2>
               <TMButton variant="outline" onClick={handleCancelForm}>
-                Cancel
+                {commonT('cancel')}
               </TMButton>
             </div>
 
             <div className="business-creation__content">
               <div className="business-creation__map">
-                <h3>Select Business Location</h3>
+                <h3>{t('selectLocation')}</h3>
                 <BusinessLocationMap
                   center={selectedLocation || { lat: 40.7128, lng: -74.0060 }}
                   zoom={selectedLocation ? 15 : 10}
@@ -221,17 +224,17 @@ const MyBusinesses: React.FC = () => {
           <div className="businesses-section">
             <div className="businesses-table-section">
               <div className="businesses-header">
-                <h3>Businesses I Own ({businesses.length})</h3>
+                <h3>{t('businessesIOwn', { count: businesses.length })}</h3>
                 <p className="businesses-subtitle">
-                  Manage your business listings, locations, and information
+                  {t('businessesSubtitle')}
                 </p>
               </div>
               {businesses.length === 0 ? (
                 <TMEmptyState
                   icon="🏪"
-                  title="No businesses yet"
-                  subtitle="Create your first business listing to get discovered on the map."
-                  actionLabel="Create Business"
+                  title={t('noBusinessesYet')}
+                  subtitle={t('createFirstBusiness')}
+                  actionLabel={commonT('createBusiness')}
                   onAction={() => {
                     setEditingBusiness(null);
                     setSelectedLocation(null);

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { businessService } from '../../../../infrastructure/api/businessService';
 import { reviewService } from '../../../../infrastructure/api/reviewService';
+import { formatDate } from '../../../../infrastructure/i18n/format';
 import { useAppSelector } from '../../../../application/redux';
 import { selectUser } from '../../../../application/redux';
 import type { Business } from '../../../../domain/types/business';
@@ -8,20 +10,6 @@ import type { Review, ReviewStats } from '../../../../domain/types/review';
 import './Reviews.css';
 
 type RatingFilter = 'all' | 1 | 2 | 3 | 4 | 5;
-
-interface RatingTabConfig {
-  key: RatingFilter;
-  label: string;
-}
-
-const RATING_TABS: RatingTabConfig[] = [
-  { key: 'all', label: 'All' },
-  { key: 5, label: '5 Stars' },
-  { key: 4, label: '4 Stars' },
-  { key: 3, label: '3 Stars' },
-  { key: 2, label: '2 Stars' },
-  { key: 1, label: '1 Star' },
-];
 
 const renderStars = (rating: number): React.ReactNode => {
   const filled = Math.round(rating);
@@ -33,6 +21,7 @@ const renderStars = (rating: number): React.ReactNode => {
 };
 
 const Reviews: React.FC = () => {
+  const { t } = useTranslation('translation', { keyPrefix: 'reviews' });
   const user = useAppSelector(selectUser);
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -42,6 +31,15 @@ const Reviews: React.FC = () => {
   const [businessFilter, setBusinessFilter] = useState<number | 'all'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 20;
+
+  const RATING_TABS: { key: RatingFilter; label: string }[] = [
+    { key: 'all', label: t('allReviews') },
+    { key: 5, label: t('fiveStars') },
+    { key: 4, label: t('fourStars') },
+    { key: 3, label: t('threeStars') },
+    { key: 2, label: t('twoStars') },
+    { key: 1, label: t('oneStar') },
+  ];
 
   // Load businesses and then reviews for each
   const loadReviews = useCallback(async () => {
@@ -137,27 +135,19 @@ const Reviews: React.FC = () => {
   // Get business name by ID
   const getBusinessName = (businessId: number): string => {
     const business = businesses.find((b) => b.id === businessId);
-    return business?.title || `Business #${businessId}`;
+    return business?.title || t('businessName', { id: businessId });
   };
 
-  // Format date
-  const formatDate = (dateStr: string): string => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  };
+
 
   if (isLoading) {
     return (
       <div className="dashboard-page fade-in">
         <div className="dashboard-page__header">
-          <h1 className="dashboard-page__title">Reviews</h1>
+          <h1 className="dashboard-page__title">{t('title')}</h1>
         </div>
         <div className="dashboard-page__content">
-          <div className="loading-spinner">Loading reviews...</div>
+          <div className="loading-spinner">{t('loading')}</div>
         </div>
       </div>
     );
@@ -166,9 +156,9 @@ const Reviews: React.FC = () => {
   return (
     <div className="dashboard-page fade-in">
       <div className="dashboard-page__header">
-        <h1 className="dashboard-page__title">Reviews</h1>
+        <h1 className="dashboard-page__title">{t('title')}</h1>
         <p className="dashboard-page__subtitle">
-          View customer reviews across all your businesses
+          {t('subtitle')}
         </p>
       </div>
 
@@ -176,14 +166,14 @@ const Reviews: React.FC = () => {
         {/* Stats Section */}
         <div className="reviews-stats">
           <div className="reviews-stats__card">
-            <span className="reviews-stats__label">Average Rating</span>
+            <span className="reviews-stats__label">{t('averageRating')}</span>
             <div className="reviews-stats__stars">
               <span className="reviews-stats__average">{stats.averageRating.toFixed(1)}</span>
               {renderStars(stats.averageRating)}
             </div>
           </div>
           <div className="reviews-stats__card">
-            <span className="reviews-stats__label">Total Reviews</span>
+            <span className="reviews-stats__label">{t('totalReviews')}</span>
             <span className="reviews-stats__value">{stats.totalReviews}</span>
           </div>
         </div>
@@ -201,7 +191,7 @@ const Reviews: React.FC = () => {
                 )
               }
             >
-              <option value="all">All Businesses</option>
+              <option value="all">{t('allBusinesses')}</option>
               {businesses.map((business) => (
                 <option key={business.id} value={business.id}>
                   {business.title}
@@ -236,11 +226,13 @@ const Reviews: React.FC = () => {
             {filteredReviews.length === 0 ? (
               <div className="empty-state">
                 <div className="empty-state__content">
-                  <h3>No reviews found</h3>
+                  <h3>{t('noReviewsFound')}</h3>
                   <p>
                     {ratingFilter === 'all'
-                      ? 'You have no customer reviews yet.'
-                      : `No reviews with ${ratingFilter} star${ratingFilter !== 1 ? 's' : ''}.`}
+                      ? t('noCustomerReviews')
+                      : ratingFilter === 1
+                      ? t('noReviewsWithRating', { rating: ratingFilter })
+                      : t('noReviewsWithRatingPlural', { rating: ratingFilter })}
                   </p>
                 </div>
               </div>
@@ -250,11 +242,11 @@ const Reviews: React.FC = () => {
                   <table className="review-table">
                     <thead>
                       <tr>
-                        <th>Reviewer</th>
-                        <th>Business</th>
-                        <th>Rating</th>
-                        <th>Comment</th>
-                        <th>Date</th>
+                        <th>{t('reviewer')}</th>
+                        <th>{t('business')}</th>
+                        <th>{t('rating')}</th>
+                        <th>{t('comment')}</th>
+                        <th>{t('date')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -263,7 +255,7 @@ const Reviews: React.FC = () => {
                           <td>
                             {review.reviewer
                               ? `${review.reviewer.firstname} ${review.reviewer.lastname}`
-                              : `User #${review.reviewer_id}`}
+                              : t('userName', { id: review.reviewer_id })}
                           </td>
                           <td>{getBusinessName(review.business_id)}</td>
                           <td>{renderStars(review.rating)}</td>
@@ -271,7 +263,7 @@ const Reviews: React.FC = () => {
                             {review.comment ? (
                               <span className="review-comment">{review.comment}</span>
                             ) : (
-                              <span className="review-comment--empty">No comment</span>
+                              <span className="review-comment--empty">{t('noComment')}</span>
                             )}
                           </td>
                           <td>{formatDate(review.createdAt)}</td>
@@ -289,27 +281,32 @@ const Reviews: React.FC = () => {
                       disabled={currentPage === 1}
                       onClick={() => setCurrentPage((p) => p - 1)}
                     >
-                      Previous
+                      {t('previous')}
                     </button>
                     <span className="reviews-pagination__info">
-                      Page {currentPage} of {totalPages}
+                      {t('pageInfo', { current: currentPage, total: totalPages })}
                     </span>
                     <button
                       className="reviews-pagination__btn"
                       disabled={currentPage === totalPages}
                       onClick={() => setCurrentPage((p) => p + 1)}
                     >
-                      Next
+                      {t('next')}
                     </button>
                   </div>
                 )}
 
                 <div className="table-summary">
                   <p>
-                    Showing {paginatedReviews.length} of {filteredReviews.length} review
-                    {filteredReviews.length !== 1 ? 's' : ''}
-                    {ratingFilter !== 'all' && ` (filtered by ${ratingFilter} star${ratingFilter !== 1 ? 's' : ''})`}
-                    {businessFilter !== 'all' && ` for ${getBusinessName(businessFilter)}`}
+                    {filteredReviews.length === 1
+                      ? t('showingReviews', { showing: paginatedReviews.length, total: filteredReviews.length })
+                      : t('showingReviewsPlural', { showing: paginatedReviews.length, total: filteredReviews.length })}
+                    {ratingFilter !== 'all' && (
+                      ratingFilter === 1
+                        ? t('filteredBy', { rating: ratingFilter })
+                        : t('filteredByPlural', { rating: ratingFilter })
+                    )}
+                    {businessFilter !== 'all' && t('forBusiness', { business: getBusinessName(businessFilter) })}
                   </p>
                 </div>
               </div>

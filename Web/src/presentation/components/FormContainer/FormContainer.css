@@ -12,12 +12,12 @@
 .form-title {
   font-size: 2rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--color-text-primary);
   margin-bottom: 0.5rem;
 }
 
 .form-subtitle {
-  color: #6b7280;
+  color: var(--color-text-tertiary);
   margin: 0;
 }
 
@@ -28,11 +28,11 @@
 .form-footer {
   text-align: center;
   padding-top: 1rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--color-border-default);
 }
 
 .form-footer a {
-  color: #6366f1;
+  color: var(--color-info);
   text-decoration: none;
   font-weight: 500;
 }

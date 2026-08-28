@@ -1,4 +1,5 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
+import { InternalError } from "../../infrastructure.layer/errors/app-error";
 import {
   getAllBusinessesQuery,
   getBusinessByIdQuery,
@@ -9,19 +10,21 @@ import {
   getActiveBusinessesQuery
 } from "../../infrastructure.layer/utils/business.util";
 import { AuthenticatedRequest } from "../../infrastructure.layer/utils/jwt.util";
+import { logger } from "../../infrastructure.layer/utils/logger.util";
+import { recordSuccess } from "../../application.layer/services/audit.service";
 import IBusiness from "../../domain.layer/interfaces/business";
 
-export async function getAllBusinesses(req: Request, res: Response) {
+export async function getAllBusinesses(req: Request, res: Response, next: NextFunction) {
   try {
     const businesses = await getAllBusinessesQuery();
     res.json({ data: businesses, message: "Businesses retrieved successfully" });
   } catch (error) {
-    console.error("Error fetching businesses:", error);
-    res.status(500).json({ error: "Failed to get all businesses" });
+    logger.error("BUSINESS", "Error fetching businesses", error);
+    next(new InternalError("Failed to get all businesses"));
   }
 }
 
-export async function getBusinessById(req: AuthenticatedRequest, res: Response) {
+export async function getBusinessById(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
     const businessId = parseInt(id, 10);
@@ -37,12 +40,12 @@ export async function getBusinessById(req: AuthenticatedRequest, res: Response) 
 
     res.json({ data: business, message: "Business retrieved successfully" });
   } catch (error) {
-    console.error("Error fetching business:", error);
-    res.status(500).json({ error: "Failed to get business" });
+    logger.error("BUSINESS", "Error fetching business", error);
+    next(new InternalError("Failed to get business"));
   }
 }
 
-export async function getBusinessesByOwner(req: AuthenticatedRequest, res: Response) {
+export async function getBusinessesByOwner(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const { ownerId } = req.params;
     const ownerIdNum = parseInt(ownerId, 10);
@@ -54,12 +57,12 @@ export async function getBusinessesByOwner(req: AuthenticatedRequest, res: Respo
     const businesses = await getBusinessesByOwnerQuery(ownerIdNum);
     res.json({ data: businesses, message: "Owner businesses retrieved successfully" });
   } catch (error) {
-    console.error("Error fetching owner businesses:", error);
-    res.status(500).json({ error: "Failed to get owner businesses" });
+    logger.error("BUSINESS", "Error fetching owner businesses", error);
+    next(new InternalError("Failed to get owner businesses"));
   }
 }
 
-export async function createBusiness(req: AuthenticatedRequest, res: Response) {
+export async function createBusiness(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const { owner, title, longitude, latitude, address, emails, phones, is_active, logo, description, category_id, cover_image } = req.body;
 
@@ -112,17 +115,22 @@ export async function createBusiness(req: AuthenticatedRequest, res: Response) {
       cover_image: cover_image || null,
     });
 
+    recordSuccess(
+      { actorId: owner, action: "business:created", resource: "business", resourceId: newBusiness.id },
+      req
+    );
+
     res.status(201).json({
       data: newBusiness,
       message: "Business created successfully"
     });
   } catch (error) {
-    console.error("Error creating business:", error);
-    res.status(500).json({ error: "Failed to create business" });
+    logger.error("BUSINESS", "Error creating business", error);
+    next(new InternalError("Failed to create business"));
   }
 }
 
-export async function updateBusiness(req: AuthenticatedRequest, res: Response) {
+export async function updateBusiness(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
     const businessId = parseInt(id, 10);
@@ -193,14 +201,25 @@ export async function updateBusiness(req: AuthenticatedRequest, res: Response) {
       return res.status(404).json({ error: "Business not found" });
     }
 
+    recordSuccess(
+      {
+        actorId: req.user?.id,
+        action: "business:updated",
+        resource: "business",
+        resourceId: businessId,
+        diff: updateData as Record<string, unknown>,
+      },
+      req
+    );
+
     res.json({ data: updatedBusiness, message: "Business updated successfully" });
   } catch (error) {
-    console.error("Error updating business:", error);
-    res.status(500).json({ error: "Failed to update business" });
+    logger.error("BUSINESS", "Error updating business", error);
+    next(new InternalError("Failed to update business"));
   }
 }
 
-export async function deleteBusiness(req: AuthenticatedRequest, res: Response) {
+export async function deleteBusiness(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
     const businessId = parseInt(id, 10);
@@ -214,19 +233,24 @@ export async function deleteBusiness(req: AuthenticatedRequest, res: Response) {
       return res.status(404).json({ error: "Business not found" });
     }
 
+    recordSuccess(
+      { actorId: req.user?.id, action: "business:deleted", resource: "business", resourceId: businessId },
+      req
+    );
+
     res.json({ message: "Business deleted successfully" });
   } catch (error) {
-    console.error("Error deleting business:", error);
-    res.status(500).json({ error: "Failed to delete business" });
+    logger.error("BUSINESS", "Error deleting business", error);
+    next(new InternalError("Failed to delete business"));
   }
 }
 
-export async function getActiveBusinesses(req: Request, res: Response) {
+export async function getActiveBusinesses(req: Request, res: Response, next: NextFunction) {
   try {
     const businesses = await getActiveBusinessesQuery();
     res.json({ data: businesses, message: "Active businesses retrieved successfully" });
   } catch (error) {
-    console.error("Error fetching active businesses:", error);
-    res.status(500).json({ error: "Failed to get active businesses" });
+    logger.error("BUSINESS", "Error fetching active businesses", error);
+    next(new InternalError("Failed to get active businesses"));
   }
 }

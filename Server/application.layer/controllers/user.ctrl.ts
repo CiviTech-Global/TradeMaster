@@ -1,4 +1,8 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
+import { InternalError } from "../../infrastructure.layer/errors/app-error";
+import { logger } from "../../infrastructure.layer/utils/logger.util";
+import { recordSuccess } from "../../application.layer/services/audit.service";
+import { revokeAllUserRefreshTokens } from "../../infrastructure.layer/utils/refresh-token.util";
 import {
   getAllUsersQuery,
   getUserByIdQuery,
@@ -9,17 +13,17 @@ import {
   getUserByEmailQuery
 } from "../../infrastructure.layer/utils/user.util";
 
-export async function getAllUsers(req: Request, res: Response) {
+export async function getAllUsers(req: Request, res: Response, next: NextFunction) {
   try {
     const users = await getAllUsersQuery();
     res.json({ data: users, message: "Users retrieved successfully" });
   } catch (error) {
-    console.error("Error fetching users:", error);
-    res.status(500).json({ error: "Failed to get all users" });
+    logger.error("USER", "Error fetching users", error);
+    next(new InternalError("Failed to get all users"));
   }
 }
 
-export async function getUserById(req: Request, res: Response) {
+export async function getUserById(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
     const userId = parseInt(id, 10);
@@ -35,12 +39,12 @@ export async function getUserById(req: Request, res: Response) {
 
     res.json({ data: user, message: "User retrieved successfully" });
   } catch (error) {
-    console.error("Error fetching user:", error);
-    res.status(500).json({ error: "Failed to get user" });
+    logger.error("USER", "Error fetching user", error);
+    next(new InternalError("Failed to get user"));
   }
 }
 
-export async function createUser(req: Request, res: Response) {
+export async function createUser(req: Request, res: Response, next: NextFunction) {
   try {
     const { firstname, lastname, email, password } = req.body;
 
@@ -69,12 +73,12 @@ export async function createUser(req: Request, res: Response) {
       message: "User created successfully"
     });
   } catch (error) {
-    console.error("Error creating user:", error);
-    res.status(500).json({ error: "Failed to create user" });
+    logger.error("USER", "Error creating user", error);
+    next(new InternalError("Failed to create user"));
   }
 }
 
-export async function updateUser(req: Request, res: Response) {
+export async function updateUser(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
     const userId = parseInt(id, 10);
@@ -110,12 +114,12 @@ export async function updateUser(req: Request, res: Response) {
 
     res.json({ data: updatedUser, message: "User updated successfully" });
   } catch (error) {
-    console.error("Error updating user:", error);
-    res.status(500).json({ error: "Failed to update user" });
+    logger.error("USER", "Error updating user", error);
+    next(new InternalError("Failed to update user"));
   }
 }
 
-export async function changePassword(req: Request, res: Response) {
+export async function changePassword(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
     const userId = parseInt(id, 10);
@@ -132,14 +136,19 @@ export async function changePassword(req: Request, res: Response) {
       });
     }
 
-    if (newPassword.length < 6) {
+    if (newPassword.length < 8) {
       return res.status(400).json({
-        error: "New password must be at least 6 characters long"
+        error: "New password must be at least 8 characters long"
+      });
+    }
+    if (!/[A-Z]/.test(newPassword) || !/[a-z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
+      return res.status(400).json({
+        error: "Password must contain uppercase, lowercase, and numeric characters"
       });
     }
 
     const result = await changePasswordQuery(userId, currentPassword, newPassword);
-    
+
     if (result === null) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -148,14 +157,22 @@ export async function changePassword(req: Request, res: Response) {
       return res.status(401).json({ error: "Current password is incorrect" });
     }
 
+    // Invalidate all existing sessions after a password change
+    await revokeAllUserRefreshTokens(userId);
+
+    recordSuccess(
+      { actorId: userId, action: "user:password_changed", resource: "user", resourceId: userId },
+      req
+    );
+
     res.json({ message: "Password changed successfully" });
   } catch (error) {
-    console.error("Error changing password:", error);
-    res.status(500).json({ error: "Failed to change password" });
+    logger.error("USER", "Error changing password", error);
+    next(new InternalError("Failed to change password"));
   }
 }
 
-export async function deleteUser(req: Request, res: Response) {
+export async function deleteUser(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
     const userId = parseInt(id, 10);
@@ -169,9 +186,14 @@ export async function deleteUser(req: Request, res: Response) {
       return res.status(404).json({ error: "User not found" });
     }
 
+    recordSuccess(
+      { actorId: userId, action: "user:deleted", resource: "user", resourceId: userId },
+      req
+    );
+
     res.json({ message: "User deleted successfully" });
   } catch (error) {
-    console.error("Error deleting user:", error);
-    res.status(500).json({ error: "Failed to delete user" });
+    logger.error("USER", "Error deleting user", error);
+    next(new InternalError("Failed to delete user"));
   }
 }

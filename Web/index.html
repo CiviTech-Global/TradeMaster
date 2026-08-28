@@ -1,10 +1,22 @@
 <!doctype html>
-<html lang="en">
+<html lang="fa" dir="rtl">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React + TS</title>
+    <title>TradeMaster</title>
+    <script>
+      // Set document language/direction before first paint to avoid a
+      // flash of the wrong direction. Default is Persian (fa/rtl).
+      (function () {
+        try {
+          var lang = localStorage.getItem('trademaster_language') || 'fa';
+          var rtl = lang === 'fa';
+          document.documentElement.lang = lang;
+          document.documentElement.dir = rtl ? 'rtl' : 'ltr';
+        } catch (e) { /* keep html defaults */ }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

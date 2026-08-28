@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trademaster/core/theme/app_theme.dart';
 import 'package:trademaster/core/theme/theme_provider.dart';
 import 'package:trademaster/core/network/server_url_provider.dart';
+import 'package:trademaster/l10n/generated/app_localizations.dart';
 import 'package:trademaster/presentation/providers/auth_provider.dart';
+import 'package:trademaster/presentation/providers/locale_provider.dart';
 import 'package:trademaster/presentation/providers/router_provider.dart';
 
 class TradeMasterApp extends ConsumerStatefulWidget {
@@ -28,14 +31,26 @@ class _TradeMasterAppState extends ConsumerState<TradeMasterApp> {
   Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
     final themeMode = ref.watch(themeProvider);
+    final locale = ref.watch(localeProvider);
 
-    return MaterialApp.router(
-      title: 'TradeMaster',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: themeMode.flutterValue,
-      routerConfig: router,
+    return Directionality(
+      textDirection: locale.textDirection,
+      child: MaterialApp.router(
+        title: lookupAppLocalizations(locale).appTitle,
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.lightTheme(locale),
+        darkTheme: AppTheme.darkTheme(locale),
+        themeMode: themeMode.flutterValue,
+        locale: locale,
+        supportedLocales: AppLocalizations.supportedLocales,
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        routerConfig: router,
+      ),
     );
   }
 }

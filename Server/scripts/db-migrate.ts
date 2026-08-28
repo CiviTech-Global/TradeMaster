@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import dotenv from 'dotenv';
 import { runMigrations, rollbackMigrations, getMigrationStatus } from '../infrastructure.layer/database/migrator';
 import { sequelize } from '../infrastructure.layer/database/sequelize';
+import { logger } from '../infrastructure.layer/utils/logger.util';
 
 dotenv.config();
 
@@ -34,7 +35,7 @@ const main = async () => {
         process.exit(1);
     }
   } catch (error) {
-    console.error('Migration script failed:', error);
+    logger.error('MIGRATE', 'Migration script failed', error);
     process.exit(1);
   } finally {
     await sequelize.close();

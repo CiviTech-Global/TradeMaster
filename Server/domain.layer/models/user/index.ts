@@ -3,7 +3,7 @@ import IUser from "../../interfaces/user";
 import { Optional } from "sequelize";
 import { Business } from "../business";
 
-type UserCreationAttributes = Optional<IUser, "id" | "createdAt" | "updatedAt" | "deletedAt" | "avatar" | "phone" | "bio" | "default_latitude" | "default_longitude">;
+type UserCreationAttributes = Optional<IUser, "id" | "createdAt" | "updatedAt" | "deletedAt" | "avatar" | "phone" | "bio" | "default_latitude" | "default_longitude" | "consent_given" | "consent_given_at" | "privacy_policy_version" | "terms_version">;
 
 @Table({
   tableName: "users",
@@ -52,6 +52,22 @@ export class User extends Model<IUser, UserCreationAttributes> {
   @AllowNull(true)
   @Column(DataType.DECIMAL(10, 8))
   declare default_longitude: number | null;
+
+  @AllowNull(false)
+  @Column({ type: DataType.BOOLEAN, defaultValue: false })
+  declare consent_given: boolean;
+
+  @AllowNull(true)
+  @Column(DataType.DATE)
+  declare consent_given_at: Date | null;
+
+  @AllowNull(true)
+  @Column(DataType.STRING(50))
+  declare privacy_policy_version: string | null;
+
+  @AllowNull(true)
+  @Column(DataType.STRING(50))
+  declare terms_version: string | null;
 
   @Column(DataType.DATE)
   declare createdAt: Date;

@@ -16,7 +16,8 @@ describe('Auth Validation Schemas', () => {
         firstname: 'John',
         lastname: 'Doe',
         email: 'john@example.com',
-        password: 'password123',
+        password: 'Password123',
+        consent_given: true,
       });
       expect(result.success).toBe(true);
     });

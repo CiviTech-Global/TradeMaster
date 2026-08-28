@@ -94,7 +94,12 @@ class ApiInterceptor extends Interceptor {
         return false;
       }
 
-      final dio = Dio();
+      final dio = Dio(
+        BaseOptions(
+          connectTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+        ),
+      );
       final response = await dio.post(
         '${ApiConstants.baseUrl}/auth/refresh-token',
         data: {'refreshToken': refreshToken},

@@ -1,13 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { themeConfig, type TMWebThemeMode } from '../../../infrastructure/theme/themeConfig';
 
-const modes: { value: TMWebThemeMode; label: string; icon: string }[] = [
-  { value: 'system', label: 'System', icon: '💻' },
-  { value: 'light', label: 'Light', icon: '☀️' },
-  { value: 'dark', label: 'Dark', icon: '🌙' },
-];
-
 const ThemeToggle: React.FC = () => {
+  const { t } = useTranslation('translation', { keyPrefix: 'common' });
   const [mode, setMode] = useState<TMWebThemeMode>('system');
 
   useEffect(() => {
@@ -19,6 +15,12 @@ const ThemeToggle: React.FC = () => {
     themeConfig.setMode(next);
     setMode(next);
   };
+
+  const modes: { value: TMWebThemeMode; label: string; icon: string }[] = [
+    { value: 'system', label: t('themeSystem'), icon: '💻' },
+    { value: 'light', label: t('themeLight'), icon: '☀️' },
+    { value: 'dark', label: t('themeDark'), icon: '🌙' },
+  ];
 
   return (
     <div

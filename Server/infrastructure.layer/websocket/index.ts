@@ -3,8 +3,23 @@ import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import { env } from "../config/env";
 import { logger } from "../utils/logger.util";
+import { Message } from "../../domain.layer/models/message";
+import { Op } from "sequelize";
 
 let io: Server;
+
+async function hasConversation(userId: number, partnerId: number): Promise<boolean> {
+  const count = await Message.count({
+    where: {
+      [Op.or]: [
+        { sender_id: userId, receiver_id: partnerId },
+        { sender_id: partnerId, receiver_id: userId },
+      ],
+    },
+    limit: 1,
+  });
+  return count > 0;
+}
 
 interface AuthenticatedSocket {
   userId: number;
@@ -47,7 +62,15 @@ export function initializeWebSocket(httpServer: HttpServer): Server {
     socket.join(`user:${userId}`);
 
     // Handle joining a conversation room
-    socket.on("join_conversation", (partnerId: number) => {
+    socket.on("join_conversation", async (partnerId: number) => {
+      if (!partnerId || partnerId === userId) {
+        socket.emit("error", { message: "Invalid partner" });
+        return;
+      }
+      if (!(await hasConversation(userId, partnerId))) {
+        socket.emit("error", { message: "No conversation with this user" });
+        return;
+      }
       const room = [userId, partnerId].sort().join(":");
       socket.join(`conversation:${room}`);
       logger.debug("WebSocket", `Joined conversation room`, { userId, partnerId, room });
@@ -60,7 +83,19 @@ export function initializeWebSocket(httpServer: HttpServer): Server {
     });
 
     // Handle sending message (alternative to HTTP)
-    socket.on("send_message", (data: { receiverId: number; content: string; orderId?: number; productId?: number }) => {
+    socket.on("send_message", async (data: { receiverId: number; content: string; orderId?: number; productId?: number }) => {
+      if (!data.receiverId || data.receiverId === userId) {
+        socket.emit("error", { message: "Invalid receiver" });
+        return;
+      }
+      if (!data.content || typeof data.content !== "string" || data.content.trim().length === 0 || data.content.length > 5000) {
+        socket.emit("error", { message: "Invalid message content" });
+        return;
+      }
+      if (!(await hasConversation(userId, data.receiverId))) {
+        socket.emit("error", { message: "No conversation with this user" });
+        return;
+      }
       // Message is still saved via HTTP API, WebSocket just notifies
       const room = [userId, data.receiverId].sort().join(":");
       io.to(`conversation:${room}`).emit("new_message", {
@@ -80,18 +115,24 @@ export function initializeWebSocket(httpServer: HttpServer): Server {
     });
 
     // Handle typing indicator
-    socket.on("typing_start", (partnerId: number) => {
+    socket.on("typing_start", async (partnerId: number) => {
+      if (!partnerId || partnerId === userId) return;
+      if (!(await hasConversation(userId, partnerId))) return;
       const room = [userId, partnerId].sort().join(":");
       socket.to(`conversation:${room}`).emit("user_typing", { userId });
     });
 
-    socket.on("typing_stop", (partnerId: number) => {
+    socket.on("typing_stop", async (partnerId: number) => {
+      if (!partnerId || partnerId === userId) return;
+      if (!(await hasConversation(userId, partnerId))) return;
       const room = [userId, partnerId].sort().join(":");
       socket.to(`conversation:${room}`).emit("user_stop_typing", { userId });
     });
 
     // Handle read receipts
-    socket.on("mark_read", (partnerId: number) => {
+    socket.on("mark_read", async (partnerId: number) => {
+      if (!partnerId || partnerId === userId) return;
+      if (!(await hasConversation(userId, partnerId))) return;
       const room = [userId, partnerId].sort().join(":");
       socket.to(`conversation:${room}`).emit("messages_read", { userId });
     });

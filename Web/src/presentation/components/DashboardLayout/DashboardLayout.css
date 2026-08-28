@@ -6,11 +6,11 @@
 
 .dashboard-layout__main {
   flex: 1;
-  margin-left: 280px;
+  margin-inline-start: 280px;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  transition: margin-left 0.3s ease;
+  transition: margin-inline-start 0.3s ease;
 }
 
 .dashboard-layout__content {
@@ -86,13 +86,13 @@
 /* Responsive Design */
 @media (max-width: 1024px) {
   .dashboard-layout__main {
-    margin-left: 260px;
+    margin-inline-start: 260px;
   }
 }
 
 @media (max-width: 768px) {
   .dashboard-layout__main {
-    margin-left: 0;
+    margin-inline-start: 0;
     width: 100%;
   }
 
@@ -105,3 +105,4 @@
     padding: 1rem;
   }
 }
+

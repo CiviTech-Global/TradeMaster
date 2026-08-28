@@ -180,6 +180,8 @@ export class NetworkService {
 
 export const networkService = new NetworkService({
   baseURL: serverUrlConfig.getUrl(),
+  // Send httpOnly session cookies (access/refresh tokens) with every request.
+  withCredentials: true,
 });
 
 import { AuthInterceptor } from './authInterceptor';

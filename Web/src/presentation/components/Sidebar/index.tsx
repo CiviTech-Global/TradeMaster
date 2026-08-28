@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAppSelector, useAppDispatch } from '../../../application/redux/hooks';
 import { signout, selectUser } from '../../../application/redux';
 import { ThemeToggle } from '../TradeMaster';
@@ -7,7 +8,7 @@ import './Sidebar.css';
 
 interface SidebarItem {
   id: string;
-  label: string;
+  translationKey: string;
   path: string;
   icon: React.ReactNode;
   type: 'navigation' | 'action';
@@ -26,23 +27,25 @@ const SettingsIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
 );
 const LogoutIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+  <svg className="icon-flip-rtl" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
 );
 
-const sidebarItems: SidebarItem[] = [
-  { id: 'home', label: 'Home', path: '/dashboard/home', icon: <HomeIcon />, type: 'navigation' },
-  { id: 'my-businesses', label: 'My Businesses', path: '/dashboard/my-businesses', icon: <BuildingIcon />, type: 'navigation' },
-  { id: 'profile', label: 'Profile', path: '/dashboard/profile', icon: <UserIcon />, type: 'navigation' },
-  { id: 'settings', label: 'Settings', path: '/dashboard/settings', icon: <SettingsIcon />, type: 'navigation' },
-  { id: 'logout', label: 'Logout', path: '/signin', icon: <LogoutIcon />, type: 'action' },
-];
-
 const Sidebar: React.FC = () => {
+  const { t } = useTranslation('translation', { keyPrefix: 'sidebar' });
+  const { t: commonT } = useTranslation('translation', { keyPrefix: 'common' });
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const user = useAppSelector(selectUser);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const sidebarItems: SidebarItem[] = [
+    { id: 'home', translationKey: 'home', path: '/dashboard/home', icon: <HomeIcon />, type: 'navigation' },
+    { id: 'my-businesses', translationKey: 'myBusinesses', path: '/dashboard/my-businesses', icon: <BuildingIcon />, type: 'navigation' },
+    { id: 'profile', translationKey: 'profile', path: '/dashboard/profile', icon: <UserIcon />, type: 'navigation' },
+    { id: 'settings', translationKey: 'settings', path: '/dashboard/settings', icon: <SettingsIcon />, type: 'navigation' },
+    { id: 'logout', translationKey: 'logout', path: '/signin', icon: <LogoutIcon />, type: 'action' },
+  ];
 
   const handleItemClick = (item: SidebarItem) => {
     if (item.type === 'action' && item.id === 'logout') {
@@ -64,7 +67,7 @@ const Sidebar: React.FC = () => {
       <button
         className="sidebar__mobile-toggle"
         onClick={() => setMobileOpen(!mobileOpen)}
-        aria-label="Toggle menu"
+        aria-label={commonT('toggleMenu')}
       >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
@@ -73,7 +76,7 @@ const Sidebar: React.FC = () => {
         <div className="sidebar__header">
           <div className="sidebar__brand">
             <span className="sidebar__brand-icon">🏪</span>
-            <span className="sidebar__brand-text">TradeMaster</span>
+            <span className="sidebar__brand-text">{commonT('appName')}</span>
           </div>
           {user && (
             <div className="sidebar__user">
@@ -101,7 +104,7 @@ const Sidebar: React.FC = () => {
                   onClick={() => handleItemClick(item)}
                 >
                   <span className="sidebar__nav-icon">{item.icon}</span>
-                  <span className="sidebar__nav-text">{item.label}</span>
+                  <span className="sidebar__nav-text">{t(item.translationKey)}</span>
                 </button>
               </li>
             ))}

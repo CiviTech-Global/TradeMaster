@@ -17,11 +17,11 @@ const TMCard: React.FC<TMCardProps> = ({
 }) => {
   const baseStyles: React.CSSProperties = {
     background: glassmorphic
-      ? 'rgba(255, 255, 255, 0.85)'
+      ? 'var(--color-surface-glass)'
       : 'var(--color-surface)',
     backdropFilter: glassmorphic ? 'blur(10px)' : undefined,
     borderRadius: 'var(--radius-lg)',
-    border: `1px solid ${glassmorphic ? 'rgba(0,0,0,0.05)' : 'var(--color-border)'}`,
+    border: `1px solid ${glassmorphic ? 'var(--color-on-surface-mix-5)' : 'var(--color-border)'}`,
     boxShadow: 'var(--shadow-md)',
     padding,
     transition: 'transform 200ms var(--ease-default), box-shadow 200ms var(--ease-default)',

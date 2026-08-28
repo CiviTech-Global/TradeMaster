@@ -1,4 +1,5 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
+import { InternalError } from "../../infrastructure.layer/errors/app-error";
 import {
   createOrderQuery,
   getOrderByIdQuery,
@@ -11,7 +12,7 @@ import { AuthenticatedRequest } from "../../infrastructure.layer/utils/jwt.util"
 import { verifyBusinessOwnership } from "../../infrastructure.layer/utils/product.util";
 import { logger } from "../../infrastructure.layer/utils/logger.util";
 
-export async function createOrder(req: AuthenticatedRequest, res: Response) {
+export async function createOrder(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const { business_id, items, shipping_address, shipping_latitude, shipping_longitude, notes, currency } = req.body;
     const buyerId = req.user!.id;
@@ -36,7 +37,7 @@ export async function createOrder(req: AuthenticatedRequest, res: Response) {
 
     res.status(201).json({ data: order, message: "Order created successfully" });
   } catch (error: any) {
-    console.error("Error creating order:", error);
+    logger.error("ORDER", "Error creating order", error);
     if (error.message && (
       error.message.includes('not found') ||
       error.message.includes('not active') ||
@@ -45,11 +46,11 @@ export async function createOrder(req: AuthenticatedRequest, res: Response) {
     )) {
       return res.status(400).json({ error: error.message });
     }
-    res.status(500).json({ error: "Failed to create order" });
+    next(new InternalError("Failed to create order"));
   }
 }
 
-export async function getOrders(req: AuthenticatedRequest, res: Response) {
+export async function getOrders(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const userId = req.user!.id;
     const role = req.query.role as string;
@@ -71,11 +72,11 @@ export async function getOrders(req: AuthenticatedRequest, res: Response) {
     res.json({ ...result, message: "Orders retrieved successfully" });
   } catch (error) {
     logger.error("OrderCtrl", "getOrders failed", error, { userId: req.user?.id });
-    res.status(500).json({ error: "Failed to get orders" });
+    next(new InternalError("Failed to get orders"));
   }
 }
 
-export async function getOrderById(req: AuthenticatedRequest, res: Response) {
+export async function getOrderById(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid order ID" });
@@ -93,12 +94,12 @@ export async function getOrderById(req: AuthenticatedRequest, res: Response) {
 
     res.json({ data: order, message: "Order retrieved successfully" });
   } catch (error) {
-    console.error("Error fetching order:", error);
-    res.status(500).json({ error: "Failed to get order" });
+    logger.error("ORDER", "Error fetching order", error);
+    next(new InternalError("Failed to get order"));
   }
 }
 
-export async function updateOrderStatus(req: AuthenticatedRequest, res: Response) {
+export async function updateOrderStatus(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid order ID" });
@@ -135,15 +136,15 @@ export async function updateOrderStatus(req: AuthenticatedRequest, res: Response
     const updatedOrder = await updateOrderStatusQuery(id, status, reason);
     res.json({ data: updatedOrder, message: "Order status updated successfully" });
   } catch (error: any) {
-    console.error("Error updating order status:", error);
+    logger.error("ORDER", "Error updating order status", error);
     if (error.message && error.message.includes('Invalid status transition')) {
       return res.status(400).json({ error: error.message });
     }
-    res.status(500).json({ error: "Failed to update order status" });
+    next(new InternalError("Failed to update order status"));
   }
 }
 
-export async function getOrdersByBusiness(req: AuthenticatedRequest, res: Response) {
+export async function getOrdersByBusiness(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const businessId = parseInt(req.params.businessId, 10);
     if (isNaN(businessId)) return res.status(400).json({ error: "Invalid business ID" });
@@ -162,7 +163,7 @@ export async function getOrdersByBusiness(req: AuthenticatedRequest, res: Respon
     const result = await getOrdersByBusinessQuery(businessId, filters);
     res.json({ ...result, message: "Business orders retrieved successfully" });
   } catch (error) {
-    console.error("Error fetching business orders:", error);
-    res.status(500).json({ error: "Failed to get business orders" });
+    logger.error("ORDER", "Error fetching business orders", error);
+    next(new InternalError("Failed to get business orders"));
   }
 }

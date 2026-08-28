@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:trademaster/core/constants/api_constants.dart';
+import 'package:trademaster/l10n/generated/app_localizations.dart';
 import 'package:trademaster/presentation/components/tm_button.dart';
 import 'package:trademaster/presentation/components/tm_card.dart';
 import 'package:trademaster/presentation/providers/auth_provider.dart';
@@ -17,6 +18,7 @@ class ProfileScreen extends ConsumerWidget {
     final colorScheme = theme.colorScheme;
     final authState = ref.watch(authProvider);
     final user = authState.user;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       body: CustomScrollView(
@@ -24,11 +26,11 @@ class ProfileScreen extends ConsumerWidget {
           // Gradient header with avatar
           SliverToBoxAdapter(
             child: Container(
-              padding: EdgeInsets.only(
+              padding: EdgeInsetsDirectional.only(
                 top: MediaQuery.of(context).padding.top + 24,
                 bottom: 32,
-                left: 24,
-                right: 24,
+                start: 24,
+                end: 24,
               ),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -47,7 +49,7 @@ class ProfileScreen extends ConsumerWidget {
               child: Column(
                 children: [
                   Text(
-                    'Profile',
+                    l10n.profile,
                     style: theme.textTheme.titleLarge?.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -67,7 +69,7 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    user?.fullName ?? 'Guest',
+                    user?.fullName ?? l10n.guest,
                     style: theme.textTheme.headlineSmall?.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -102,7 +104,7 @@ class ProfileScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Account',
+                    l10n.account,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -118,47 +120,47 @@ class ProfileScreen extends ConsumerWidget {
                     children: [
                       _BentoMenuItem(
                         icon: Icons.person_outline_rounded,
-                        title: 'Edit Profile',
-                        subtitle: 'Update your info',
+                        title: l10n.editProfile,
+                        subtitle: l10n.editProfileSubtitle,
                         color: colorScheme.primary,
                         onTap: () {},
                       ),
                       _BentoMenuItem(
                         icon: Icons.settings_outlined,
-                        title: 'Settings',
-                        subtitle: 'Server & theme',
+                        title: l10n.settings,
+                        subtitle: l10n.settingsSubtitle,
                         color: colorScheme.secondary,
                         onTap: () => context.push('/settings'),
                       ),
                       _BentoMenuItem(
                         icon: Icons.help_outline_rounded,
-                        title: 'Help',
-                        subtitle: 'Support center',
+                        title: l10n.help,
+                        subtitle: l10n.helpSubtitle,
                         color: colorScheme.tertiary,
                         onTap: () {},
                       ),
-                      _SeedDemoDataBentoItem(),
+                      const _SeedDemoDataBentoItem(),
                     ],
                   ),
                   const SizedBox(height: 24),
                   TMButton(
-                    label: 'Sign Out',
+                    label: l10n.signOut,
                     icon: Icons.logout,
                     variant: TMButtonVariant.outline,
                     onTap: () async {
                       final confirmed = await showDialog<bool>(
                         context: context,
                         builder: (context) => AlertDialog(
-                          title: const Text('Sign Out'),
-                          content: const Text('Are you sure you want to sign out?'),
+                          title: Text(l10n.signOut),
+                          content: Text(l10n.signOutConfirmation),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(context, false),
-                              child: const Text('Cancel'),
+                              child: Text(l10n.cancel),
                             ),
                             FilledButton(
                               onPressed: () => Navigator.pop(context, true),
-                              child: const Text('Sign Out'),
+                              child: Text(l10n.signOut),
                             ),
                           ],
                         ),
@@ -240,26 +242,32 @@ class _BentoMenuItem extends StatelessWidget {
 }
 
 class _SeedDemoDataBentoItem extends ConsumerWidget {
+  const _SeedDemoDataBentoItem();
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final seedState = ref.watch(seedProvider);
+    final l10n = AppLocalizations.of(context);
 
     ref.listen<SeedState>(seedProvider, (prev, next) {
       if (next.error != null) {
+        final errorMessage = next.error == 'Failed to seed demo data'
+            ? l10n.failedToSeedDemoData
+            : next.error!;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(next.error!),
+            content: Text(errorMessage),
             backgroundColor: colorScheme.error,
           ),
         );
       }
       if (next.isSuccess) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Demo data populated successfully!'),
-            backgroundColor: Color(0xFF66BB6A),
+          SnackBar(
+            content: Text(l10n.demoDataSuccess),
+            backgroundColor: const Color(0xFF66BB6A),
           ),
         );
       }
@@ -273,18 +281,16 @@ class _SeedDemoDataBentoItem extends ConsumerWidget {
               final confirmed = await showDialog<bool>(
                 context: context,
                 builder: (context) => AlertDialog(
-                  title: const Text('Populate Demo Data'),
-                  content: const Text(
-                    'This will add sample categories and businesses to your account. Continue?',
-                  ),
+                  title: Text(l10n.populateDemoData),
+                  content: Text(l10n.populateDemoDataConfirmation),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(context, false),
-                      child: const Text('Cancel'),
+                      child: Text(l10n.cancel),
                     ),
                     FilledButton(
                       onPressed: () => Navigator.pop(context, true),
-                      child: const Text('Populate'),
+                      child: Text(l10n.populate),
                     ),
                   ],
                 ),
@@ -319,13 +325,13 @@ class _SeedDemoDataBentoItem extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Demo Data',
+                l10n.demoData,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               Text(
-                'Seed sample data',
+                l10n.demoDataSubtitle,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),

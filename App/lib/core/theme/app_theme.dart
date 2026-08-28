@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
+  static const String _persianFontFamily = 'Lalezar';
   // Warm & Vibrant "Joyful" palette
   static const Color _primary = Color(0xFFFF6B6B); // Coral
   static const Color _secondary = Color(0xFFFFA726); // Warm Amber
@@ -12,7 +13,7 @@ class AppTheme {
   static const Color _border = Color(0xFFF0E6E0); // Blush Gray
   static const Color _error = Color(0xFFEF5350); // Soft Red
 
-  static ThemeData get lightTheme {
+  static ThemeData lightTheme([Locale? locale]) {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: _primary,
       brightness: Brightness.light,
@@ -26,6 +27,7 @@ class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
+      fontFamily: locale?.languageCode == 'fa' ? _persianFontFamily : null,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: _background,
       appBarTheme: AppBarTheme(
@@ -131,7 +133,7 @@ class AppTheme {
   static const Color _darkOnSurface = Color(0xFFF5F5F5);
   static const Color _darkBorder = Color(0xFF3A3A3A);
 
-  static ThemeData get darkTheme {
+  static ThemeData darkTheme([Locale? locale]) {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: _primary,
       brightness: Brightness.dark,
@@ -145,6 +147,7 @@ class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
+      fontFamily: locale?.languageCode == 'fa' ? _persianFontFamily : null,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: _darkBackground,
       appBarTheme: AppBarTheme(

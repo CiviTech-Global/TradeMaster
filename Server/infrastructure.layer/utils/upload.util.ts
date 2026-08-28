@@ -3,6 +3,7 @@ import IUpload from "../../domain.layer/interfaces/upload";
 import { Optional } from "sequelize";
 import path from "path";
 import fs from "fs";
+import sharp from "sharp";
 
 type UploadCreationAttributes = Optional<IUpload, "id" | "createdAt" | "updatedAt" | "entity_type" | "entity_id">;
 
@@ -61,4 +62,33 @@ export function ensureUploadsDir() {
     fs.mkdirSync(uploadsDir, { recursive: true });
   }
   return uploadsDir;
+}
+
+/**
+ * Strip EXIF and other metadata from image files.
+ * GIFs are left untouched because sharp does not reliably preserve animation.
+ */
+export async function stripImageMetadata(filePath: string, mimetype: string): Promise<void> {
+  if (mimetype === 'image/gif') {
+    return;
+  }
+
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(mimetype)) {
+    return;
+  }
+
+  try {
+    const tempPath = `${filePath}.tmp`;
+    await sharp(filePath)
+      .withMetadata({})
+      .toFile(tempPath);
+    fs.renameSync(tempPath, filePath);
+  } catch (error) {
+    // If stripping fails, delete temp file if it exists and rethrow so caller can remove the upload.
+    const tempPath = `${filePath}.tmp`;
+    if (fs.existsSync(tempPath)) {
+      fs.unlinkSync(tempPath);
+    }
+    throw error;
+  }
 }

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:trademaster/core/network/server_url_provider.dart';
+import 'package:trademaster/l10n/generated/app_localizations.dart';
 import 'package:trademaster/presentation/components/tm_button.dart';
+import 'package:trademaster/presentation/providers/locale_provider.dart';
 import 'package:trademaster/presentation/components/tm_input.dart';
 
 class ServerUrlSetupScreen extends ConsumerStatefulWidget {
@@ -41,6 +43,8 @@ class _ServerUrlSetupScreenState extends ConsumerState<ServerUrlSetupScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final state = ref.watch(serverUrlProvider);
+    final locale = ref.watch(localeProvider);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       body: SafeArea(
@@ -51,6 +55,27 @@ class _ServerUrlSetupScreenState extends ConsumerState<ServerUrlSetupScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                Align(
+                  alignment: AlignmentDirectional.topEnd,
+                  child: SegmentedButton<String>(
+                    segments: [
+                      ButtonSegment(
+                        value: 'fa',
+                        label: Text(l10n.persian),
+                      ),
+                      ButtonSegment(
+                        value: 'en',
+                        label: Text(l10n.english),
+                      ),
+                    ],
+                    selected: {locale.languageCode},
+                    onSelectionChanged: (selection) {
+                      if (selection.isNotEmpty) {
+                        ref.read(localeProvider.notifier).setLocale(selection.first);
+                      }
+                    },
+                  ),
+                ),
                 const Spacer(flex: 2),
                 Icon(
                   Icons.storefront_rounded,
@@ -59,7 +84,7 @@ class _ServerUrlSetupScreenState extends ConsumerState<ServerUrlSetupScreen> {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'Welcome to TradeMaster',
+                  l10n.welcomeToTradeMaster,
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -67,7 +92,7 @@ class _ServerUrlSetupScreenState extends ConsumerState<ServerUrlSetupScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Enter your server address to get started. You can change this later in Settings.',
+                  l10n.serverUrlSetupSubtitle,
                   style: theme.textTheme.bodyLarge?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -75,14 +100,14 @@ class _ServerUrlSetupScreenState extends ConsumerState<ServerUrlSetupScreen> {
                 ),
                 const Spacer(flex: 1),
                 TMInput(
-                  label: 'Server URL',
-                  hint: 'e.g. 192.168.1.100:3000',
+                  label: l10n.serverUrl,
+                  hint: l10n.serverUrlHint,
                   controller: _controller,
                   keyboardType: TextInputType.url,
                   textInputAction: TextInputAction.done,
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Please enter a server URL';
+                      return l10n.serverUrlRequired;
                     }
                     return null;
                   },
@@ -90,20 +115,20 @@ class _ServerUrlSetupScreenState extends ConsumerState<ServerUrlSetupScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Tip: Use your computer\'s local IP if testing on a physical device.',
+                  l10n.serverUrlTip,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 24),
                 TMButton(
-                  label: 'Connect',
+                  label: l10n.connect,
                   onTap: state.isLoading ? null : _save,
                   isLoading: state.isLoading,
                 ),
                 const SizedBox(height: 12),
                 TMButton(
-                  label: 'Use Default (localhost)',
+                  label: l10n.useDefaultLocalhost,
                   onTap: state.isLoading ? null : _useDefault,
                   variant: TMButtonVariant.outline,
                 ),

@@ -27,6 +27,9 @@ class AuthRemoteDatasource {
     required String lastname,
     required String email,
     required String password,
+    required bool consentGiven,
+    String? privacyPolicyVersion,
+    String? termsVersion,
   }) async {
     developer.log('AuthRemoteDatasource.signUp: attempting sign up for $email');
     final response = await _dioClient.post(
@@ -36,10 +39,18 @@ class AuthRemoteDatasource {
         'lastname': lastname,
         'email': email,
         'password': password,
+        'consent_given': consentGiven,
+        'privacy_policy_version': privacyPolicyVersion,
+        'terms_version': termsVersion,
       },
     );
     developer.log('AuthRemoteDatasource.signUp: response status ${response.statusCode}');
     return response.data as Map<String, dynamic>;
+  }
+
+  Future<void> signOut() async {
+    developer.log('AuthRemoteDatasource.signOut: signing out');
+    await _dioClient.post('/auth/signout');
   }
 
   Future<Map<String, dynamic>> refreshToken(String refreshToken) async {

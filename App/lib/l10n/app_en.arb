@@ -1,0 +1,143 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "TradeMaster",
+  "explore": "Explore",
+  "search": "Search",
+  "profile": "Profile",
+  "all": "All",
+  "refresh": "Refresh",
+  "retry": "Retry",
+  "cancel": "Cancel",
+  "save": "Save",
+  "connect": "Connect",
+  "guest": "Guest",
+  "anonymous": "Anonymous",
+
+  "searchBusinessesHint": "Search businesses...",
+  "businessesNearYou": "Businesses Near You",
+  "noBusinessesFound": "No businesses found",
+  "noBusinessesFoundSubtitle": "Try selecting a different category or pull down to refresh.",
+  "failedToLoadBusinesses": "Failed to load businesses",
+
+  "recentSearches": "Recent Searches",
+  "trendingCategories": "Trending Categories",
+  "noResultsFound": "No results found",
+  "noResultsFoundSubtitle": "Try a different search term or category.",
+  "clearSearch": "Clear Search",
+  "businessesCount": "Businesses ({count})",
+  "@businessesCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "searchFailed": "Search failed",
+
+  "call": "Call",
+  "directions": "Directions",
+  "address": "Address",
+  "phone": "Phone",
+  "email": "Email",
+  "reviews": "Reviews",
+  "noReviewsYet": "No reviews yet",
+  "noReviewsYetSubtitle": "Be the first to share your experience.",
+  "failedToLoadBusiness": "Failed to load business",
+
+  "account": "Account",
+  "editProfile": "Edit Profile",
+  "editProfileSubtitle": "Update your info",
+  "settings": "Settings",
+  "settingsSubtitle": "Server & theme",
+  "help": "Help",
+  "helpSubtitle": "Support center",
+  "demoData": "Demo Data",
+  "demoDataSubtitle": "Seed sample data",
+  "signOut": "Sign Out",
+  "signOutConfirmation": "Are you sure you want to sign out?",
+  "populateDemoData": "Populate Demo Data",
+  "populateDemoDataConfirmation": "This will add sample categories and businesses to your account. Continue?",
+  "populate": "Populate",
+  "demoDataSuccess": "Demo data populated successfully!",
+
+  "appearance": "Appearance",
+  "appearanceSubtitle": "Choose how TradeMaster looks on your device.",
+  "serverConnection": "Server Connection",
+  "serverConnectionSubtitle": "Change the address your app uses to reach the TradeMaster server.",
+  "serverUrl": "Server URL",
+  "serverUrlHint": "e.g. 192.168.1.100:3000",
+  "serverUrlRequired": "Please enter a server URL",
+  "serverUrlSaved": "Server URL saved",
+  "saveServerUrl": "Save Server URL",
+  "serverUrlTip": "Tip: Use your computer's local IP if testing on a physical device.",
+  "useDefaultLocalhost": "Use Default (localhost)",
+
+  "welcomeBack": "Welcome Back",
+  "signInSubtitle": "Sign in to discover local businesses",
+  "emailLabel": "Email",
+  "emailHint": "your@email.com",
+  "passwordLabel": "Password",
+  "signIn": "Sign In",
+  "dontHaveAccount": "Don't have an account? ",
+  "signUp": "Sign Up",
+
+  "createAccount": "Create Account",
+  "signUpSubtitle": "Join the local business directory",
+  "firstName": "First Name",
+  "lastName": "Last Name",
+  "confirmPassword": "Confirm Password",
+  "confirmPasswordRequired": "Please confirm your password",
+  "passwordsDoNotMatch": "Passwords do not match",
+  "alreadyHaveAccount": "Already have an account? ",
+  "consentRequired": "You must agree to the Privacy Policy and Terms of Service",
+  "privacyPolicy": "Privacy Policy",
+  "termsOfService": "Terms of Service",
+  "consentLabel": "I have read and agree to the [PrivacyPolicy] and [TermsOfService]",
+
+  "welcomeToTradeMaster": "Welcome to TradeMaster",
+  "serverUrlSetupSubtitle": "Enter your server address to get started. You can change this later in Settings.",
+
+  "system": "System",
+  "light": "Light",
+  "dark": "Dark",
+
+  "language": "Language",
+  "english": "English",
+  "persian": "Persian",
+
+  "emailRequired": "Email is required",
+  "invalidEmail": "Please enter a valid email",
+  "passwordRequired": "Password is required",
+  "passwordMinLength": "Password must be at least 8 characters",
+  "passwordStrength": "Password must contain uppercase, lowercase, and numeric characters",
+  "fieldIsRequired": "{fieldName} is required",
+  "@fieldIsRequired": {
+    "placeholders": {
+      "fieldName": { "type": "String" }
+    }
+  },
+
+  "connectionTimedOut": "Connection timed out. Please check your internet connection.",
+  "unableToConnect": "Unable to connect to server. Please check your connection.",
+  "invalidEmailOrPassword": "Invalid email or password.",
+  "emailAlreadyExists": "An account with this email already exists.",
+  "serverError": "Server error. Please try again later.",
+  "requestFailedStatus": "Request failed (status {statusCode}).",
+  "@requestFailedStatus": {
+    "placeholders": {
+      "statusCode": { "type": "int" }
+    }
+  },
+  "unexpectedError": "An unexpected error occurred. Please try again.",
+
+  "locationServicesDisabled": "Location services are disabled",
+  "locationPermissionDenied": "Location permission denied",
+  "locationPermanentlyDenied": "Location permissions are permanently denied",
+
+  "failedToSeedDemoData": "Failed to seed demo data",
+  "deleteAccount": "Delete Account",
+  "deleteAccountSubtitle": "Permanently delete your account and all associated data.",
+  "deleteAccountConfirmation": "Are you sure you want to delete your account? This action cannot be undone.",
+  "deleteAccountFailed": "Failed to delete account",
+
+  "comingSoon": "Coming soon"
+}

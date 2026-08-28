@@ -1,13 +1,21 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../../../../application/redux/hooks';
-import { changePassword, clearError, selectUser, selectAuthLoading, selectAuthError } from '../../../../application/redux';
+import { changePassword, clearError, signout, selectUser, selectAuthLoading, selectAuthError } from '../../../../application/redux';
 import { TMButton, TMInput, ThemeToggle } from '../../../components';
 import { serverUrlConfig } from '../../../../infrastructure/api/serverUrlConfig';
 import { networkService } from '../../../../infrastructure/api/NetworkService';
 import { devService } from '../../../../infrastructure/api/devService';
+import { SUPPORTED_LANGUAGES, type SupportedLanguage } from '../../../../infrastructure/i18n/i18n';
+import { formatDate } from '../../../../infrastructure/i18n/format';
+import './Settings.css';
 
 const TMSettings: React.FC = () => {
+  const { t, i18n } = useTranslation('translation', { keyPrefix: 'settings' });
+  const { t: commonT } = useTranslation('translation', { keyPrefix: 'common' });
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const user = useAppSelector(selectUser);
   const isLoading = useAppSelector(selectAuthLoading);
   const error = useAppSelector(selectAuthError);
@@ -30,6 +38,7 @@ const TMSettings: React.FC = () => {
   const [serverUrlSaved, setServerUrlSaved] = useState(false);
   const [seeding, setSeeding] = useState(false);
   const [seedMessage, setSeedMessage] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     setServerUrl(serverUrlConfig.getUrl());
@@ -46,16 +55,16 @@ const TMSettings: React.FC = () => {
   };
 
   const handleSeedDemoData = async () => {
-    if (!window.confirm('This will add sample categories and businesses to your account. Continue?')) {
+    if (!window.confirm(t('demoDataConfirm'))) {
       return;
     }
     setSeeding(true);
     setSeedMessage('');
     try {
       const result = await devService.seedDemoData();
-      setSeedMessage(result.message || 'Demo data populated successfully');
+      setSeedMessage(result.message || t('demoDataSuccess'));
     } catch (error) {
-      setSeedMessage('Failed to populate demo data. Please try again.');
+      setSeedMessage(t('demoDataFailed'));
     } finally {
       setSeeding(false);
       setTimeout(() => setSeedMessage(''), 5000);
@@ -87,19 +96,19 @@ const TMSettings: React.FC = () => {
     const errors: typeof validationErrors = {};
 
     if (!formData.currentPassword.trim()) {
-      errors.currentPassword = 'Current password is required';
+      errors.currentPassword = t('currentPasswordRequired');
     }
 
     if (!formData.newPassword.trim()) {
-      errors.newPassword = 'New password is required';
+      errors.newPassword = t('newPasswordRequired');
     } else if (formData.newPassword.length < 6) {
-      errors.newPassword = 'New password must be at least 6 characters long';
+      errors.newPassword = t('newPasswordMinLength');
     }
 
     if (!formData.confirmPassword.trim()) {
-      errors.confirmPassword = 'Please confirm your new password';
+      errors.confirmPassword = t('confirmPasswordRequired');
     } else if (formData.newPassword !== formData.confirmPassword) {
-      errors.confirmPassword = 'Passwords do not match';
+      errors.confirmPassword = t('passwordsDoNotMatch');
     }
 
     setValidationErrors(errors);
@@ -119,7 +128,7 @@ const TMSettings: React.FC = () => {
         newPassword: formData.newPassword
       })).unwrap();
 
-      setSuccessMessage('Password updated successfully');
+      setSuccessMessage(t('passwordUpdated'));
       setFormData({
         currentPassword: '',
         newPassword: '',
@@ -131,81 +140,123 @@ const TMSettings: React.FC = () => {
     }
   };
 
+  const handleLanguageChange = (lang: SupportedLanguage) => {
+    i18n.changeLanguage(lang);
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+    const confirmed = window.confirm(t('deleteAccountConfirm'));
+    if (!confirmed) return;
+
+    setDeleting(true);
+    try {
+      await networkService.delete(`/users/${user.id}`);
+      dispatch(signout());
+      navigate('/signin');
+    } catch (error) {
+      console.error('Account deletion failed:', error);
+      alert(t('deleteAccountFailed'));
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
-    <div className="dashboard-page fade-in">
+    <div className="dashboard-page settings-page fade-in">
       <div className="dashboard-page__header">
-        <h1 className="dashboard-page__title">Settings</h1>
-        <p className="dashboard-page__subtitle">Manage your profile and account settings</p>
+        <h1 className="dashboard-page__title">{t('title')}</h1>
+        <p className="dashboard-page__subtitle">{t('subtitle')}</p>
       </div>
 
       <div className="dashboard-page__content">
         {/* User Profile Section */}
         <div className="settings-section">
-          <h3 className="settings-section__title">Profile Information</h3>
+          <h3 className="settings-section__title">{t('profileInformation')}</h3>
           <div className="settings-profile">
             <div className="settings-profile__avatar">
               {user?.firstname?.[0]}{user?.lastname?.[0]}
             </div>
             <div className="settings-profile__info">
               <div className="settings-profile__field">
-                <label>Name</label>
+                <label>{commonT('name')}</label>
                 <span>{user?.firstname} {user?.lastname}</span>
               </div>
               <div className="settings-profile__field">
-                <label>Email</label>
-                <span>{user?.email}</span>
+                <label>{commonT('email')}</label>
+                <span dir="ltr">{user?.email}</span>
               </div>
               <div className="settings-profile__field">
-                <label>Member since</label>
-                <span>{user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}</span>
+                <label>{commonT('memberSince')}</label>
+                <span>{user?.createdAt ? formatDate(user.createdAt) : commonT('notAvailable')}</span>
               </div>
             </div>
           </div>
         </div>
 
+        {/* Language Section */}
+        <div className="settings-section">
+          <h3 className="settings-section__title">{t('language')}</h3>
+          <p className="settings-section__description">
+            {t('languageDescription')}
+          </p>
+          <div className="settings-language-options">
+            {SUPPORTED_LANGUAGES.map((lang) => (
+              <button
+                key={lang}
+                type="button"
+                onClick={() => handleLanguageChange(lang)}
+                className={`settings-language-btn ${i18n.language === lang ? 'settings-language-btn--active' : ''}`}
+              >
+                {lang === 'fa' ? commonT('languageFa') : commonT('languageEn')}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Appearance Section */}
         <div className="settings-section">
-          <h3 className="settings-section__title">Appearance</h3>
-          <p style={{ color: '#6b7280', margin: '0 0 1rem' }}>
-            Choose how TradeMaster looks in your browser.
+          <h3 className="settings-section__title">{t('appearance')}</h3>
+          <p className="settings-section__description">
+            {t('appearanceDescription')}
           </p>
           <ThemeToggle />
         </div>
 
         {/* Server Connection Section */}
         <div className="settings-section">
-          <h3 className="settings-section__title">Server Connection</h3>
-          <p style={{ color: '#6b7280', margin: '0 0 1rem' }}>
-            Change the address your browser uses to reach the TradeMaster server.
+          <h3 className="settings-section__title">{t('serverConnection')}</h3>
+          <p className="settings-section__description">
+            {t('serverConnectionDescription')}
           </p>
           <form onSubmit={handleServerUrlSave} className="settings-form">
             {serverUrlSaved && (
               <div className="settings-message settings-message--success">
-                Server URL saved successfully
+                {commonT('serverUrlSaved')}
               </div>
             )}
             <TMInput
-              label="Server URL"
+              label={commonT('serverUrl')}
               type="url"
-              placeholder="e.g. 192.168.1.100:3000"
+              placeholder={commonT('serverUrlPlaceholder')}
               value={serverUrl}
               onChange={(e) => setServerUrl(e.target.value)}
               required
             />
-            <div className="settings-form__actions" style={{ marginTop: '1rem' }}>
-              <TMButton type="submit">Save Server URL</TMButton>
+            <div className="settings-form__actions">
+              <TMButton type="submit">{commonT('saveServerUrl')}</TMButton>
             </div>
           </form>
         </div>
 
         {/* Demo Data Section */}
         <div className="settings-section">
-          <h3 className="settings-section__title">Demo Data</h3>
-          <p style={{ color: '#6b7280', margin: '0 0 1rem' }}>
-            Populate your account with sample categories and businesses for testing.
+          <h3 className="settings-section__title">{t('demoData')}</h3>
+          <p className="settings-section__description">
+            {t('demoDataDescription')}
           </p>
           {seedMessage && (
-            <div className={`settings-message ${seedMessage.includes('Failed') ? 'settings-message--error' : 'settings-message--success'}`}>
+            <div className={`settings-message ${seedMessage.includes(t('demoDataFailed').slice(0, 10)) ? 'settings-message--error' : 'settings-message--success'}`}>
               {seedMessage}
             </div>
           )}
@@ -214,22 +265,22 @@ const TMSettings: React.FC = () => {
             disabled={seeding}
             variant="secondary"
           >
-            {seeding ? 'Populating...' : 'Populate Demo Data'}
+            {seeding ? t('populating') : t('populateDemoData')}
           </TMButton>
         </div>
 
         {/* Password Change Section */}
         <div className="settings-section">
-          <h3 className="settings-section__title">Security</h3>
+          <h3 className="settings-section__title">{t('security')}</h3>
 
           {!showPasswordForm ? (
             <div className="settings-action">
-              <p>Keep your account secure by using a strong password.</p>
+              <p>{t('securityDescription')}</p>
               <TMButton
                 variant="secondary"
                 onClick={() => setShowPasswordForm(true)}
               >
-                Change Password
+                {t('changePassword')}
               </TMButton>
             </div>
           ) : (
@@ -247,9 +298,9 @@ const TMSettings: React.FC = () => {
               )}
 
               <TMInput
-                label="Current Password"
+                label={t('currentPassword')}
                 type="password"
-                placeholder="Enter your current password"
+                placeholder={t('currentPasswordPlaceholder')}
                 value={formData.currentPassword}
                 onChange={handleInputChange('currentPassword')}
                 required
@@ -257,9 +308,9 @@ const TMSettings: React.FC = () => {
               />
 
               <TMInput
-                label="New Password"
+                label={t('newPassword')}
                 type="password"
-                placeholder="Enter new password"
+                placeholder={t('newPasswordPlaceholder')}
                 value={formData.newPassword}
                 onChange={handleInputChange('newPassword')}
                 required
@@ -267,9 +318,9 @@ const TMSettings: React.FC = () => {
               />
 
               <TMInput
-                label="Confirm New Password"
+                label={t('confirmNewPassword')}
                 type="password"
-                placeholder="Confirm new password"
+                placeholder={t('confirmNewPasswordPlaceholder')}
                 value={formData.confirmPassword}
                 onChange={handleInputChange('confirmPassword')}
                 required
@@ -288,137 +339,32 @@ const TMSettings: React.FC = () => {
                     setSuccessMessage('');
                   }}
                 >
-                  Cancel
+                  {commonT('cancel')}
                 </TMButton>
                 <TMButton type="submit" disabled={isLoading}>
-                  {isLoading ? 'Updating...' : 'Update Password'}
+                  {isLoading ? commonT('updating') : t('changePassword')}
                 </TMButton>
               </div>
             </form>
           )}
         </div>
+
+        {/* Account Deletion Section */}
+        <div className="settings-section">
+          <h3 className="settings-section__title">{t('deleteAccount')}</h3>
+          <p className="settings-section__description">
+            {t('deleteAccountDescription')}
+          </p>
+          <TMButton
+            onClick={handleDeleteAccount}
+            disabled={deleting}
+            variant="secondary"
+          >
+            {deleting ? t('deleting') : t('deleteAccount')}
+          </TMButton>
+        </div>
       </div>
 
-      <style>{`
-        .settings-section {
-          margin-bottom: 2rem;
-          padding-bottom: 2rem;
-          border-bottom: 1px solid #e5e7eb;
-        }
-
-        .settings-section:last-child {
-          border-bottom: none;
-        }
-
-        .settings-section__title {
-          font-size: 1.25rem;
-          font-weight: 600;
-          color: #1f2937;
-          margin: 0 0 1.5rem 0;
-        }
-
-        .settings-profile {
-          display: flex;
-          align-items: flex-start;
-          gap: 1.5rem;
-        }
-
-        .settings-profile__avatar {
-          width: 80px;
-          height: 80px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
-          font-weight: 600;
-          font-size: 1.5rem;
-          text-transform: uppercase;
-          flex-shrink: 0;
-        }
-
-        .settings-profile__info {
-          flex: 1;
-        }
-
-        .settings-profile__field {
-          margin-bottom: 1rem;
-        }
-
-        .settings-profile__field label {
-          display: block;
-          font-weight: 500;
-          color: #374151;
-          font-size: 0.875rem;
-          margin-bottom: 0.25rem;
-        }
-
-        .settings-profile__field span {
-          color: #6b7280;
-          font-size: 0.9rem;
-        }
-
-        .settings-action {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 1rem;
-        }
-
-        .settings-action p {
-          color: #6b7280;
-          margin: 0;
-          flex: 1;
-        }
-
-        .settings-form {
-          max-width: 400px;
-          display: flex;
-          flex-direction: column;
-          gap: 1rem;
-        }
-
-        .settings-form__actions {
-          display: flex;
-          gap: 1rem;
-          margin-top: 0.5rem;
-        }
-
-        .settings-message {
-          padding: 12px;
-          border-radius: 8px;
-          font-size: 14px;
-        }
-
-        .settings-message--success {
-          background-color: #dcfce7;
-          border: 1px solid #bbf7d0;
-          color: #166534;
-        }
-
-        .settings-message--error {
-          background-color: #fee2e2;
-          border: 1px solid #fecaca;
-          color: #dc2626;
-        }
-
-        @media (max-width: 768px) {
-          .settings-profile {
-            flex-direction: column;
-            text-align: center;
-          }
-
-          .settings-action {
-            flex-direction: column;
-            align-items: flex-start;
-          }
-
-          .settings-form__actions {
-            flex-direction: column;
-          }
-        }
-      `}</style>
     </div>
   );
 };

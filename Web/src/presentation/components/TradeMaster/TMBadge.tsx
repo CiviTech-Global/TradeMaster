@@ -10,11 +10,11 @@ interface TMBadgeProps {
 }
 
 const variantMap: Record<TMBadgeVariant, { bg: string; color: string }> = {
-  primary: { bg: 'rgba(255, 107, 107, 0.12)', color: 'var(--color-primary)' },
-  secondary: { bg: 'rgba(255, 167, 38, 0.12)', color: '#E65100' },
-  success: { bg: 'rgba(102, 187, 106, 0.12)', color: 'var(--color-success)' },
-  warning: { bg: 'rgba(255, 183, 77, 0.12)', color: '#EF6C00' },
-  error: { bg: 'rgba(239, 83, 80, 0.12)', color: 'var(--color-error)' },
+  primary: { bg: 'var(--color-primary-mix-12)', color: 'var(--color-primary)' },
+  secondary: { bg: 'var(--color-secondary-mix-12)', color: 'var(--color-warning-text)' },
+  success: { bg: 'var(--color-success-mix-12)', color: 'var(--color-success)' },
+  warning: { bg: 'var(--color-warning-mix-12)', color: 'var(--color-warning-text)' },
+  error: { bg: 'var(--color-error-mix-12)', color: 'var(--color-error)' },
   muted: { bg: 'var(--color-border)', color: 'var(--color-muted)' },
 };
 

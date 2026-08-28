@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAppSelector, useAppDispatch } from '../../../../application/redux/hooks';
 import { resetPassword, clearError, selectAuthLoading, selectAuthError } from '../../../../application/redux';
 import AuthLayout from '../../../components/AuthLayout';
 import { TMButton, TMInput } from '../../../components';
 
 const TMSetNewPassword: React.FC = () => {
+  const { t } = useTranslation('translation', { keyPrefix: 'auth' });
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const dispatch = useAppDispatch();
@@ -48,15 +50,15 @@ const TMSetNewPassword: React.FC = () => {
     const errors: { password?: string; confirmPassword?: string } = {};
 
     if (!formData.password.trim()) {
-      errors.password = 'Password is required';
+      errors.password = t('passwordRequired');
     } else if (formData.password.length < 6) {
-      errors.password = 'Password must be at least 6 characters long';
+      errors.password = t('passwordMinLength');
     }
 
     if (!formData.confirmPassword.trim()) {
-      errors.confirmPassword = 'Please confirm your password';
+      errors.confirmPassword = t('confirmPasswordRequired');
     } else if (formData.password !== formData.confirmPassword) {
-      errors.confirmPassword = 'Passwords do not match';
+      errors.confirmPassword = t('passwordsDoNotMatch');
     }
 
     setValidationErrors(errors);
@@ -73,7 +75,7 @@ const TMSetNewPassword: React.FC = () => {
         newPassword: formData.password
       })).unwrap();
 
-      navigate('/signin?message=Password reset successful. Please sign in with your new password.');
+      navigate(`/signin?message=${encodeURIComponent(t('resetSuccessMessage'))}`);
     } catch (error) {
       console.error('Reset password failed:', error);
     }
@@ -81,26 +83,26 @@ const TMSetNewPassword: React.FC = () => {
 
   if (!isValidToken) {
     return (
-      <AuthLayout title="Invalid Reset Link" subtitle="The link is invalid or has expired">
+      <AuthLayout title={t('invalidResetLinkTitle')} subtitle={t('invalidResetLinkSubtitle')}>
         <div style={{
           padding: '16px',
-          backgroundColor: 'rgba(239, 83, 80, 0.1)',
-          border: '1px solid rgba(239, 83, 80, 0.2)',
+          backgroundColor: 'var(--color-error-mix-10)',
+          border: '1px solid var(--color-error-mix-20)',
           borderRadius: 'var(--radius-md)',
           color: 'var(--color-error)',
           textAlign: 'center',
           marginBottom: '16px'
         }}>
-          This password reset link is invalid or has expired.
+          {t('invalidResetLinkMessage')}
         </div>
         <Link to="/forgot-password">
           <TMButton type="button" isFullWidth>
-            Request New Reset Link
+            {t('requestNewResetLink')}
           </TMButton>
         </Link>
         <p style={{ textAlign: 'center', marginTop: '1.5rem' }}>
           <Link to="/signin" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
-            Back to sign in
+            {t('backToSignIn')}
           </Link>
         </p>
       </AuthLayout>
@@ -108,13 +110,13 @@ const TMSetNewPassword: React.FC = () => {
   }
 
   return (
-    <AuthLayout title="Set New Password" subtitle="Create a strong password for your account">
+    <AuthLayout title={t('setNewPasswordTitle')} subtitle={t('setNewPasswordSubtitle')}>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         {error && (
           <div style={{
             padding: '12px',
-            backgroundColor: 'rgba(239, 83, 80, 0.1)',
-            border: '1px solid rgba(239, 83, 80, 0.2)',
+            backgroundColor: 'var(--color-error-mix-10)',
+            border: '1px solid var(--color-error-mix-20)',
             borderRadius: 'var(--radius-md)',
             color: 'var(--color-error)',
             fontSize: '14px'
@@ -124,31 +126,31 @@ const TMSetNewPassword: React.FC = () => {
         )}
 
         <TMInput
-          label="New Password"
+          label={t('newPassword')}
           type="password"
-          placeholder="Enter new password"
+          placeholder={t('enterNewPassword')}
           value={formData.password}
           onChange={handleInputChange('password')}
           required
           error={validationErrors.password}
         />
         <TMInput
-          label="Confirm Password"
+          label={t('confirmPassword')}
           type="password"
-          placeholder="Confirm new password"
+          placeholder={t('confirmNewPasswordPlaceholder')}
           value={formData.confirmPassword}
           onChange={handleInputChange('confirmPassword')}
           required
           error={validationErrors.confirmPassword}
         />
         <TMButton type="submit" isLoading={isLoading} isFullWidth>
-          {isLoading ? 'Updating...' : 'Update Password'}
+          {isLoading ? t('updating') : t('updatePassword')}
         </TMButton>
       </form>
 
       <p style={{ textAlign: 'center', marginTop: '1.5rem', color: 'var(--color-on-surface-variant)' }}>
         <Link to="/signin" style={{ color: 'var(--color-primary)', fontWeight: 600, textDecoration: 'none' }}>
-          Back to sign in
+          {t('backToSignIn')}
         </Link>
       </p>
     </AuthLayout>

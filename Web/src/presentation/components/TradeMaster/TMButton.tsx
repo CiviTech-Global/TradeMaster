@@ -48,12 +48,12 @@ const TMButton: React.FC<TMButtonProps> = ({
   const variantStyles: Record<TMButtonVariant, React.CSSProperties> = {
     primary: {
       background: 'var(--color-primary)',
-      color: '#fff',
-      boxShadow: '0 4px 12px rgba(255, 107, 107, 0.25)',
+      color: 'var(--color-on-primary)',
+      boxShadow: '0 4px 12px var(--color-primary-mix-25)',
     },
     secondary: {
       background: 'var(--color-secondary)',
-      color: '#fff',
+      color: 'var(--color-on-primary)',
     },
     ghost: {
       background: 'transparent',

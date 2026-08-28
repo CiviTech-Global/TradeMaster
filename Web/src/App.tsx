@@ -20,6 +20,8 @@ import TMSignin from "./presentation/pages/authentication/signin";
 import TMForgotPassword from "./presentation/pages/authentication/forgotPassword";
 import TMSetNewPassword from "./presentation/pages/authentication/setNewPassword";
 import TMSignup from "./presentation/pages/authentication/signup";
+import PrivacyPolicy from "./presentation/pages/legal/PrivacyPolicy";
+import TermsOfService from "./presentation/pages/legal/TermsOfService";
 import TMLanding from "./presentation/pages/landing";
 import AppInitializer from "./presentation/components/AppInitializer";
 import ErrorBoundary from "./presentation/components/ErrorBoundary";
@@ -55,6 +57,8 @@ function App() {
                 <TMSetNewPassword />
               </PublicRoute>
             } />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms-of-service" element={<TermsOfService />} />
 
             {/* Dashboard Routes */}
             <Route path="/" element={

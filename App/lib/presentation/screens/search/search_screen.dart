@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:trademaster/data/datasources/search_remote_datasource.dart';
+import 'package:trademaster/l10n/generated/app_localizations.dart';
 import 'package:trademaster/presentation/components/tm_empty_state.dart';
 import 'package:trademaster/presentation/components/tm_input.dart';
 import 'package:trademaster/presentation/components/tm_skeleton.dart';
@@ -111,6 +112,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   Widget build(BuildContext context) {
     final searchState = ref.watch(searchResultProvider);
     final categories = ref.watch(categoriesProvider);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       body: SafeArea(
@@ -118,7 +120,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           children: [
             // Search header
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 8),
               child: Row(
                 children: [
                   Expanded(
@@ -126,7 +128,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                       color: Colors.transparent,
                       child: TMInput(
                         label: null,
-                        hint: 'Search businesses...',
+                        hint: l10n.searchBusinessesHint,
                         controller: _controller,
                         onChanged: _onSearchChanged,
                         onSubmitted: (_) => _performSearch(),
@@ -156,9 +158,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   itemBuilder: (context, index) {
                     if (index == 0) {
                       return Padding(
-                        padding: const EdgeInsets.only(right: 8),
+                        padding: const EdgeInsetsDirectional.only(end: 8),
                         child: _CategoryChip(
-                          label: 'All',
+                          label: l10n.all,
                           isSelected: _selectedCategoryId == null,
                           onTap: () {
                             setState(() => _selectedCategoryId = null);
@@ -169,7 +171,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     }
                     final cat = cats[index - 1];
                     return Padding(
-                      padding: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsetsDirectional.only(end: 8),
                       child: _CategoryChip(
                         label: cat.name,
                         isSelected: _selectedCategoryId == cat.id,
@@ -198,7 +200,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                       padding: const EdgeInsets.all(16),
                       children: [
                         if (_recentSearches.isNotEmpty) ...[
-                          _SectionTitle('Recent Searches'),
+                          _SectionTitle(l10n.recentSearches),
                           const SizedBox(height: 8),
                           Wrap(
                             spacing: 8,
@@ -216,7 +218,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                           ),
                           const SizedBox(height: 24),
                         ],
-                        _SectionTitle('Trending Categories'),
+                        _SectionTitle(l10n.trendingCategories),
                         const SizedBox(height: 8),
                         categories.when(
                           data: (cats) => Wrap(
@@ -246,9 +248,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   if (!hasBusinesses) {
                     return TMEmptyState(
                       icon: Icons.search_off,
-                      title: 'No results found',
-                      subtitle: 'Try a different search term or category.',
-                      actionLabel: 'Clear Search',
+                      title: l10n.noResultsFound,
+                      subtitle: l10n.noResultsFoundSubtitle,
+                      actionLabel: l10n.clearSearch,
                       onAction: _clearSearch,
                     );
                   }
@@ -257,7 +259,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     padding: const EdgeInsets.all(16),
                     children: [
                       _SectionTitle(
-                        'Businesses (${result.businesses!.length})',
+                        l10n.businessesCount(result.businesses!.length),
                       ),
                       const SizedBox(height: 12),
                       ...result.businesses!.map(
@@ -281,9 +283,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 ),
                 error: (e, _) => TMEmptyState(
                   icon: Icons.error_outline,
-                  title: 'Search failed',
+                  title: l10n.searchFailed,
                   subtitle: e.toString(),
-                  actionLabel: 'Retry',
+                  actionLabel: l10n.retry,
                   onAction: _performSearch,
                 ),
               ),

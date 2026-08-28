@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:trademaster/data/models/business_model.dart';
+import 'package:trademaster/l10n/generated/app_localizations.dart';
 import 'package:trademaster/presentation/components/tm_card.dart';
 import 'package:trademaster/presentation/components/tm_empty_state.dart';
 import 'package:trademaster/presentation/components/tm_skeleton.dart';
@@ -54,6 +55,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
     final location = ref.watch(locationProvider);
     final businesses = ref.watch(activeBusinessesProvider);
     final categories = ref.watch(categoriesProvider);
+    final l10n = AppLocalizations.of(context);
 
     final center = location.position != null
         ? LatLng(location.position!.latitude, location.position!.longitude)
@@ -69,7 +71,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
             // Hero search bar
             SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.fromLTRB(
+                padding: EdgeInsetsDirectional.fromSTEB(
                   16,
                   MediaQuery.of(context).padding.top + 16,
                   16,
@@ -90,7 +92,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          'Search businesses...',
+                          l10n.searchBusinessesHint,
                           style: theme.textTheme.bodyLarge?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
@@ -169,9 +171,9 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                                 ),
                             ],
                           ),
-                          Positioned(
+                          PositionedDirectional(
                             top: 12,
-                            right: 12,
+                            end: 12,
                             child: Material(
                               color: colorScheme.surface.withValues(alpha: 0.9),
                               borderRadius: BorderRadius.circular(12),
@@ -212,9 +214,9 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                     itemBuilder: (context, index) {
                       if (index == 0) {
                         return Padding(
-                          padding: const EdgeInsets.only(right: 8),
+                          padding: const EdgeInsetsDirectional.only(end: 8),
                           child: _CategoryChip(
-                            label: 'All',
+                            label: l10n.all,
                             isSelected: _selectedCategoryId == null,
                             onTap: () => setState(() => _selectedCategoryId = null),
                           ),
@@ -222,7 +224,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                       }
                       final cat = cats[index - 1];
                       return Padding(
-                        padding: const EdgeInsets.only(right: 8),
+                        padding: const EdgeInsetsDirectional.only(end: 8),
                         child: _CategoryChip(
                           label: cat.name,
                           isSelected: _selectedCategoryId == cat.id,
@@ -244,7 +246,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
             // Section header
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 12),
                 child: Row(
                   children: [
                     Icon(
@@ -254,7 +256,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Businesses Near You',
+                      l10n.businessesNearYou,
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -273,9 +275,9 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                     hasScrollBody: false,
                     child: TMEmptyState(
                       icon: Icons.storefront_outlined,
-                      title: 'No businesses found',
-                      subtitle: 'Try selecting a different category or pull down to refresh.',
-                      actionLabel: 'Refresh',
+                      title: l10n.noBusinessesFound,
+                      subtitle: l10n.noBusinessesFoundSubtitle,
+                      actionLabel: l10n.refresh,
                       onAction: _refresh,
                     ),
                   );
@@ -310,9 +312,9 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                 hasScrollBody: false,
                 child: TMEmptyState(
                   icon: Icons.error_outline,
-                  title: 'Failed to load businesses',
+                  title: l10n.failedToLoadBusinesses,
                   subtitle: e.toString(),
-                  actionLabel: 'Retry',
+                  actionLabel: l10n.retry,
                   onAction: _refresh,
                 ),
               ),

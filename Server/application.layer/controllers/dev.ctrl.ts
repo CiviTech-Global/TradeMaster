@@ -1,4 +1,5 @@
-import { Response } from "express";
+import { Response, NextFunction } from "express";
+import { InternalError } from "../../infrastructure.layer/errors/app-error";
 import { AuthenticatedRequest } from "../../infrastructure.layer/utils/jwt.util";
 import { Category } from "../../domain.layer/models/category";
 import { Business } from "../../domain.layer/models/business";
@@ -143,7 +144,7 @@ const demoReviews = [
   { rating: 3, comment: "Decent, but shipping took longer than expected." },
 ];
 
-export async function seedDemoData(req: AuthenticatedRequest, res: Response) {
+export async function seedDemoData(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const userId = req.user!.id;
     logger.info("DevCtrl", "seedDemoData started", { userId });
@@ -362,6 +363,6 @@ export async function seedDemoData(req: AuthenticatedRequest, res: Response) {
     });
   } catch (error) {
     logger.error("DevCtrl", "seedDemoData failed", error, { userId: req.user?.id });
-    res.status(500).json({ error: "Failed to seed demo data" });
+    next(new InternalError("Failed to seed demo data"));
   }
 }

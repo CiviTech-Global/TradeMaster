@@ -14,24 +14,24 @@
 }
 
 .btn--primary {
-  background: #6366f1;
-  color: white;
+  background: var(--color-info);
+  color: var(--color-on-primary);
 }
 
 .btn--primary:hover {
-  background: #5b5bd6;
+  background: var(--color-info-dark);
   transform: translateY(-1px);
 }
 
 .btn--secondary {
   background: transparent;
-  color: #6366f1;
-  border: 1px solid #6366f1;
+  color: var(--color-info);
+  border: 1px solid var(--color-info);
 }
 
 .btn--secondary:hover {
-  background: #6366f1;
-  color: white;
+  background: var(--color-info);
+  color: var(--color-on-primary);
 }
 
 .btn:disabled {

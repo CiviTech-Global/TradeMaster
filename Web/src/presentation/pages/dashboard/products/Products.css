@@ -2,10 +2,10 @@
 
 /* Product Creation/Edit Section */
 .product-creation-section {
-  background: #f9fafb;
+  background: var(--color-surface-subtle);
   border-radius: 8px;
   padding: 1.5rem;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border-default);
 }
 
 .product-creation__header {
@@ -17,7 +17,7 @@
 
 .product-creation__header h2 {
   margin: 0;
-  color: #111827;
+  color: var(--color-text-primary);
 }
 
 .product-creation__form {
@@ -47,14 +47,14 @@
 .product-table th,
 .product-table td {
   padding: 0.75rem;
-  text-align: left;
-  border-bottom: 1px solid #e5e7eb;
+  text-align: start;
+  border-bottom: 1px solid var(--color-border-default);
 }
 
 .product-table th {
-  background: #f9fafb;
+  background: var(--color-surface-subtle);
   font-weight: 600;
-  color: #374151;
+  color: var(--color-text-secondary);
 }
 
 .product-table th.sortable {
@@ -63,7 +63,7 @@
 }
 
 .product-table th.sortable:hover {
-  background: #f3f4f6;
+  background: var(--color-surface-hover);
 }
 
 /* Product Title Cell */
@@ -78,26 +78,26 @@
   height: 40px;
   border-radius: 4px;
   object-fit: cover;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border-default);
 }
 
 .product-thumbnail-placeholder {
   width: 40px;
   height: 40px;
   border-radius: 4px;
-  background: #f3f4f6;
+  background: var(--color-surface-hover);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.2rem;
-  color: #9ca3af;
-  border: 1px solid #e5e7eb;
+  color: var(--color-text-disabled);
+  border: 1px solid var(--color-border-default);
 }
 
 /* Price */
 .product-price {
   font-weight: 600;
-  color: #111827;
+  color: var(--color-text-primary);
 }
 
 /* Stock */
@@ -110,37 +110,37 @@
 }
 
 .stock-badge.in-stock {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
 }
 
 .stock-badge.low-stock {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
 }
 
 .stock-badge.out-of-stock {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--color-error-bg);
+  color: var(--color-error-text);
 }
 
 /* Image Upload Section */
 .image-upload-section {
-  background: white;
+  background: var(--color-surface);
   padding: 1.5rem;
   border-radius: 6px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border-default);
 }
 
 .image-upload-section h4 {
   margin: 0 0 1rem 0;
-  color: #111827;
+  color: var(--color-text-primary);
   font-size: 1.1rem;
   font-weight: 600;
 }
 
 .image-upload-area {
-  border: 2px dashed #d1d5db;
+  border: 2px dashed var(--color-border-input);
   border-radius: 6px;
   padding: 2rem;
   text-align: center;
@@ -149,13 +149,13 @@
 }
 
 .image-upload-area:hover {
-  border-color: #3b82f6;
-  background: #eff6ff;
+  border-color: var(--color-info);
+  background: var(--color-info-bg);
 }
 
 .image-upload-area p {
   margin: 0.5rem 0 0 0;
-  color: #6b7280;
+  color: var(--color-text-tertiary);
   font-size: 0.9rem;
 }
 
@@ -174,7 +174,7 @@
   position: relative;
   border-radius: 6px;
   overflow: hidden;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border-default);
 }
 
 .image-preview-item img {
@@ -187,12 +187,12 @@
 .image-preview-remove {
   position: absolute;
   top: 4px;
-  right: 4px;
+  inset-inline-end: 4px;
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: rgba(220, 38, 38, 0.9);
-  color: white;
+  background: var(--color-error);
+  color: var(--color-surface);
   border: none;
   cursor: pointer;
   display: flex;
@@ -203,20 +203,20 @@
 }
 
 .image-preview-remove:hover {
-  background: #dc2626;
+  background: var(--color-error);
 }
 
 /* Variant Section */
 .variant-section {
-  background: white;
+  background: var(--color-surface);
   padding: 1.5rem;
   border-radius: 6px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border-default);
 }
 
 .variant-section h4 {
   margin: 0 0 1rem 0;
-  color: #111827;
+  color: var(--color-text-primary);
   font-size: 1.1rem;
   font-weight: 600;
 }
@@ -234,44 +234,44 @@
   gap: 0.5rem;
   align-items: center;
   padding: 0.75rem;
-  background: #f9fafb;
+  background: var(--color-surface-subtle);
   border-radius: 6px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border-default);
 }
 
 .variant-item input {
   width: 100%;
   padding: 0.5rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-border-input);
   border-radius: 4px;
   font-size: 0.85rem;
 }
 
 .variant-item input:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  border-color: var(--color-info);
+  box-shadow: 0 0 0 2px var(--color-info-mix-10);
 }
 
 .variant-remove-btn {
   padding: 0.4rem 0.6rem;
-  background: #fee2e2;
-  color: #991b1b;
-  border: 1px solid #fecaca;
+  background: var(--color-error-bg);
+  color: var(--color-error-text);
+  border: 1px solid var(--color-error-border);
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.8rem;
 }
 
 .variant-remove-btn:hover {
-  background: #fecaca;
+  background: var(--color-error-border);
 }
 
 .variant-add-btn {
   padding: 0.5rem 1rem;
-  background: #eff6ff;
-  color: #1d4ed8;
-  border: 1px solid #bfdbfe;
+  background: var(--color-info-bg);
+  color: var(--color-info-text);
+  border: 1px solid var(--color-info-border);
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.85rem;
@@ -279,7 +279,7 @@
 }
 
 .variant-add-btn:hover {
-  background: #dbeafe;
+  background: var(--color-info-bg-subtle);
 }
 
 /* Back Link */
@@ -287,7 +287,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  color: #3b82f6;
+  color: var(--color-info);
   text-decoration: none;
   font-size: 0.9rem;
   margin-bottom: 1rem;
@@ -298,7 +298,7 @@
 }
 
 .products-back-link:hover {
-  color: #1d4ed8;
+  color: var(--color-info-text);
   text-decoration: underline;
 }
 
@@ -313,17 +313,17 @@
 .category-select {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-border-input);
   border-radius: 6px;
   font-family: inherit;
   font-size: 0.9rem;
-  background: white;
+  background: var(--color-surface);
 }
 
 .category-select:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: var(--color-info);
+  box-shadow: 0 0 0 3px var(--color-info-mix-10);
 }
 
 /* Responsive Design */

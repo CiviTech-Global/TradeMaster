@@ -1,7 +1,7 @@
 .notification-container {
   position: fixed;
   top: 1rem;
-  right: 1rem;
+  inset-inline-end: 1rem;
   z-index: 1000;
   display: flex;
   flex-direction: column;
@@ -26,23 +26,23 @@
 }
 
 .notification--success {
-  background: #10b981;
-  color: white;
+  background: var(--color-success);
+  color: var(--color-on-primary);
 }
 
 .notification--error {
-  background: #ef4444;
-  color: white;
+  background: var(--color-error);
+  color: var(--color-on-primary);
 }
 
 .notification--warning {
-  background: #f59e0b;
-  color: white;
+  background: var(--color-warning);
+  color: var(--color-on-primary);
 }
 
 .notification--info {
-  background: #6366f1;
-  color: white;
+  background: var(--color-info);
+  color: var(--color-on-primary);
 }
 
 .notification__content {
@@ -70,7 +70,7 @@
   font-weight: bold;
   cursor: pointer;
   padding: 0;
-  margin-left: 0.75rem;
+  margin-inline-start: 0.75rem;
   opacity: 0.7;
   transition: opacity 0.2s ease;
   width: 20px;
@@ -96,10 +96,25 @@
   }
 }
 
+/* In RTL the container sits at the inline end (left side), so toasts enter from the left */
+html[dir="rtl"] .notification {
+  animation-name: slideInRtl;
+}
+
+@keyframes slideInRtl {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 @media (max-width: 640px) {
   .notification-container {
-    left: 1rem;
-    right: 1rem;
+    inset-inline: 1rem;
     max-width: none;
   }
 

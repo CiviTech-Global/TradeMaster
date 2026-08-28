@@ -2,6 +2,7 @@ import { User } from "../../domain.layer/models/user";
 import { PasswordResetToken } from "../../domain.layer/models/password-reset-token";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
+import { logger } from "./logger.util";
 
 export async function getUserByEmailQuery(email: string, includePassword: boolean = false, userId?: number) {
   if (userId) {
@@ -74,7 +75,7 @@ export async function resetUserPasswordQuery(userId: number, newPassword: string
 
     return true;
   } catch (error) {
-    console.error("Error resetting password:", error);
+    logger.error("AUTH", "Error resetting password", error);
     return false;
   }
 }

@@ -1,11 +1,14 @@
 import { Sequelize } from 'sequelize';
 import { Umzug, SequelizeStorage } from 'umzug';
 import path from 'path';
+import { logger } from '../utils/logger.util';
 import { sequelize } from './sequelize';
+
+const migrationsGlob = path.join(__dirname, 'migrations').replace(/\\/g, '/') + '/*.ts';
 
 const umzug = new Umzug({
   migrations: {
-    glob: path.join(__dirname, 'migrations/*.ts'),
+    glob: migrationsGlob,
     resolve: ({ name, path: filepath, context }) => {
       const migration = require(filepath || '');
       return {
@@ -20,39 +23,44 @@ const umzug = new Umzug({
     sequelize,
     tableName: 'SequelizeMeta',
   }),
-  logger: console,
+  logger: {
+    info: () => {},
+    debug: () => {},
+    warn: () => {},
+    error: (msg: string | object) => logger.warn("MIGRATE", String(msg)),
+  },
 });
 
 export const runMigrations = async (): Promise<void> => {
   try {
-    console.log('Running database migrations...');
+    logger.info('MIGRATE', 'Running database migrations');
     const migrations = await umzug.up();
-    
+
     if (migrations.length === 0) {
-      console.log('No migrations to run.');
+      logger.info('MIGRATE', 'No migrations to run');
     } else {
-      console.log(`Successfully ran ${migrations.length} migration(s):`, 
-        migrations.map(m => m.name).join(', ')
-      );
+      logger.info('MIGRATE', `Successfully ran ${migrations.length} migration(s)`, {
+        migrations: migrations.map(m => m.name).join(', ')
+      });
     }
   } catch (error) {
-    console.error('Migration failed:', error);
+    logger.error('MIGRATE', 'Migration failed', error);
     throw error;
   }
 };
 
 export const rollbackMigrations = async (migrationName?: string): Promise<void> => {
   try {
-    console.log('Rolling back migrations...');
-    const migrations = migrationName 
+    logger.info('MIGRATE', 'Rolling back migrations');
+    const migrations = migrationName
       ? await umzug.down({ to: migrationName })
       : await umzug.down();
-    
-    console.log(`Successfully rolled back ${migrations.length} migration(s):`,
-      migrations.map(m => m.name).join(', ')
-    );
+
+    logger.info('MIGRATE', `Successfully rolled back ${migrations.length} migration(s)`, {
+      migrations: migrations.map(m => m.name).join(', ')
+    });
   } catch (error) {
-    console.error('Rollback failed:', error);
+    logger.error('MIGRATE', 'Rollback failed', error);
     throw error;
   }
 };
